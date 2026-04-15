@@ -1,0 +1,104 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;500&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:          #f5f6fa;
+  --bg2:         #ffffff;
+  --bg3:         #eef0f7;
+  --bg4:         #e4e6f0;
+  --bg5:         #d8daea;
+  --border:      rgba(30,35,80,0.08);
+  --border-h:    rgba(30,35,80,0.16);
+  --border-focus:rgba(99,88,255,0.5);
+  --text:        #0f1023;
+  --text2:       #4a4e72;
+  --text3:       #8e92b8;
+  --text4:       #b8bcd8;
+  --accent:      #6358ff;
+  --accent-h:    #7b72ff;
+  --accent2:     #a89dff;
+  --accent-bg:   rgba(99,88,255,0.08);
+  --green:       #00b87a;
+  --green-bg:    rgba(0,184,122,0.08);
+  --green-border:rgba(0,184,122,0.2);
+  --red:         #f03d5f;
+  --red-bg:      rgba(240,61,95,0.08);
+  --red-border:  rgba(240,61,95,0.2);
+  --yellow:      #f0a500;
+  --yellow-bg:   rgba(240,165,0,0.08);
+  --yellow-border:rgba(240,165,0,0.2);
+  --blue:        #2d7ef0;
+  --blue-bg:     rgba(45,126,240,0.08);
+  --shadow-sm:   0 1px 3px rgba(15,16,35,0.06), 0 1px 2px rgba(15,16,35,0.04);
+  --shadow:      0 4px 16px rgba(15,16,35,0.08), 0 1px 4px rgba(15,16,35,0.04);
+  --shadow-lg:   0 12px 40px rgba(15,16,35,0.1), 0 4px 12px rgba(15,16,35,0.06);
+  --shadow-accent: 0 8px 24px rgba(99,88,255,0.25);
+  --radius:      16px;
+  --radius-sm:   10px;
+  --radius-xs:   7px;
+  --font:        'Plus Jakarta Sans', sans-serif;
+  --font-mono:   'JetBrains Mono', monospace;
+}
+
+[data-theme="dark"] {
+  --bg:          #090b14;
+  --bg2:         #0e1120;
+  --bg3:         #141728;
+  --bg4:         #1c2035;
+  --bg5:         #242840;
+  --border:      rgba(255,255,255,0.07);
+  --border-h:    rgba(255,255,255,0.13);
+  --border-focus:rgba(99,88,255,0.6);
+  --text:        #eceeff;
+  --text2:       #8890c0;
+  --text3:       #525880;
+  --text4:       #363a58;
+  --accent:      #7b72ff;
+  --accent-h:    #9490ff;
+  --accent2:     #a89dff;
+  --accent-bg:   rgba(123,114,255,0.12);
+  --green:       #00d68f;
+  --green-bg:    rgba(0,214,143,0.1);
+  --green-border:rgba(0,214,143,0.2);
+  --red:         #ff4d6a;
+  --red-bg:      rgba(255,77,106,0.1);
+  --red-border:  rgba(255,77,106,0.2);
+  --yellow:      #ffb800;
+  --yellow-bg:   rgba(255,184,0,0.1);
+  --yellow-border:rgba(255,184,0,0.2);
+  --blue:        #4d9fff;
+  --blue-bg:     rgba(77,159,255,0.1);
+  --shadow-sm:   0 1px 3px rgba(0,0,0,0.3);
+  --shadow:      0 4px 20px rgba(0,0,0,0.4);
+  --shadow-lg:   0 16px 48px rgba(0,0,0,0.5);
+  --shadow-accent: 0 8px 28px rgba(123,114,255,0.3);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg5); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text4); }
+
+@keyframes fadeUp    { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:none; } }
+@keyframes fadeIn    { from { opacity:0; } to { opacity:1; } }
+@keyframes spin      { to { transform:rotate(360deg); } }
+@keyframes pulse     { 0%,100%{opacity:.4;} 50%{opacity:1;} }
+@keyframes scanline  { 0%{top:-3px;} 100%{top:calc(100% + 3px);} }
+@keyframes ripple    { 0%{transform:scale(1);opacity:.6;} 100%{transform:scale(2.2);opacity:0;} }
+@keyframes slideIn   { from{transform:translateX(-8px);opacity:0;} to{transform:none;opacity:1;} }
+@keyframes bounce    { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-4px);} }
+@keyframes glow      { 0%,100%{box-shadow:0 0 0 0 rgba(99,88,255,0);} 50%{box-shadow:0 0 0 6px rgba(99,88,255,0.15);} }
