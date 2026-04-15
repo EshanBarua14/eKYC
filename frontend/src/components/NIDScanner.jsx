@@ -42,7 +42,7 @@ export default function NIDScanner({ onNIDCaptured }) {
   const reset = () => { setNidB64(null); setPreview(null); setScanResult(null); setCamMode(false); setCamReady(false) }
   const confirm = () => { if (nidB64) onNIDCaptured(nidB64, scanResult) }
 
-  const qColor = { Excellent:"green", Good:"green", Fair:"yellow", Poor:"red" }[scanResult?.quality_label] || "red"
+  const qColor = { Excellent:"green", Good:"green", Fair:"yellow", Poor:"red", Invalid:"red" }[scanResult?.quality_label] || "red"
 
   return (
     <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
@@ -206,6 +206,23 @@ export default function NIDScanner({ onNIDCaptured }) {
               <CheckItem key={k} label={v.label} pass={v.pass} value={String(v.value)} />
             ))}
 
+            {!scanResult.is_valid_nid && scanResult.nid_issues && scanResult.nid_issues.length > 0 && (
+              <div style={{ padding:'14px 16px', background:'var(--red-bg)', border:'1px solid var(--red-border)', borderRadius:'var(--radius-sm)', marginBottom:12 }}>
+                <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:10 }}>
+                  <div style={{ width:20, height:20, borderRadius:'50%', background:'var(--red)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                  </div>
+                  <span style={{ fontSize:13, fontWeight:700, color:'var(--red)' }}>Invalid NID Card</span>
+                </div>
+                <div style={{ paddingLeft:28 }}>
+                  {scanResult.nid_issues.map((issue, i) => (
+                    <div key={i} style={{ display:'flex', gap:7, alignItems:'flex-start', marginBottom:5 }}>
+                      <span style={{ color:'var(--red)', fontSize:13, lineHeight:1.5, flexShrink:0 }}>•</span>
+                      <span style={{ fontSize:12, color:'var(--text2)', lineHeight:1.5 }}>{issue}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             {scanResult.quality_score < 3 && (
               <div style={{ display:"flex", gap:8, padding:"10px 12px", background:"var(--yellow-bg)", border:"1px solid var(--yellow-border)", borderRadius:"var(--radius-xs)", marginTop:10, marginBottom:10 }}>
                 <AlertCircle size={14} color="var(--yellow)" strokeWidth={2.5} style={{ flexShrink:0, marginTop:1 }} />
@@ -217,12 +234,12 @@ export default function NIDScanner({ onNIDCaptured }) {
 
             <Btn
               onClick={confirm}
-              variant={scanResult.quality_score >= 3 ? "success" : "ghost"}
+              variant={scanResult.is_valid_nid ? (scanResult.quality_score >= 3 ? "success" : "ghost") : "danger"} disabled={!scanResult.is_valid_nid}
               size="lg"
               style={{ width:"100%", justifyContent:"center" }}
             >
               <CheckCircle size={14} strokeWidth={2.5}/>
-              {scanResult.quality_score >= 3 ? "Confirm & Continue" : "Continue Anyway"}
+              {scanResult.is_valid_nid ? (scanResult.quality_score >= 3 ? "Confirm & Continue" : "Continue Anyway (Low Quality)") : "Fix issues above to continue"}
             </Btn>
           </>
         )}
