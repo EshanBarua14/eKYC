@@ -160,3 +160,32 @@ feat(phase-1): foundation + biometric engine
 Closes: Phase 1 milestone
 BFIU: Circular No. 29 compliant
 ```
+
+---
+## M1 - Project Setup & Architecture
+**Date:** 2026-04-17
+**Status:** COMPLETE
+**Tests:** 24/24 PASSED
+
+### Files Created
+- .env + .env.example (environment config, all secrets externalized)
+- Dockerfile (python:3.12-slim, tesseract-ocr, tesseract-ocr-ben, non-root user)
+- docker-compose.yml (api + postgres:16 + redis:7, healthchecks on all services)
+- infra/postgres/init.sql (pgcrypto, pg_trgm, unaccented extensions, institutions table, audit_log table, tenant_demo schema)
+- .dockerignore (excludes venv, __pycache__, .env, *.db, frontend/node_modules)
+- .github/workflows/ci.yml (GitHub Actions: test + lint jobs, postgres + redis services)
+- backend/app/core/config.py (updated: env-aware, DATABASE_URL property, Redis, BFIU limits, multi-tenant)
+
+### Test Coverage
+- TestEnvConfig (3): .env exists, .env.example exists, all required keys present
+- TestDockerFiles (8): Dockerfile, python:3.12, tesseract, compose, 3 services, healthchecks, dockerignore, venv excluded
+- TestInfraFiles (5): init.sql exists, pgcrypto, pg_trgm, institutions, audit_log, tenant_demo schema
+- TestCICD (4): ci.yml exists, pytest job, postgres:16 service, redis:7 service
+- TestConfig (4): imports, DATABASE_URL property, BFIU limits (10 attempts/2 sessions), REDIS_URL
+
+### Design Decisions
+- Schema-based multi-tenancy: each institution gets own PostgreSQL schema
+- Non-root Docker user (ekyc uid=1000) for security
+- SQLite fallback preserved for local dev (existing M5/M6/M7 modules unaffected)
+- All secrets via .env, never hardcoded
+- BFIU Section 3.2 limits enforced in config: 10 attempts/session, 2 sessions/day
