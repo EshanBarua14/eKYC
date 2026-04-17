@@ -42,7 +42,7 @@ export default function LivenessCapture({ onLivenessPassed }) {
     setChecking(true)
     try {
       const { data } = await axios.post(`${API}/api/v1/ai/challenge`, {
-        image_b64: img, challenge: CHALLENGES[step]?.id, session_id: `lv_${Date.now()}`
+        image_b64: img, challenge: CHALLENGES[step]?.id, session_id: `lv_step${step}`
       })
       setAnalysis(data)
       setFeedback(data.reason)
@@ -57,8 +57,14 @@ export default function LivenessCapture({ onLivenessPassed }) {
         if (step + 1 >= CHALLENGES.length) {
           setTimeout(() => onLivenessPassed(img, newResults), 600)
         } else {
-          setTimeout(() => {
+          setTimeout(async () => {
+            try {
+              await axios.post(`${API}/api/v1/ai/reset-session`, {
+                image_b64: "x", session_id: `lv_step${step}`
+              })
+            } catch(e) {}
             setStep(s => s + 1)
+            setRunning(true)
             setFeedback("")
             setFeedbackOk(null)
             setAnalysis(null)
