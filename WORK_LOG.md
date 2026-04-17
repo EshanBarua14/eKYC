@@ -251,3 +251,36 @@ BFIU: Circular No. 29 compliant
 - BFIU limits enforced atomically before DB write (Redis in prod, in-memory in dev)
 - Session gate checks both daily session limit AND per-session attempt limit
 - Cross-match uses token overlap fuzzy matching for OCR noise tolerance
+
+---
+## M8 - Risk Grading Engine
+**Date:** 2026-04-17
+**Status:** COMPLETE
+**Tests:** 37/37 PASSED
+
+### Files Created
+- backend/app/services/risk_grading_service.py (7-dimension BFIU scoring engine, EDD case creation, rescore)
+- backend/app/api/v1/routes/risk.py (/risk/grade, /risk/edd, /risk/rescore, /risk/factors, /risk/thresholds)
+- backend/app/api/v1/router.py (updated - risk router added)
+- backend/tests/test_m8_risk.py (37 tests)
+
+### Test Coverage (37 tests)
+- TestScoringDimensions (13): walk-in > agency, NRB > resident, PEP=5, no PEP=0,
+                               group > ordinary, missing SOF=5, provided SOF=1,
+                               tx volume bands (4), all 7 dimensions present
+- TestGradeThresholds (11): HIGH=15, MEDIUM=8, score>=15 HIGH, <8 LOW, 8-14 MEDIUM,
+                             PEP override, adverse media override, low score grade,
+                             high risk EDD, review freq HIGH=1yr, MEDIUM=2yr, LOW=5yr
+- TestEDDCase (4): case_id present, status PENDING, SLA deadline, BFIU ref 4.3
+- TestRescore (1): rescore uses profile data correctly
+- TestRiskAPI (8): grade returns score, high risk profile, EDD creates case,
+                   EDD rejected non-HIGH 422, factors, thresholds, unauth 403, rescore
+
+### Design Decisions
+- 7 BFIU dimensions as dict lookup tables - admin configurable without code deploy
+- PEP/IP/adverse media always overrides to HIGH regardless of numeric score
+- Score >= 15 = HIGH (EDD mandatory), 8-14 = MEDIUM, < 8 = LOW
+- EDD SLA = 30 days from creation (BFIU Section 4.3)
+- Review frequency: HIGH=1yr, MEDIUM=2yr, LOW=5yr (BFIU Section 5.7)
+- Annexure-1 profession/business lookup tables built-in, DB-backed in prod
+- Rescore function supports M10 Lifecycle Manager periodic review trigger
