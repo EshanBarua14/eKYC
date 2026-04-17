@@ -410,3 +410,41 @@ BFIU: Circular No. 29 compliant
 - Maker cannot approve own action (segregation of duties)
 - Export formats: JSON (BFIU-ready envelope) and CSV (spreadsheet compatible)
 - Dashboard aggregates all compliance KPIs in one call
+
+---
+## M12 - Third-Party API Gateway
+**Date:** 2026-04-17
+**Status:** COMPLETE
+**Tests:** 44/44 PASSED
+
+### Files Created
+- backend/app/services/gateway_service.py (webhooks, data residency, rate limiting, signing)
+- backend/app/api/v1/routes/gateway.py (health, version, webhook, residency, rate-limits, openapi-summary)
+- backend/app/api/v1/router.py (updated - gateway router added)
+- backend/tests/test_m12_gateway.py (44 tests)
+
+### Test Coverage (44 tests)
+- TestRateLimiting (9): first allowed, count increments, remaining decrements,
+                        auth_token=10, face_verify=30, nid_scan=60, exceeded blocked,
+                        different clients independent, reset_at present
+- TestDataResidency (10): whitelisted+PII allowed, non-whitelisted+PII blocked,
+                          non-whitelisted no-PII allowed, PII fields identified, bfiu_ref,
+                          add domain, ec.gov.bd whitelisted, porichoy whitelisted,
+                          nid in PII, fingerprint in PII
+- TestWebhookEngine (11): register returns ID, invalid event fails, secret returned,
+                           dispatch delivers, only matching events, delivery log created,
+                           delivery has signature, verify valid sig, verify invalid sig,
+                           10+ events, get list hides secret
+- TestGatewayAPI (14): health no auth, version, register webhook, invalid event 422,
+                        webhook list, dispatch, residency blocked, residency allowed,
+                        rate-limits, rate-limit check, openapi-summary, webhook events,
+                        health has version, unauth 403
+
+### Design Decisions
+- Health endpoint public (no auth) - required by load balancers
+- Webhook HMAC-SHA256 signature on every delivery - receiving institutions verify
+- Data residency enforced per field - PII fields enumerated explicitly
+- Rate limits per endpoint+client key (IP in prod, token in dev)
+- Whitelist maintained in memory (DB-backed in prod, admin-only mutation)
+- OpenAPI summary covers all 50+ endpoints across all 12 modules
+- API versioning: URL-based, 12-month deprecation window
