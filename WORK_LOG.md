@@ -344,3 +344,36 @@ BFIU: Circular No. 29 compliant
 - Exit lists per-institution - inst-A cannot see inst-B exit list
 - Full screening auto-selects checks based on kyc_type
 - REVIEW and BLOCKED both set edd_required=True
+
+---
+## M10 - KYC Lifecycle Management
+**Date:** 2026-04-17
+**Status:** COMPLETE
+**Tests:** 40/40 PASSED
+
+### Files Created
+- backend/app/services/lifecycle_service.py (periodic review, self-declaration, upgrade, closure)
+- backend/app/api/v1/routes/lifecycle.py (register, due-reviews, complete-review, declare, upgrade, close, policy)
+- backend/app/api/v1/router.py (updated - lifecycle router added)
+- backend/tests/test_m10_lifecycle.py (40 tests)
+
+### Test Coverage (40 tests)
+- TestPeriodicReview (10): freq HIGH=1yr, MEDIUM=2yr, LOW=5yr, register sets next review,
+                            high risk 1yr, overdue detected, fresh not due, complete review,
+                            unknown fails, notify days HIGH=30, LOW=60
+- TestSelfDeclaration (8): TTL=48hrs, token returned, expires_at, declaration_url,
+                            submit valid, invalid token fails, submit twice fails, bfiu ref 5.7
+- TestUpgrade (8): initiate success, already regular fails, unknown fails, required fields,
+                   complete changes type, profile updated, complete twice fails, bfiu ref 5.6
+- TestAccountClosure (5): status CLOSED, retention 5yrs, unknown fails, profile updated, bfiu ref 5.1
+- TestLifecycleAPI (9): register, due-reviews, policy, generate declaration, submit declaration,
+                        upgrade flow, close account, unauth 403
+
+### Design Decisions
+- Periodic review: HIGH=1yr/MEDIUM=2yr/LOW=5yr (BFIU Section 5.7)
+- Self-declaration: 48hr tokenized link, collects name+NID+mobile (BFIU Section 5.7)
+- Declare endpoint is public (no auth) - customer-facing link
+- Address change SLA = 60 days (2 months per BFIU Section 5.7)
+- Upgrade requires: monthly_income, source_of_funds, tin, account_number, nationality
+- Closure starts 5-year retention countdown (BFIU Section 5.1)
+- Notification: HIGH/MEDIUM 30 days before, LOW 60 days before due date
