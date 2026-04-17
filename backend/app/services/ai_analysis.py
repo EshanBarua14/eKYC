@@ -80,12 +80,12 @@ def analyze_face(img_rgb: np.ndarray) -> dict:
     result["right_ear"]      = result["left_ear"]
 
     # Smile via smile cascade
-    mouth_region  = gray[y+int(fh*0.6):y+fh, x:x+fw]
+    mouth_region  = gray[y+int(fh*0.55):y+fh, x:x+fw]
     smile_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_smile.xml")
-    smiles        = smile_cascade.detectMultiScale(mouth_region, 1.7, 20) if mouth_region.size else []
-    smile_score   = min(100, len(smiles) * 50)
+    smiles        = smile_cascade.detectMultiScale(mouth_region, 1.25, 12, minSize=(20,8)) if mouth_region.size else []
+    smile_score   = min(100, len(smiles) * 34)
     result["smile_score"] = smile_score
-    result["is_smiling"]  = smile_score >= 50
+    result["is_smiling"]  = len(smiles) >= 1
 
     # Skin tone
     face_crop = img_rgb[y:y+fh, x:x+fw]
