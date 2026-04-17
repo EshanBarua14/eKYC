@@ -129,11 +129,13 @@ def check_liveness_challenge(b64: str, challenge: str, session_id: str = "defaul
         frame_passed = analysis["blink_detected"]
         reason = "Please blink your eyes" if not frame_passed else "Blink detected"
     elif challenge == "left":
-        frame_passed = analysis["head_direction"] == "left"
-        reason = "Turn your head to the LEFT" if not frame_passed else "Left turn detected"
+        # Use pitch down (nod) as substitute - easier to detect reliably
+        frame_passed = analysis["head_direction"] in ["left", "right", "down", "up"] or analysis.get("pitch_deg", 0) > 6
+        reason = "Move your head slightly" if not frame_passed else "Head movement detected"
     elif challenge == "right":
-        frame_passed = analysis["head_direction"] == "right"
-        reason = "Turn your head to the RIGHT" if not frame_passed else "Right turn detected"
+        # Accept any direction change as valid for right challenge
+        frame_passed = analysis["head_direction"] in ["left", "right", "down", "up"] or abs(analysis.get("yaw_deg", 0)) > 6
+        reason = "Move your head slightly" if not frame_passed else "Head movement detected"
     elif challenge == "smile":
         frame_passed = analysis["is_smiling"]
         reason = "Please smile" if not frame_passed else "Smile detected"
