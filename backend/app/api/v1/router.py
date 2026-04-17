@@ -10,6 +10,7 @@ from app.api.v1.routes.risk         import router as risk_router
 from app.api.v1.routes.onboarding   import router as onboarding_router
 from app.api.v1.routes.screening    import router as screening_router
 from app.api.v1.routes.lifecycle    import router as lifecycle_router
+from app.api.v1.routes.audit        import router as audit_router
 
 v1_router = APIRouter()
 v1_router.include_router(auth_router)
@@ -18,6 +19,7 @@ v1_router.include_router(risk_router)
 v1_router.include_router(onboarding_router)
 v1_router.include_router(screening_router)
 v1_router.include_router(lifecycle_router)
+v1_router.include_router(audit_router)
 v1_router.include_router(face_router)
 v1_router.include_router(ai_router)
 v1_router.include_router(kyc_router)

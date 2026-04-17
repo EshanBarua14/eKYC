@@ -377,3 +377,36 @@ BFIU: Circular No. 29 compliant
 - Upgrade requires: monthly_income, source_of_funds, tin, account_number, nationality
 - Closure starts 5-year retention countdown (BFIU Section 5.1)
 - Notification: HIGH/MEDIUM 30 days before, LOW 60 days before due date
+
+---
+## M11 - Audit Trail and Reporting
+**Date:** 2026-04-17
+**Status:** COMPLETE
+**Tests:** 44/44 PASSED
+
+### Files Created
+- backend/app/services/audit_service.py (immutable log, query, JSON/CSV export, dashboard stats)
+- backend/app/services/maker_checker_service.py (dual approval workflow, SLA enforcement)
+- backend/app/api/v1/routes/audit.py (log, query, export, dashboard, maker-checker, events, policy)
+- backend/app/api/v1/router.py (updated - audit router added)
+- backend/tests/test_m11_audit.py (44 tests)
+
+### Test Coverage (44 tests)
+- TestAuditLog (14): retention=5yrs, log returns entry, UUID, retention_date, bfiu_ref,
+                     invalid event raises, get by id, unknown=None, query by event_type,
+                     total returned, append-only, before/after state, query by actor, 30+ events
+- TestExport (6): JSON string, JSON bfiu_ref, JSON entries, CSV string, CSV header, institution filter
+- TestDashboard (3): required keys, counts events, institution filter
+- TestMakerChecker (10): action_id, status PENDING, invalid op fails, approve, reject,
+                          maker=checker fails, decide twice fails, pending list, ACCOUNT_CLOSURE, KYC_UPGRADE
+- TestAuditAPI (11): write log, invalid event 422, query log, get by id, dashboard,
+                     export JSON, export CSV, events list, policy, maker-checker flow, unauth 403
+
+### Design Decisions
+- Append-only in-memory log (PostgreSQL with immutability trigger in prod)
+- 5-year retention per entry with retention_until field (BFIU Section 5.1)
+- 39 event types covering all state transitions across all modules
+- Maker-checker SLA = 24 hours - action expires if checker does not act
+- Maker cannot approve own action (segregation of duties)
+- Export formats: JSON (BFIU-ready envelope) and CSV (spreadsheet compatible)
+- Dashboard aggregates all compliance KPIs in one call
