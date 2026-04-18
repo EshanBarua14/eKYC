@@ -4,9 +4,11 @@ import NIDScanner      from "./components/NIDScanner"
 import LivenessCapture from "./components/LivenessCapture"
 import MatchReport     from "./components/MatchReport"
 import { Badge }       from "./components/ui"
+import AgentDashboard  from "./components/AgentDashboard"
 import "./App.css"
 
 const STEPS = { NID:1, LIVENESS:2, REPORT:3 }
+const PORTALS = { CUSTOMER:"customer", AGENT:"agent" }
 
 const STEP_META = [
   { n:1, label:"Scan NID",  desc:"Upload or photograph your NID card" },
