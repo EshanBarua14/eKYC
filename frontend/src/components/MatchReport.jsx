@@ -120,13 +120,14 @@ export default function MatchReport({ nidB64, liveB64, livenessResults, onReset,
 
           {ms ? (
             <>
-              <ScoreBar label="Overall Confidence"    value={ms.confidence}      />
-              <ScoreBar label="SSIM Structural"       value={ms.ssim_score      ?? 0} color="var(--green)"  />
-              <ScoreBar label="ORB Feature Points"    value={ms.feature_score   ?? 0} color="var(--accent)" />
-              <ScoreBar label="Pixel Similarity"      value={ms.pixel_score     ?? 0} color="var(--blue)"   />
-              <ScoreBar label="Histogram Correlation" value={ms.histogram_score ?? 0} color="var(--yellow)" />
+              <ScoreBar label="Overall Confidence"      value={ms.confidence}         />
+              <ScoreBar label="Landmark Geometry (40%)"  value={ms.landmark_score  ?? 0} color="var(--accent)" />
+              <ScoreBar label="ORB Feature Points (25%)" value={ms.feature_score   ?? 0} color="var(--blue)"   />
+              <ScoreBar label="Histogram Match (20%)"    value={ms.histogram_score ?? 0} color="var(--yellow)" />
+              <ScoreBar label="SSIM Structural (10%)"    value={ms.ssim_score      ?? 0} color="var(--green)"  />
+              <ScoreBar label="Pixel Similarity (5%)"    value={ms.pixel_score     ?? 0} color="var(--text3)"  />
               <div style={{ fontSize:10, color:"var(--text3)", marginTop:8, padding:"6px 10px", background:"var(--bg3)", borderRadius:"var(--radius-xs)", border:"1px solid var(--border)", fontFamily:"var(--font-mono)" }}>
-                SSIM 35% · Histogram 30% · ORB 25% · Pixel 10%
+                Landmark 40% · ORB 25% · Histogram 20% · SSIM 10% · Pixel 5%
               </div>
             </>
           ) : (
@@ -184,9 +185,14 @@ export default function MatchReport({ nidB64, liveB64, livenessResults, onReset,
         ]} />
       </Card>
 
-      <div style={{ display:"flex", gap:8 }}>
+      <div style={{ display:"flex", gap:8, alignItems:"center", flexWrap:"wrap" }}>
         <Btn onClick={onReset} variant="ghost"><RefreshCw size={13} strokeWidth={2.5}/> New Verification</Btn>
         <Btn onClick={runVerification} variant="ghost">↻ Re-run Analysis</Btn>
+        {(result?.verdict === "MATCHED" || result?.verdict === "REVIEW") && onContinue && (
+          <Btn onClick={() => onContinue(result)} variant="success" size="lg">
+            Continue to Profile →
+          </Btn>
+        )}
       </div>
     </div>
   )
