@@ -20,10 +20,12 @@ from app.api.v1.routes.notification     import router as notification_router
 from app.api.v1.routes.outcome           import router as outcome_router
 from app.api.v1.routes.fallback           import router as fallback_router
 from app.api.v1.routes.cmi               import router as cmi_router
+from app.api.v1.routes.bfiu_report        import router as bfiu_report_router
 from app.api.v1.routes.notification     import router as notification_router
 from app.api.v1.routes.outcome           import router as outcome_router
 from app.api.v1.routes.fallback           import router as fallback_router
 from app.api.v1.routes.cmi               import router as cmi_router
+from app.api.v1.routes.bfiu_report        import router as bfiu_report_router
 
 v1_router = APIRouter()
 v1_router.include_router(auth_router)
@@ -46,7 +48,9 @@ v1_router.include_router(notification_router)
 v1_router.include_router(outcome_router)
 v1_router.include_router(fallback_router)
 v1_router.include_router(cmi_router)
+v1_router.include_router(bfiu_report_router)
 v1_router.include_router(notification_router)
 v1_router.include_router(outcome_router)
 v1_router.include_router(fallback_router)
 v1_router.include_router(cmi_router)
+v1_router.include_router(bfiu_report_router)

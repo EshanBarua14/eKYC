@@ -43,7 +43,7 @@ class BOAccountRequest(BaseModel):
 
 
 @router.post("/bo/open", status_code=201)
-def open_account(req: BOAccountRequest):
+def cmi_open_account(req: BOAccountRequest):
     """
     Open CDBL BO account after successful eKYC.
     Applies 2026 BFIU threshold: BDT 15,00,000 for Simplified.
@@ -65,7 +65,7 @@ def open_account(req: BOAccountRequest):
 
 
 @router.get("/bo/list")
-def list_accounts(
+def cmi_list_accounts(
     status: Optional[str] = None,
     limit:  int = Query(50, le=200),
 ):
@@ -75,13 +75,13 @@ def list_accounts(
 
 
 @router.get("/thresholds")
-def thresholds():
+def cmi_thresholds():
     """2026 BFIU CMI thresholds and product catalog."""
     return get_threshold_info()
 
 
 @router.get("/products")
-def products():
+def cmi_products():
     """BO product catalog with KYC type requirements."""
     return {
         "products": BO_PRODUCTS,
@@ -91,7 +91,7 @@ def products():
 
 
 @router.get("/bo/session/{session_id}")
-def get_by_session(session_id: str):
+def cmi_get_by_session(session_id: str):
     """Get BO account by eKYC session ID."""
     account = get_bo_by_session(session_id)
     if not account:
@@ -100,7 +100,7 @@ def get_by_session(session_id: str):
 
 
 @router.get("/bo/{bo_number}")
-def get_account(bo_number: str):
+def cmi_get_account(bo_number: str):
     """Get BO account by BO number."""
     account = get_bo_account(bo_number)
     if not account:

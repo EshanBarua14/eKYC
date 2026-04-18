@@ -50,7 +50,7 @@ class FallbackRequest(BaseModel):
 
 
 @router.post("/create", status_code=201)
-def create(req: CreateOutcomeRequest):
+def create_outcome_record(req: CreateOutcomeRequest):
     """Create initial outcome record in PENDING state."""
     if req.verdict not in ("MATCHED", "REVIEW", "FAILED"):
         raise HTTPException(400, "verdict must be MATCHED, REVIEW, or FAILED")
@@ -75,7 +75,7 @@ def run_auto_route(session_id: str):
 
 
 @router.post("/{session_id}/decide")
-def decide(session_id: str, req: CheckerDecisionRequest):
+def decide_outcome(session_id: str, req: CheckerDecisionRequest):
     """Checker approves or rejects a PENDING_REVIEW case."""
     result = checker_decide(session_id, req.checker_id, req.decision, req.note)
     if not result.get("success"):
@@ -84,7 +84,7 @@ def decide(session_id: str, req: CheckerDecisionRequest):
 
 
 @router.post("/{session_id}/fallback")
-def fallback(session_id: str, req: FallbackRequest):
+def trigger_outcome_fallback(session_id: str, req: FallbackRequest):
     """Trigger traditional KYC fallback — EC unavailable or eKYC technically failed."""
     result = trigger_fallback(session_id, req.reason)
     if not result.get("success"):
@@ -93,7 +93,7 @@ def fallback(session_id: str, req: FallbackRequest):
 
 
 @router.get("/queue/summary")
-def queue_summary():
+def outcome_queue_summary():
     """Count of outcomes by state — compliance dashboard feed."""
     summary = get_queue_summary()
     pending_review = summary.get("PENDING_REVIEW", 0)
@@ -106,7 +106,7 @@ def queue_summary():
 
 
 @router.get("/queue/pending")
-def pending_queue(limit: int = Query(50, le=200)):
+def outcome_pending_queue(limit: int = Query(50, le=200)):
     """List all outcomes in PENDING_REVIEW state — checker queue."""
     items = list_outcomes("PENDING_REVIEW", limit)
     return {
@@ -117,7 +117,7 @@ def pending_queue(limit: int = Query(50, le=200)):
 
 
 @router.get("/queue/all")
-def all_outcomes(
+def list_all_outcomes(
     state: Optional[str] = None,
     limit: int = Query(50, le=200),
 ):
@@ -129,7 +129,7 @@ def all_outcomes(
 
 
 @router.get("/{session_id}")
-def get(session_id: str):
+def get_outcome_record(session_id: str):
     """Get outcome record for a session."""
     record = get_outcome(session_id)
     if not record:
@@ -138,7 +138,7 @@ def get(session_id: str):
 
 
 @router.get("/states/transitions")
-def state_transitions():
+def list_state_transitions():
     """Return valid state transition map."""
     return {
         "states":      list(STATES),
