@@ -55,7 +55,7 @@ class ReviewDecideRequest(BaseModel):
     note:        Optional[str] = None
 
 
-@router.post("/create", status_code=201)
+@router.post("/create", status_code=201, operation_id="fallback_create")
 def create_fallback(req: CreateFallbackRequest):
     """
     Create traditional KYC fallback case.
@@ -71,7 +71,7 @@ def create_fallback(req: CreateFallbackRequest):
     }
 
 
-@router.post("/{case_id}/document", status_code=201)
+@router.post("/{case_id}/document", status_code=201, operation_id="fallback_upload_doc")
 def upload_fallback_document(case_id: str, req: DocumentUploadRequest):
     """Upload a physical document for a fallback case."""
     result = submit_document(case_id, req.doc_type, req.doc_b64,
@@ -81,7 +81,7 @@ def upload_fallback_document(case_id: str, req: DocumentUploadRequest):
     return result
 
 
-@router.post("/{case_id}/review/start")
+@router.post("/{case_id}/review/start",          operation_id="fallback_review_start")
 def fallback_review_start(case_id: str, req: ReviewStartRequest):
     """Agent picks up fallback case for document review."""
     result = start_review(case_id, req.reviewer_id)
@@ -90,7 +90,7 @@ def fallback_review_start(case_id: str, req: ReviewStartRequest):
     return result
 
 
-@router.post("/{case_id}/review/decide")
+@router.post("/{case_id}/review/decide",         operation_id="fallback_review_decide")
 def fallback_review_decide(case_id: str, req: ReviewDecideRequest):
     """Approve or reject traditional KYC case after document review."""
     result = decide_case(case_id, req.reviewer_id, req.decision, req.note)
@@ -99,7 +99,7 @@ def fallback_review_decide(case_id: str, req: ReviewDecideRequest):
     return result
 
 
-@router.get("/queue/pending")
+@router.get("/queue/pending",                    operation_id="fallback_queue_pending")
 def fallback_pending_queue(limit: int = Query(50, le=200)):
     """Cases awaiting document review."""
     items = list_cases("DOCS_SUBMITTED", limit)
@@ -107,7 +107,7 @@ def fallback_pending_queue(limit: int = Query(50, le=200)):
     return {"queue": items, "total": len(items)}
 
 
-@router.get("/stats")
+@router.get("/stats",                            operation_id="fallback_get_stats")
 def fallback_stats():
     """Fallback case statistics by status."""
     s = get_stats()
@@ -119,7 +119,7 @@ def fallback_stats():
     }
 
 
-@router.get("/document-types")
+@router.get("/document-types",                   operation_id="fallback_doc_types")
 def fallback_document_types():
     """List all valid document types with requirements."""
     return {
@@ -130,7 +130,7 @@ def fallback_document_types():
     }
 
 
-@router.get("/session/{session_id}")
+@router.get("/session/{session_id}",             operation_id="fallback_by_session")
 def fallback_get_by_session(session_id: str):
     """Get fallback case by original eKYC session ID."""
     case = get_case_by_session(session_id)
@@ -139,7 +139,7 @@ def fallback_get_by_session(session_id: str):
     return {"case": case}
 
 
-@router.get("/{case_id}")
+@router.get("/{case_id}",                        operation_id="fallback_by_id")
 def fallback_get_by_id(case_id: str):
     """Get fallback case by case ID."""
     case = get_case(case_id)

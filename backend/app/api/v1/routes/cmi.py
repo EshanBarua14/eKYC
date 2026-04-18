@@ -42,7 +42,7 @@ class BOAccountRequest(BaseModel):
     joint_holder:   Optional[str] = None
 
 
-@router.post("/bo/open", status_code=201)
+@router.post("/bo/open", status_code=201, operation_id="cmi_bo_open")
 def cmi_open_account(req: BOAccountRequest):
     """
     Open CDBL BO account after successful eKYC.
@@ -64,7 +64,7 @@ def cmi_open_account(req: BOAccountRequest):
     }
 
 
-@router.get("/bo/list")
+@router.get("/bo/list",              operation_id="cmi_bo_list")
 def cmi_list_accounts(
     status: Optional[str] = None,
     limit:  int = Query(50, le=200),
@@ -74,13 +74,13 @@ def cmi_list_accounts(
     return {"accounts": accounts, "total": len(accounts)}
 
 
-@router.get("/thresholds")
+@router.get("/thresholds",           operation_id="cmi_get_thresholds")
 def cmi_thresholds():
     """2026 BFIU CMI thresholds and product catalog."""
     return get_threshold_info()
 
 
-@router.get("/products")
+@router.get("/products",             operation_id="cmi_get_products")
 def cmi_products():
     """BO product catalog with KYC type requirements."""
     return {
@@ -90,7 +90,7 @@ def cmi_products():
     }
 
 
-@router.get("/bo/session/{session_id}")
+@router.get("/bo/session/{session_id}", operation_id="cmi_bo_by_session")
 def cmi_get_by_session(session_id: str):
     """Get BO account by eKYC session ID."""
     account = get_bo_by_session(session_id)
@@ -99,7 +99,7 @@ def cmi_get_by_session(session_id: str):
     return {"bo_account": account}
 
 
-@router.get("/bo/{bo_number}")
+@router.get("/bo/{bo_number}",       operation_id="cmi_bo_by_number")
 def cmi_get_account(bo_number: str):
     """Get BO account by BO number."""
     account = get_bo_account(bo_number)

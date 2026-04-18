@@ -48,8 +48,8 @@ class FailureNotifyRequest(BaseModel):
     timestamp:        Optional[str]  = None
 
 
-@router.post("/kyc-success", status_code=201)
-def notify_kyc_success(req: SuccessNotifyRequest):
+@router.post("/kyc-success", operation_id="notify_success", status_code=201)
+def route_notify_success(req: SuccessNotifyRequest):
     """
     Send KYC success notification via SMS + Email.
     BFIU mandates: account name, number, branch, type, service number.
@@ -78,8 +78,8 @@ def notify_kyc_success(req: SuccessNotifyRequest):
     }
 
 
-@router.post("/kyc-failure", status_code=201)
-def notify_kyc_failure(req: FailureNotifyRequest):
+@router.post("/kyc-failure", operation_id="notify_failure", status_code=201)
+def route_notify_failure(req: FailureNotifyRequest):
     """
     Send KYC failure notification via SMS + Email.
     BFIU mandates failure notification with helpdesk contact.
@@ -102,8 +102,8 @@ def notify_kyc_failure(req: FailureNotifyRequest):
     }
 
 
-@router.get("/log")
-def notify_log(
+@router.get("/log",          operation_id="notify_get_log")
+def route_notify_log(
     session_id: Optional[str] = None,
     limit:      int = Query(100, le=500),
 ):
@@ -116,14 +116,14 @@ def notify_log(
     }
 
 
-@router.get("/stats")
-def notify_stats():
+@router.get("/stats",        operation_id="notify_get_stats")
+def route_notify_stats():
     """Delivery statistics and provider configuration status."""
     return get_delivery_stats()
 
 
-@router.get("/templates")
-def notify_templates():
+@router.get("/templates",    operation_id="notify_get_templates")
+def route_notify_templates():
     """View all notification templates."""
     return {
         "templates": {k: v[:120]+"..." if len(v)>120 else v for k,v in TEMPLATES.items()},

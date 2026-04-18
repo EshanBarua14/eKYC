@@ -49,7 +49,7 @@ class FallbackRequest(BaseModel):
     reason: str = "EC API unavailable — traditional KYC required"
 
 
-@router.post("/create", status_code=201)
+@router.post("/create", status_code=201, operation_id="outcome_create")
 def create_outcome_record(req: CreateOutcomeRequest):
     """Create initial outcome record in PENDING state."""
     if req.verdict not in ("MATCHED", "REVIEW", "FAILED"):
@@ -60,7 +60,7 @@ def create_outcome_record(req: CreateOutcomeRequest):
     return {"outcome": record, "bfiu_ref": "BFIU Circular No. 29 — Section 3.2"}
 
 
-@router.post("/{session_id}/auto-route")
+@router.post("/{session_id}/auto-route",  operation_id="outcome_auto_route")
 def run_auto_route(session_id: str):
     """
     Run auto-routing logic.
@@ -74,7 +74,7 @@ def run_auto_route(session_id: str):
     return result
 
 
-@router.post("/{session_id}/decide")
+@router.post("/{session_id}/decide",      operation_id="outcome_decide")
 def decide_outcome(session_id: str, req: CheckerDecisionRequest):
     """Checker approves or rejects a PENDING_REVIEW case."""
     result = checker_decide(session_id, req.checker_id, req.decision, req.note)
@@ -83,7 +83,7 @@ def decide_outcome(session_id: str, req: CheckerDecisionRequest):
     return result
 
 
-@router.post("/{session_id}/fallback")
+@router.post("/{session_id}/fallback",    operation_id="outcome_fallback")
 def trigger_outcome_fallback(session_id: str, req: FallbackRequest):
     """Trigger traditional KYC fallback — EC unavailable or eKYC technically failed."""
     result = trigger_fallback(session_id, req.reason)
@@ -92,7 +92,7 @@ def trigger_outcome_fallback(session_id: str, req: FallbackRequest):
     return result
 
 
-@router.get("/queue/summary")
+@router.get("/queue/summary",             operation_id="outcome_queue_summary")
 def outcome_queue_summary():
     """Count of outcomes by state — compliance dashboard feed."""
     summary = get_queue_summary()
@@ -105,7 +105,7 @@ def outcome_queue_summary():
     }
 
 
-@router.get("/queue/pending")
+@router.get("/queue/pending",             operation_id="outcome_queue_pending")
 def outcome_pending_queue(limit: int = Query(50, le=200)):
     """List all outcomes in PENDING_REVIEW state — checker queue."""
     items = list_outcomes("PENDING_REVIEW", limit)
@@ -116,7 +116,7 @@ def outcome_pending_queue(limit: int = Query(50, le=200)):
     }
 
 
-@router.get("/queue/all")
+@router.get("/queue/all",                 operation_id="outcome_queue_all")
 def list_all_outcomes(
     state: Optional[str] = None,
     limit: int = Query(50, le=200),
@@ -128,7 +128,7 @@ def list_all_outcomes(
     return {"outcomes": items, "total": len(items)}
 
 
-@router.get("/{session_id}")
+@router.get("/{session_id}",              operation_id="outcome_get")
 def get_outcome_record(session_id: str):
     """Get outcome record for a session."""
     record = get_outcome(session_id)
@@ -137,7 +137,7 @@ def get_outcome_record(session_id: str):
     return {"outcome": record}
 
 
-@router.get("/states/transitions")
+@router.get("/states/transitions",        operation_id="outcome_state_transitions")
 def list_state_transitions():
     """Return valid state transition map."""
     return {
