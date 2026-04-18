@@ -5,6 +5,7 @@ import { Upload, Camera, RotateCcw, CheckCircle, Loader, AlertCircle } from "luc
 import Webcam from "react-webcam"
 
 import { API } from "../config.js"
+import ConsentGate from "./ConsentGate"
 
 export default function NIDScanner({ onNIDCaptured }) {
   const [nidB64,     setNidB64]     = useState(null)
@@ -15,6 +16,8 @@ export default function NIDScanner({ onNIDCaptured }) {
   const [camReady,   setCamReady]   = useState(false)
   const [dragOver,   setDragOver]   = useState(false)
   const webcamRef = useRef(null)
+  const [showConsent,  setShowConsent]  = useState(false)
+  const [consentRecord, setConsentRecord] = useState(null)
 
   const loadFile = (file) => {
     if (!file) return
@@ -40,12 +43,22 @@ export default function NIDScanner({ onNIDCaptured }) {
   }
 
   const reset = () => { setNidB64(null); setPreview(null); setScanResult(null); setCamMode(false); setCamReady(false) }
-  const confirm = () => { if (nidB64) onNIDCaptured(nidB64, scanResult) }
+  const confirm = () => { if (nidB64 && scanResult?.is_valid_nid) setShowConsent(true) }
+  const onConsented = (consent) => { setShowConsent(false); setConsentRecord(consent); onNIDCaptured(nidB64, scanResult) }
+  const onDeclined  = () => { setShowConsent(false) }
 
   const qColor = { Excellent:"green", Good:"green", Fair:"yellow", Poor:"red", Invalid:"red" }[scanResult?.quality_label] || "red"
 
   return (
     <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
+      {showConsent && (
+        <ConsentGate
+          sessionId={`nid_${Date.now()}`}
+          nidHash={scanResult?.nid_hash || "N/A"}
+          onConsented={onConsented}
+          onDeclined={onDeclined}
+        />
+      )}
 
       {/* Left */}
       <Card>
