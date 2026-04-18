@@ -9,8 +9,8 @@ import { API } from "../config.js"
 const CHALLENGES = [
   { id:"center", label:"Look straight",      hint:"Face the camera directly",     emoji:"👁",  color:"#6358ff" },
   { id:"blink",  label:"Blink slowly",        hint:"Close and open both eyes",     emoji:"😑",  color:"#2d7ef0" },
-  { id:"left",   label:"Turn head left",      hint:"Slowly turn to your left",     emoji:"👈",  color:"#00b87a" },
-  { id:"right",  label:"Turn head right",     hint:"Slowly turn to your right",    emoji:"👉",  color:"#f0a500" },
+  { id:"left",   label:"Move head slightly",   hint:"Any gentle head movement",     emoji:"↕",   color:"#00b87a" },
+  { id:"right",  label:"Move head again",      hint:"Another gentle movement",      emoji:"↔",   color:"#f0a500" },
   { id:"smile",  label:"Smile naturally",     hint:"Give a genuine smile",         emoji:"😊",  color:"#f03d5f" },
 ]
 
