@@ -5,7 +5,7 @@ import { CheckCircle, XCircle, AlertTriangle, RefreshCw, Eye } from "lucide-reac
 
 import { API } from "../config.js"
 
-export default function MatchReport({ nidB64, liveB64, livenessResults, onReset }) {
+export default function MatchReport({ nidB64, liveB64, livenessResults, onReset, onContinue }) {
   const [result,  setResult]  = useState(null)
   const [aiData,  setAiData]  = useState(null)
   const [loading, setLoading] = useState(true)
