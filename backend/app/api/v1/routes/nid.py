@@ -216,3 +216,42 @@ def session_status(
         "retry_after":    session_check.get("retry_after"),
         "timestamp":      datetime.now(timezone.utc).isoformat(),
     }
+
+
+# ---------------------------------------------------------------------------
+# POST /nid/scan-ocr  (no auth — self-service customer portal)
+# ---------------------------------------------------------------------------
+class NIDOCRRequest(BaseModel):
+    front_image_b64: str
+    back_image_b64:  Optional[str] = None
+    session_id:      str
+
+@router.post("/scan-ocr")
+def scan_nid_ocr(req: NIDOCRRequest):
+    """
+    OCR scan NID card — no auth required for self-service portal.
+    Returns structured fields extracted from front and back of NID card.
+    """
+    result = scan_nid_card(
+        front_image_b64=req.front_image_b64,
+        back_image_b64=req.back_image_b64,
+    )
+
+    if not result.get("success"):
+        # Return empty fields rather than error — OCR failure is non-blocking
+        return {
+            "success":    False,
+            "fields":     {},
+            "is_valid_nid": False,
+            "session_id": req.session_id,
+            "error":      result.get("message", "OCR failed"),
+        }
+
+    return {
+        "success":    True,
+        "fields":     result.get("fields", {}),
+        "is_valid_nid": result.get("is_valid_nid", False),
+        "nid_format": result.get("nid_format"),
+        "nid_hash":   result.get("nid_hash"),
+        "session_id": req.session_id,
+    }

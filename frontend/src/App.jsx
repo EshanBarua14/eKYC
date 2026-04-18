@@ -58,7 +58,7 @@ function StepBar({ current }) {
 export default function App() {
   const [portal,    setPortal]    = useState("customer")
   const [theme,     setTheme]     = useState(() => localStorage.getItem("ekyc-theme") || "light")
-  const [step,      setStep]      = useState(STEPS.NID)
+  const [step,      setStep]      = useState(STEPS.ENTRY)
   const [nidEntry,  setNidEntry]  = useState(null)
   const [nidB64,    setNidB64]    = useState(null)
   const [nidScan,   setNidScan]   = useState(null)
@@ -130,15 +130,14 @@ export default function App() {
             <div className="hero-tag-icon">
               <Fingerprint size={11} color="var(--accent)" strokeWidth={2.5}/>
             </div>
-            <span className="hero-tag-text">BFIU §3.3 · Face Matching · 6-Step eKYC · Annexure-2</span>
+            <span className="hero-tag-text">BFIU §3.3 · Face Matching · 7-Step eKYC · Annexure-2</span>
           </div>
           <h1 className="hero-title">
             Digital eKYC{" "}
             <span className="gradient-text">Onboarding</span>
           </h1>
           <p className="hero-sub">
-            Complete your Bangladesh eKYC in 6 steps — NID scan, liveness detection, EC verification,
-            personal profile, signature, and digital certificate. BFIU Circular No.&nbsp;29 compliant.
+            Complete your Bangladesh eKYC in 7 steps — NID entry, card scan, liveness detection, EC face verification, personal profile, signature, and digital certificate. BFIU Circular No. 29 compliant.
           </p>
         </div>
 

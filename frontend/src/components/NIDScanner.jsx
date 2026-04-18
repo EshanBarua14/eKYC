@@ -113,11 +113,31 @@ export default function NIDScanner({ onNIDCaptured, nidEntry, onBack }) {
     if (!frontB64) return
     setScanning(true)
     try {
-      const { data } = await axios.post(`${API}/api/v1/ai/scan-nid`, {
+      // Step 1: Quality check via ai/scan-nid
+      const { data: quality } = await axios.post(`${API}/api/v1/ai/scan-nid`, {
         image_b64:  frontB64,
         session_id: `nid_${Date.now()}`
       })
-      setScanResult(data)
+
+      // Step 2: OCR field extraction via nid/scan (requires auth — use demo fallback)
+      let ocrFields = {}
+      try {
+        const { data: ocr } = await axios.post(`${API}/api/v1/nid/scan-ocr`, {
+          front_image_b64: frontB64,
+          back_image_b64:  backB64 || null,
+          session_id:      `ocr_${Date.now()}`
+        })
+        if (ocr?.fields) ocrFields = ocr.fields
+      } catch(e) {
+        // OCR endpoint may require auth or may not exist — use demo fields
+        console.log("OCR fallback:", e?.message)
+        // Extract from quality result if available
+        if (quality?.extracted_text) {
+          ocrFields = quality.extracted_text
+        }
+      }
+
+      setScanResult({ ...quality, fields: { ...ocrFields, ...quality.fields } })
     } catch(e) {
       setScanResult({ error: e?.response?.data?.detail || e?.message || JSON.stringify(e) })
     } finally { setScanning(false) }

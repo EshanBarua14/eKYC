@@ -10,29 +10,33 @@ const PROFESSIONS = [
 ]
 
 export default function ProfileForm({ nidScan, matchResult, onSubmit, onBack }) {
-  const ec = matchResult?.ec_data || {}
-  const ocr = nidScan?.fields || {}
-
-  const [form, setForm] = useState({
-    full_name:         ec.full_name_en      || ocr.full_name_en      || "",
-    full_name_bn:      ec.full_name_bn      || ocr.full_name_bn      || "",
-    fathers_name:      ec.fathers_name      || ocr.fathers_name_en   || "",
-    mothers_name:      ec.mothers_name      || ocr.mothers_name_en   || "",
-    spouse_name:       ec.spouse_name       || "",
-    date_of_birth:     ec.date_of_birth     || ocr.date_of_birth     || "",
-    gender:            ec.gender        || "M",
-    profession:        "",
-    mobile:            "",
-    email:             "",
-    present_address:   ec.present_address  || ocr.present_address || ocr.address || "",
-    permanent_address: ec.permanent_address || ocr.permanent_address || ocr.address || "",
-    nid_number:        ocr.nid_number || "",
-    nationality:       "Bangladeshi",
-    monthly_income:    "",
-    source_of_funds:   "",
-    nominee_name:      "",
-    nominee_relation:  "",
-    nominee_dob:       "",
+  const [form, setForm] = useState(() => {
+    // Debug: log what we received
+    console.log("ProfileForm nidScan:", nidScan)
+    console.log("ProfileForm matchResult:", matchResult)
+    const ec  = matchResult?.ec_data || {}
+    const f   = nidScan?.fields      || {}
+    // Try every possible field name variant from OCR + EC
+    return {
+      full_name:         ec.full_name_en      || f.full_name_en      || f.name_en      || f.name      || "",
+      full_name_bn:      ec.full_name_bn      || f.full_name_bn      || f.name_bn      || "",
+      fathers_name:      ec.fathers_name      || f.fathers_name_en   || f.father_name  || f.fathers_name || "",
+      mothers_name:      ec.mothers_name      || f.mothers_name_en   || f.mother_name  || f.mothers_name || "",
+      spouse_name:       ec.spouse_name       || f.spouse_name       || "",
+      date_of_birth:     ec.date_of_birth     || f.date_of_birth     || f.dob          || "",
+      gender:            ec.gender            || f.gender            || "M",
+      profession:        "",
+      mobile:            f.mobile             || "",
+      email:             f.email              || "",
+      present_address:   ec.present_address   || f.present_address   || f.address      || "",
+      permanent_address: ec.permanent_address || f.permanent_address || f.address      || "",
+      nationality:       ec.nationality       || f.nationality       || "Bangladeshi",
+      monthly_income:    "",
+      source_of_funds:   "",
+      nominee_name:      "",
+      nominee_relation:  "",
+      nominee_dob:       "",
+    }
   })
   const [errors, setErrors] = useState({})
 

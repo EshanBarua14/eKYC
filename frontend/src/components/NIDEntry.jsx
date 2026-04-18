@@ -76,7 +76,7 @@ export default function NIDEntry({ onVerified }) {
   }
 
   return (
-    <div style={{ maxWidth:560, margin:"0 auto", animation:"fadeUp 0.25s ease both" }}>
+    <div className="nid-entry-wrap" style={{ animation:"fadeUp 0.25s ease both" }}>
       <Card glow>
         {/* Header */}
         <div style={{ textAlign:"center", marginBottom:28 }}>
