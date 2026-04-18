@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import { Shield, Sun, Moon, Fingerprint, ChevronRight } from "lucide-react"
+import NIDEntry          from "./components/NIDEntry"
 import NIDScanner        from "./components/NIDScanner"
 import LivenessCapture   from "./components/LivenessCapture"
 import MatchReport       from "./components/MatchReport"
@@ -11,16 +12,17 @@ import AdminConsole      from "./components/AdminConsole"
 import ComplianceDashboard from "./components/ComplianceDashboard"
 import "./App.css"
 
-const STEPS = { NID:1, LIVENESS:2, REPORT:3, PROFILE:4, SIGNATURE:5, COMPLETE:6 }
+const STEPS = { ENTRY:1, NID:2, LIVENESS:3, REPORT:4, PROFILE:5, SIGNATURE:6, COMPLETE:7 }
 const PORTALS = { CUSTOMER:"customer", AGENT:"agent", ADMIN:"admin", COMPLIANCE:"compliance" }
 
 const STEP_META = [
-  { n:1, label:"Scan NID",    desc:"Upload NID card front & back"     },
-  { n:2, label:"Liveness",    desc:"AI face challenge"                 },
-  { n:3, label:"Verify",      desc:"EC biometric match result"         },
-  { n:4, label:"Profile",     desc:"Confirm personal information"      },
-  { n:5, label:"Signature",   desc:"Sign your KYC form"                },
-  { n:6, label:"Complete",    desc:"Profile saved & certificate ready" },
+  { n:1, label:"NID Entry",   desc:"Enter NID number & DOB"            },
+  { n:2, label:"Scan NID",    desc:"Upload NID card front & back"      },
+  { n:3, label:"Liveness",    desc:"AI face challenge"                  },
+  { n:4, label:"Verify",      desc:"EC biometric match result"          },
+  { n:5, label:"Profile",     desc:"Confirm personal information"       },
+  { n:6, label:"Signature",   desc:"Sign your KYC form"                 },
+  { n:7, label:"Complete",    desc:"Profile saved & certificate ready"  },
 ]
 
 function StepBar({ current }) {
@@ -57,6 +59,7 @@ export default function App() {
   const [portal,    setPortal]    = useState("customer")
   const [theme,     setTheme]     = useState(() => localStorage.getItem("ekyc-theme") || "light")
   const [step,      setStep]      = useState(STEPS.NID)
+  const [nidEntry,  setNidEntry]  = useState(null)
   const [nidB64,    setNidB64]    = useState(null)
   const [nidScan,   setNidScan]   = useState(null)
   const [liveB64,   setLiveB64]   = useState(null)
@@ -71,7 +74,8 @@ export default function App() {
   }, [theme])
 
   const reset = () => {
-    setStep(STEPS.NID)
+    setStep(STEPS.ENTRY)
+    setNidEntry(null)
     setNidB64(null); setNidScan(null)
     setLiveB64(null); setLiveness(null)
     setMatchResult(null); setProfileData(null); setSignatureData(null)
@@ -140,10 +144,17 @@ export default function App() {
 
         <StepBar current={step}/>
 
+        {step === STEPS.ENTRY && (
+          <NIDEntry onVerified={(data) => { setNidEntry(data); setStep(STEPS.NID) }}/>
+        )}
         {step === STEPS.NID && (
-          <NIDScanner onNIDCaptured={(b64, scan) => {
-            setNidB64(b64); setNidScan(scan); setStep(STEPS.LIVENESS)
-          }}/>
+          <NIDScanner
+            nidEntry={nidEntry}
+            onNIDCaptured={(b64, scan) => {
+              setNidB64(b64); setNidScan(scan); setStep(STEPS.LIVENESS)
+            }}
+            onBack={() => setStep(STEPS.ENTRY)}
+          />
         )}
         {step === STEPS.LIVENESS && (
           <LivenessCapture onLivenessPassed={(b64, res) => {
