@@ -15,6 +15,7 @@ const CHALLENGES = [
 ]
 
 export default function LivenessCapture({ onLivenessPassed }) {
+  const [camError,   setCamError]   = useState("")
   const [step,       setStep]       = useState(0)
   const [results,    setResults]    = useState([])
   const [checking,   setChecking]   = useState(false)
@@ -93,13 +94,16 @@ export default function LivenessCapture({ onLivenessPassed }) {
           <Webcam ref={webcamRef} audio={false} screenshotFormat="image/jpeg"
             videoConstraints={{ width:480, height:360, facingMode:"user" }}
             onUserMedia={() => setCamReady(true)}
+            onUserMediaError={(e) => { console.error('Camera error:', e); setCamError(e.name + ': ' + (e.message||'Camera blocked')) }}
             style={{ width:"100%", display:"block", opacity: camReady ? 1 : 0, transition:"opacity 0.5s" }}
           />
 
           {!camReady && (
             <div style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column", gap:12 }}>
-              <Spinner size={28} color="rgba(255,255,255,0.4)" />
-              <span style={{ fontSize:12, color:"rgba(255,255,255,0.5)" }}>Starting camera...</span>
+              {camError
+                ? <><span style={{ fontSize:12, color:"#ff4d6a", textAlign:"center", padding:"0 20px" }}>{camError}</span><span style={{ fontSize:11, color:"rgba(255,255,255,0.4)" }}>Check Windows camera privacy settings</span></>
+                : <><Spinner size={28} color="rgba(255,255,255,0.4)" /><span style={{ fontSize:12, color:"rgba(255,255,255,0.5)" }}>Starting camera...</span></>
+              }
             </div>
           )}
 
