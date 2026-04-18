@@ -14,6 +14,7 @@ from app.api.v1.routes.audit        import router as audit_router
 from app.api.v1.routes.gateway      import router as gateway_router
 from app.api.v1.routes.admin        import router as admin_router
 from app.api.v1.routes.compliance    import router as compliance_router
+from app.api.v1.routes.kyc_pdf        import router as kyc_pdf_router
 
 v1_router = APIRouter()
 v1_router.include_router(auth_router)
@@ -30,3 +31,4 @@ v1_router.include_router(kyc_router)
 v1_router.include_router(fingerprint_router)
 v1_router.include_router(admin_router)
 v1_router.include_router(compliance_router)
+v1_router.include_router(kyc_pdf_router)
