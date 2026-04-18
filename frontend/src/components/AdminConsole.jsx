@@ -9,7 +9,7 @@ import {
   Card, Btn, Badge, Spinner, SectionTitle,
   StatGrid, Divider, CheckItem,
 } from "./ui"
-import { API_BASE } from "../config"
+import { API } from "../config"
 
 const TABS = [
   { id:"institutions", label:"Institutions",   icon: Building2    },
@@ -47,7 +47,7 @@ function TabNav({ active, setActive }) {
 
 // ── shared fetch helper ─────────────────────────────────────────────────────
 async function apiFetch(path, opts = {}) {
-  const r = await fetch(`${API_BASE}${path}`, {
+  const r = await fetch(`${API}${path}`, {
     headers: { "Content-Type": "application/json" }, ...opts,
   })
   if (!r.ok) throw new Error(`${r.status} ${r.statusText}`)
@@ -64,7 +64,7 @@ function InstitutionsTab() {
   const [err, setErr]     = useState("")
 
   const load = useCallback(async () => {
-    try { const d = await apiFetch("/v1/admin/institutions"); setList(d.institutions) }
+    try { const d = await apiFetch("/api/v1/admin/institutions"); setList(d.institutions) }
     catch(e) { setErr(e.message) }
   }, [])
 
@@ -73,7 +73,7 @@ function InstitutionsTab() {
   const submit = async () => {
     setLoading(true); setErr("")
     try {
-      await apiFetch("/v1/admin/institutions", {
+      await apiFetch("/api/v1/admin/institutions", {
         method:"POST",
         body: JSON.stringify({ ...form,
           ip_whitelist: form.ip_whitelist.split(",").map(s=>s.trim()).filter(Boolean) }),
@@ -86,7 +86,7 @@ function InstitutionsTab() {
 
   const del = async (id) => {
     if (!confirm("Delete institution?")) return
-    try { await apiFetch(`/v1/admin/institutions/${id}`, { method:"DELETE" }); await load() }
+    try { await apiFetch(`/api/v1/admin/institutions/${id}`, { method:"DELETE" }); await load() }
     catch(e) { setErr(e.message) }
   }
 
@@ -154,7 +154,7 @@ function UsersTab() {
   const load = useCallback(async () => {
     try {
       const q = filterRole ? `?role=${filterRole}` : ""
-      const d = await apiFetch(`/v1/admin/users${q}`)
+      const d = await apiFetch(`/api/v1/admin/users${q}`)
       setUsers(d.users)
     } catch(e) { setErr(e.message) }
   }, [filterRole])
@@ -164,7 +164,7 @@ function UsersTab() {
   const submit = async () => {
     setLoading(true); setErr("")
     try {
-      await apiFetch("/v1/admin/users", { method:"POST", body: JSON.stringify(form) })
+      await apiFetch("/api/v1/admin/users", { method:"POST", body: JSON.stringify(form) })
       setForm({ username:"", email:"", role:"agent", institution_id:"", active:true })
       await load()
     } catch(e) { setErr(e.message) }
@@ -172,13 +172,13 @@ function UsersTab() {
   }
 
   const toggle = async (uid, active) => {
-    try { await apiFetch(`/v1/admin/users/${uid}/activate?active=${!active}`, { method:"PUT" }); await load() }
+    try { await apiFetch(`/api/v1/admin/users/${uid}/activate?active=${!active}`, { method:"PUT" }); await load() }
     catch(e) { setErr(e.message) }
   }
 
   const del = async (uid) => {
     if (!confirm("Delete user?")) return
-    try { await apiFetch(`/v1/admin/users/${uid}`, { method:"DELETE" }); await load() }
+    try { await apiFetch(`/api/v1/admin/users/${uid}`, { method:"DELETE" }); await load() }
     catch(e) { setErr(e.message) }
   }
 
@@ -267,7 +267,7 @@ function ThresholdsTab() {
   const [msg,     setMsg]     = useState("")
 
   const load = async () => {
-    try { const d = await apiFetch("/v1/admin/thresholds"); setData(d.thresholds); setEditing({...d.thresholds}) }
+    try { const d = await apiFetch("/api/v1/admin/thresholds"); setData(d.thresholds); setEditing({...d.thresholds}) }
     catch(e) { setMsg(e.message) }
   }
 
@@ -276,7 +276,7 @@ function ThresholdsTab() {
   const save = async (key) => {
     setSaving(key); setMsg("")
     try {
-      await apiFetch("/v1/admin/thresholds", { method:"PUT",
+      await apiFetch("/api/v1/admin/thresholds", { method:"PUT",
         body: JSON.stringify({ key, value: Number(editing[key]) }) })
       setData(d=>({...d,[key]:Number(editing[key])}))
       setMsg(`✓ ${key} updated`)
@@ -287,7 +287,7 @@ function ThresholdsTab() {
   const reset = async () => {
     if (!confirm("Reset all thresholds to BFIU defaults?")) return
     try {
-      const d = await apiFetch("/v1/admin/thresholds/reset", { method:"POST" })
+      const d = await apiFetch("/api/v1/admin/thresholds/reset", { method:"POST" })
       setData(d.thresholds); setEditing({...d.thresholds})
       setMsg("✓ All thresholds reset to defaults")
     } catch(e) { setMsg(e.message) }
@@ -350,10 +350,10 @@ function WebhooksTab() {
   const [err, setErr] = useState("")
 
   const loadHooks = async () => {
-    try { const d = await apiFetch("/v1/admin/webhooks"); setHooks(d.webhooks) } catch(e) { setErr(e.message) }
+    try { const d = await apiFetch("/api/v1/admin/webhooks"); setHooks(d.webhooks) } catch(e) { setErr(e.message) }
   }
   const loadLogs = async () => {
-    try { const d = await apiFetch("/v1/admin/webhooks/logs"); setLogs(d.logs) } catch(e) {}
+    try { const d = await apiFetch("/api/v1/admin/webhooks/logs"); setLogs(d.logs) } catch(e) {}
   }
 
   useEffect(() => { loadHooks(); loadLogs() }, [])
@@ -364,14 +364,14 @@ function WebhooksTab() {
     if (!form.url || form.events.length===0) { setErr("URL and at least one event required"); return }
     setLoading(true); setErr("")
     try {
-      await apiFetch("/v1/admin/webhooks", { method:"POST", body: JSON.stringify(form) })
+      await apiFetch("/api/v1/admin/webhooks", { method:"POST", body: JSON.stringify(form) })
       setForm({ url:"", events:[], secret:"", active:true }); await loadHooks()
     } catch(e) { setErr(e.message) }
     setLoading(false)
   }
 
   const del = async (id) => {
-    try { await apiFetch(`/v1/admin/webhooks/${id}`, { method:"DELETE" }); await loadHooks() }
+    try { await apiFetch(`/api/v1/admin/webhooks/${id}`, { method:"DELETE" }); await loadHooks() }
     catch(e) { setErr(e.message) }
   }
 
@@ -456,7 +456,7 @@ function HealthTab() {
 
   const load = async () => {
     setLoading(true)
-    try { const d = await apiFetch("/v1/admin/health"); setData(d) }
+    try { const d = await apiFetch("/api/v1/admin/health"); setData(d) }
     catch(e) { setErr(e.message) }
     setLoading(false)
   }
@@ -540,7 +540,7 @@ function AuditLogsTab() {
       const q = new URLSearchParams()
       if (evFilter)  q.set("event_type", evFilter)
       if (sevFilter) q.set("severity", sevFilter)
-      const d = await apiFetch(`/v1/admin/audit-logs?${q}`)
+      const d = await apiFetch(`/api/v1/admin/audit-logs?${q}`)
       setLogs(d.logs); setTotal(d.total)
     } catch(e) { setErr(e.message) }
     setLoading(false)
@@ -550,7 +550,7 @@ function AuditLogsTab() {
 
   const exportLogs = async (fmt) => {
     try {
-      const d = await apiFetch(`/v1/admin/audit-logs/export?fmt=${fmt}`)
+      const d = await apiFetch(`/api/v1/admin/audit-logs/export?fmt=${fmt}`)
       const blob = new Blob([typeof d.data==="string" ? d.data : JSON.stringify(d.data,null,2)],
         { type: fmt==="csv"?"text/csv":"application/json" })
       const url = URL.createObjectURL(blob)
