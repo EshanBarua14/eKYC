@@ -16,6 +16,8 @@ from app.api.v1.routes.admin        import router as admin_router
 from app.api.v1.routes.compliance    import router as compliance_router
 from app.api.v1.routes.kyc_pdf        import router as kyc_pdf_router
 from app.api.v1.routes.consent         import router as consent_router
+from app.api.v1.routes.notification     import router as notification_router
+from app.api.v1.routes.notification     import router as notification_router
 
 v1_router = APIRouter()
 v1_router.include_router(auth_router)
@@ -34,3 +36,5 @@ v1_router.include_router(admin_router)
 v1_router.include_router(compliance_router)
 v1_router.include_router(kyc_pdf_router)
 v1_router.include_router(consent_router)
+v1_router.include_router(notification_router)
+v1_router.include_router(notification_router)
