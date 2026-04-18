@@ -5,11 +5,12 @@ import LivenessCapture from "./components/LivenessCapture"
 import MatchReport     from "./components/MatchReport"
 import { Badge }       from "./components/ui"
 import AgentDashboard  from "./components/AgentDashboard"
-import AdminConsole   from "./components/AdminConsole"
+import AdminConsole         from "./components/AdminConsole"
+import ComplianceDashboard  from "./components/ComplianceDashboard"
 import "./App.css"
 
 const STEPS = { NID:1, LIVENESS:2, REPORT:3 }
-const PORTALS = { CUSTOMER:"customer", AGENT:"agent", ADMIN:"admin" }
+const PORTALS = { CUSTOMER:"customer", AGENT:"agent", ADMIN:"admin", COMPLIANCE:"compliance" }
 
 const STEP_META = [
   { n:1, label:"Scan NID",  desc:"Upload or photograph your NID card" },
@@ -69,6 +70,14 @@ export default function App() {
   const onNIDCaptured = (b64, scan) => { setNidB64(b64); setNidScan(scan); setStep(STEPS.LIVENESS) }
   const onLiveness    = (b64, res)  => { setLiveB64(b64); setLiveness(res); setStep(STEPS.REPORT) }
   const reset         = () => { setStep(STEPS.NID); setNidB64(null); setNidScan(null); setLiveB64(null); setLiveness(null) }
+
+  if (portal === PORTALS.COMPLIANCE) {
+    return (
+      <div data-theme={theme} style={{ fontFamily:'var(--font)' }}>
+        <ComplianceDashboard onExit={() => setPortal('customer')} theme={theme} toggleTheme={() => setTheme(t => t==="light"?"dark":"light")} />
+      </div>
+    )
+  }
 
   if (portal === PORTALS.ADMIN) {
     return (
@@ -137,6 +146,16 @@ export default function App() {
               cursor:'pointer', marginRight:0,
             }}>
               Admin Console
+            </button>
+            <button onClick={() => setPortal(PORTALS.COMPLIANCE)} style={{
+              display:'flex', alignItems:'center', gap:6,
+              padding:'7px 14px', borderRadius:'var(--radius-sm)',
+              background:'var(--green-bg)', color:'var(--green)',
+              border:'1px solid rgba(0,184,122,0.25)',
+              fontFamily:'var(--font)', fontSize:12, fontWeight:700,
+              cursor:'pointer',
+            }}>
+              Compliance
             </button>
             <button onClick={() => setTheme(t => t==="light"?"dark":"light")} style={{
               display:"flex", alignItems:"center", gap:6,
