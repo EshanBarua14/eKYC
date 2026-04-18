@@ -18,8 +18,10 @@ from app.api.v1.routes.kyc_pdf        import router as kyc_pdf_router
 from app.api.v1.routes.consent         import router as consent_router
 from app.api.v1.routes.notification     import router as notification_router
 from app.api.v1.routes.outcome           import router as outcome_router
+from app.api.v1.routes.fallback           import router as fallback_router
 from app.api.v1.routes.notification     import router as notification_router
 from app.api.v1.routes.outcome           import router as outcome_router
+from app.api.v1.routes.fallback           import router as fallback_router
 
 v1_router = APIRouter()
 v1_router.include_router(auth_router)
@@ -40,5 +42,7 @@ v1_router.include_router(kyc_pdf_router)
 v1_router.include_router(consent_router)
 v1_router.include_router(notification_router)
 v1_router.include_router(outcome_router)
+v1_router.include_router(fallback_router)
 v1_router.include_router(notification_router)
 v1_router.include_router(outcome_router)
+v1_router.include_router(fallback_router)
