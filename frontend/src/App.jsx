@@ -100,6 +100,16 @@ export default function App() {
               <span style={{ fontSize:11, fontWeight:700, color:"var(--green)" }}>API Live</span>
             </div>
 
+            <button onClick={() => setPortal(PORTALS.AGENT)} style={{
+              display:'flex', alignItems:'center', gap:6,
+              padding:'7px 14px', borderRadius:'var(--radius-sm)',
+              background:'var(--accent-bg)', color:'var(--accent)',
+              border:'1px solid rgba(99,88,255,0.2)',
+              fontFamily:'var(--font)', fontSize:12, fontWeight:700,
+              cursor:'pointer', marginRight:6,
+            }}>
+              Agent Portal
+            </button>
             <button onClick={() => setTheme(t => t==="light"?"dark":"light")} style={{
               display:"flex", alignItems:"center", gap:6,
               padding:"7px 12px", borderRadius:"var(--radius-xs)",

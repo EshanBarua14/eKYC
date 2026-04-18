@@ -448,3 +448,36 @@ BFIU: Circular No. 29 compliant
 - Whitelist maintained in memory (DB-backed in prod, admin-only mutation)
 - OpenAPI summary covers all 50+ endpoints across all 12 modules
 - API versioning: URL-based, 12-month deprecation window
+
+---
+## Agent Dashboard (Frontend)
+**Date:** 2026-04-18
+**Status:** COMPLETE
+**Tests:** 22/22 PASSED
+
+### Files Created
+- frontend/src/components/AgentDashboard.jsx (full agent portal - 6 tabs)
+- frontend/src/App.jsx (updated - Agent Portal button + portal switcher)
+- backend/tests/test_agent_dashboard.py (22 tests)
+
+### Agent Dashboard Features
+- Sidebar navigation (Dashboard, Sessions, New Session, NID Search, Reports, Profile)
+- Dashboard tab: stats (today sessions, completed, pending, success rate), quick actions, recent sessions
+- Sessions tab: filter by status, session detail view with confidence score, checker actions
+- New Session tab: 4-step wizard (NID verify -> Customer details -> Biometric -> Review/Submit)
+- NID Search tab: live EC API search with field display
+- Reports tab: performance summary with CSV export button
+- Profile tab: agent info, session limits, BFIU compliance display
+- API Live indicator, dark/light theme toggle, portal switcher
+
+### Test Coverage (22 tests)
+- TestAgentDashboardAPIIntegration (17): NID search known/unknown/invalid, session status,
+  onboarding start/step1/steps/invalid, risk grade low/high EDD, screening CLEAR/PEP,
+  audit log, admin access denied, health check, fallback trigger, lifecycle register
+- TestAgentDashboardFileStructure (5): file exists, key components, API usage, App.jsx import, BFIU limits
+
+### Design
+- Matches existing design system (Plus Jakarta Sans, JetBrains Mono, CSS variables)
+- Dark/light theme compatible
+- Responsive sidebar layout
+- BFIU compliance checks shown inline (UNSCR, session limits, NID verification)
