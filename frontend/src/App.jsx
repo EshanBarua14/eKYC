@@ -20,33 +20,25 @@ const STEP_META = [
 
 function StepBar({ current }) {
   return (
-    <div style={{ display:"flex", alignItems:"flex-start", gap:0, margin:"32px 0 40px" }}>
+    <div className="step-bar">
       {STEP_META.map((s, i) => {
-        const done    = current > s.n
-        const active  = current === s.n
-        const pending = current < s.n
+        const done   = current > s.n
+        const active = current === s.n
+        const pending= current < s.n
         return (
           <div key={s.n} style={{ display:"flex", alignItems:"flex-start", flex: i < STEP_META.length-1 ? 1 : "none" }}>
-            <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:8 }}>
-              <div style={{
-                width:36, height:36, borderRadius:"50%", flexShrink:0,
-                display:"flex", alignItems:"center", justifyContent:"center",
-                fontSize:12, fontWeight:700, transition:"all 0.3s",
-                background: done ? "var(--green)" : active ? "var(--accent)" : "var(--bg4)",
-                color: done || active ? "#fff" : "var(--text3)",
-                boxShadow: active ? "0 0 0 4px var(--accent-bg), var(--shadow-accent)" : done ? "0 0 0 4px var(--green-bg)" : "none",
-                animation: active ? "glow 2s ease infinite" : "none",
-              }}>
+            <div className="step-node">
+              <div className={`step-circle ${done?"step-circle-done":active?"step-circle-active":"step-circle-pending"}`}>
                 {done ? "✓" : s.n}
               </div>
-              <div style={{ textAlign:"center" }}>
-                <div style={{ fontSize:12, fontWeight:700, color: pending ? "var(--text3)" : "var(--text)", whiteSpace:"nowrap" }}>{s.label}</div>
-                <div style={{ fontSize:10, color:"var(--text3)", marginTop:1, whiteSpace:"nowrap", maxWidth:90 }}>{s.desc}</div>
+              <div>
+                <div className="step-label" style={{ color: pending ? "var(--text3)" : "var(--text)" }}>{s.label}</div>
+                <div className="step-desc">{s.desc}</div>
               </div>
             </div>
             {i < STEP_META.length-1 && (
-              <div style={{ flex:1, display:"flex", alignItems:"center", paddingTop:17, margin:"0 8px" }}>
-                <div style={{ flex:1, height:2, borderRadius:99, background: done ? "var(--green)" : active ? "linear-gradient(90deg,var(--green),var(--accent))" : "var(--bg4)", transition:"all 0.4s" }} />
+              <div className="step-connector">
+                <div className={`step-line ${done?"step-line-done":active?"step-line-active":"step-line-pending"}`}/>
               </div>
             )}
           </div>
@@ -58,14 +50,17 @@ function StepBar({ current }) {
 
 export default function App() {
   const [portal, setPortal] = useState("customer")
-  const [theme,    setTheme]    = useState("light")
+  const [theme, setTheme] = useState(() => localStorage.getItem("ekyc-theme") || "light")
   const [step,     setStep]     = useState(STEPS.NID)
   const [nidB64,   setNidB64]   = useState(null)
   const [nidScan,  setNidScan]  = useState(null)
   const [liveB64,  setLiveB64]  = useState(null)
   const [liveness, setLiveness] = useState(null)
 
-  useEffect(() => { document.documentElement.setAttribute("data-theme", theme) }, [theme])
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme)
+    localStorage.setItem("ekyc-theme", theme)
+  }, [theme])
 
   const onNIDCaptured = (b64, scan) => { setNidB64(b64); setNidScan(scan); setStep(STEPS.LIVENESS) }
   const onLiveness    = (b64, res)  => { setLiveB64(b64); setLiveness(res); setStep(STEPS.REPORT) }
@@ -96,78 +91,38 @@ export default function App() {
   }
 
   return (
-    <div style={{ minHeight:"100vh", background:"var(--bg)", paddingBottom:80 }}>
+    <div style={{ minHeight:"100vh" }}>
 
       {/* Header */}
-      <header style={{
-        background: "var(--bg2)",
-        borderBottom: "1px solid var(--border)",
-        position: "sticky", top: 0, zIndex: 100,
-        boxShadow: "var(--shadow-sm)",
-      }}>
-        <div style={{ maxWidth:980, margin:"0 auto", padding:"0 24px", height:60, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-            <div style={{
-              width:36, height:36, borderRadius:10,
-              background:"linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%)",
-              display:"flex", alignItems:"center", justifyContent:"center",
-              boxShadow:"var(--shadow-accent)",
-            }}>
-              <Shield size={17} color="#fff" strokeWidth={2.5} />
+      <header className="app-header">
+        <div className="header-inner">
+          <div style={{ display:"flex", alignItems:"center", gap:11 }}>
+            <div className="logo-mark">
+              <Shield size={17} color="#fff" strokeWidth={2.5} style={{ position:"relative", zIndex:1 }}/>
             </div>
             <div>
-              <div style={{ fontSize:14, fontWeight:800, color:"var(--text)", lineHeight:1.1, letterSpacing:"-0.02em" }}>Xpert eKYC</div>
-              <div style={{ fontSize:9, color:"var(--text3)", fontWeight:600, letterSpacing:"0.1em", textTransform:"uppercase" }}>BFIU Circular No. 29</div>
+              <div className="logo-text-primary">Xpert eKYC</div>
+              <div className="logo-text-sub">BFIU Circular No. 29</div>
             </div>
           </div>
 
-          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:5, padding:"5px 10px", borderRadius:"var(--radius-xs)", background:"var(--green-bg)", border:"1px solid var(--green-border)" }}>
-              <div style={{ width:6, height:6, borderRadius:"50%", background:"var(--green)", animation:"pulse 2s ease infinite" }} />
-              <span style={{ fontSize:11, fontWeight:700, color:"var(--green)" }}>API Live</span>
+          <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap" }}>
+            <div className="api-live">
+              <div className="api-live-dot"/>
+              <span className="api-live-text">API Live</span>
             </div>
 
-            <button onClick={() => setPortal(PORTALS.AGENT)} style={{
-              display:'flex', alignItems:'center', gap:6,
-              padding:'7px 14px', borderRadius:'var(--radius-sm)',
-              background:'var(--accent-bg)', color:'var(--accent)',
-              border:'1px solid rgba(99,88,255,0.2)',
-              fontFamily:'var(--font)', fontSize:12, fontWeight:700,
-              cursor:'pointer', marginRight:6,
-            }}>
-              Agent Portal
+            <button className="portal-btn portal-btn-agent" onClick={() => setPortal(PORTALS.AGENT)}>
+              <Fingerprint size={12} strokeWidth={2.5}/> Agent
             </button>
-            <button onClick={() => setPortal(PORTALS.ADMIN)} style={{
-              display:'flex', alignItems:'center', gap:6,
-              padding:'7px 14px', borderRadius:'var(--radius-sm)',
-              background:'var(--yellow-bg)', color:'var(--yellow)',
-              border:'1px solid rgba(240,165,0,0.25)',
-              fontFamily:'var(--font)', fontSize:12, fontWeight:700,
-              cursor:'pointer', marginRight:0,
-            }}>
-              Admin Console
+            <button className="portal-btn portal-btn-admin" onClick={() => setPortal(PORTALS.ADMIN)}>
+              <Shield size={12} strokeWidth={2.5}/> Admin
             </button>
-            <button onClick={() => setPortal(PORTALS.COMPLIANCE)} style={{
-              display:'flex', alignItems:'center', gap:6,
-              padding:'7px 14px', borderRadius:'var(--radius-sm)',
-              background:'var(--green-bg)', color:'var(--green)',
-              border:'1px solid rgba(0,184,122,0.25)',
-              fontFamily:'var(--font)', fontSize:12, fontWeight:700,
-              cursor:'pointer',
-            }}>
-              Compliance
+            <button className="portal-btn portal-btn-compliance" onClick={() => setPortal(PORTALS.COMPLIANCE)}>
+              <ChevronRight size={12} strokeWidth={2.5}/> Compliance
             </button>
-            <button onClick={() => setTheme(t => t==="light"?"dark":"light")} style={{
-              display:"flex", alignItems:"center", gap:6,
-              padding:"7px 12px", borderRadius:"var(--radius-xs)",
-              background:"var(--bg3)", border:"1px solid var(--border)",
-              cursor:"pointer", fontSize:12, fontWeight:600,
-              color:"var(--text2)", fontFamily:"var(--font)",
-              transition:"all 0.15s",
-            }}
-            onMouseEnter={e => e.currentTarget.style.borderColor = "var(--border-h)"}
-            onMouseLeave={e => e.currentTarget.style.borderColor = "var(--border)"}
-            >
+
+            <button className="theme-toggle" onClick={() => setTheme(t => t==="light"?"dark":"light")}>
               {theme==="light"
                 ? <><Moon size={13} strokeWidth={2}/> Dark</>
                 : <><Sun  size={13} strokeWidth={2}/> Light</>}
@@ -176,30 +131,27 @@ export default function App() {
         </div>
       </header>
 
-      <main style={{ maxWidth:980, margin:"0 auto", padding:"40px 24px 0" }}>
+      <main className="app-main">
 
         {/* Hero */}
-        <div style={{ marginBottom:0, animation:"fadeUp 0.3s ease both" }}>
-          <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:12 }}>
-            <div style={{ width:20, height:20, borderRadius:6, background:"var(--accent-bg)", display:"flex", alignItems:"center", justifyContent:"center" }}>
-              <Fingerprint size={11} color="var(--accent)" strokeWidth={2.5} />
+        <div style={{ marginBottom:0, animation:"fadeUp 0.25s cubic-bezier(0.34,1.56,0.64,1) both" }}>
+          <div className="hero-tag">
+            <div className="hero-tag-icon">
+              <Fingerprint size={11} color="var(--accent)" strokeWidth={2.5}/>
             </div>
-            <span style={{ fontSize:11, color:"var(--accent)", fontWeight:700, letterSpacing:"0.08em", textTransform:"uppercase" }}>
-              Face Matching · Section 3.3 · Liveness · Annexure-2
-            </span>
+            <span className="hero-tag-text">Face Matching · §3.3 · Liveness · Annexure-2</span>
           </div>
-          <h1 style={{ fontSize:36, fontWeight:800, color:"var(--text)", lineHeight:1.1, marginBottom:10, letterSpacing:"-0.03em" }}>
+          <h1 className="hero-title">
             NID Face{" "}
-            <span style={{ background:"linear-gradient(135deg, var(--accent), var(--accent2))", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>
-              Verification
-            </span>
+            <span className="gradient-text">Verification</span>
           </h1>
-          <p style={{ fontSize:14, color:"var(--text2)", maxWidth:500, lineHeight:1.7 }}>
-            Upload your Bangladesh NID card, complete the AI liveness challenge, and receive a full biometric match report compliant with BFIU Circular No.&nbsp;29.
+          <p className="hero-sub">
+            Upload your Bangladesh NID card, complete the AI liveness challenge,
+            and receive a full biometric match report compliant with BFIU Circular No.&nbsp;29.
           </p>
         </div>
 
-        <StepBar current={step} />
+        <StepBar current={step}/>
 
         {step === STEPS.NID      && <NIDScanner      onNIDCaptured={onNIDCaptured} />}
         {step === STEPS.LIVENESS && <LivenessCapture onLivenessPassed={onLiveness} />}
