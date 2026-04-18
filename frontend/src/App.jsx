@@ -55,6 +55,7 @@ function StepBar({ current }) {
 }
 
 export default function App() {
+  const [portal, setPortal] = useState("customer")
   const [theme,    setTheme]    = useState("light")
   const [step,     setStep]     = useState(STEPS.NID)
   const [nidB64,   setNidB64]   = useState(null)
@@ -67,6 +68,14 @@ export default function App() {
   const onNIDCaptured = (b64, scan) => { setNidB64(b64); setNidScan(scan); setStep(STEPS.LIVENESS) }
   const onLiveness    = (b64, res)  => { setLiveB64(b64); setLiveness(res); setStep(STEPS.REPORT) }
   const reset         = () => { setStep(STEPS.NID); setNidB64(null); setNidScan(null); setLiveB64(null); setLiveness(null) }
+
+  if (portal === PORTALS.AGENT) {
+    return (
+      <div data-theme={theme} style={{ fontFamily:'var(--font)' }}>
+        <AgentDashboard onExit={() => setPortal('customer')} theme={theme} toggleTheme={() => setTheme(t => t==="light"?"dark":"light")} />
+      </div>
+    )
+  }
 
   return (
     <div style={{ minHeight:"100vh", background:"var(--bg)", paddingBottom:80 }}>

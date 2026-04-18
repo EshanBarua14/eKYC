@@ -56,8 +56,8 @@ function Sidebar({ active, setActive, agent }) {
         {nav.map(({ id, icon:Icon, label, accent }) => {
           const on = active === id
           return (
-            <button key={id} onClick={() => setActive(id)} style={{ width:"100%", display:"flex", alignItems:"center", gap:10, padding:"9px 12px", borderRadius:"var(--radius-sm)", marginBottom:2, background: on?(accent?"var(--accent)":"var(--accent-bg)"):accent?"var(--accent-bg)":"transparent", border: on&&accent?"none":on?"1px solid rgba(99,88,255,0.2)":"1px solid transparent", color: on?(accent?"#fff":"var(--accent)"):accent?"var(--accent)":"var(--text2)", fontFamily:"var(--font)", fontSize:13, fontWeight:on?700:500, cursor:"pointer", transition:"all 0.15s", textAlign:"left" }}
-              <Icon size={15} strokeWidth={on?2.5:2}/>{label}{id==="new"&&<Zap size={11} style={{marginLeft:"auto"}} strokeWidth={2.5}/>}
+            <button key={id} onClick={() => setActive(id)} style={{ width:"100%", display:"flex", alignItems:"center", gap:10, padding:"9px 12px", borderRadius:"var(--radius-sm)", marginBottom:2, background: on?(accent?"var(--accent)":"var(--accent-bg)"):accent?"var(--accent-bg)":"transparent", border: on&&accent?"none":on?"1px solid rgba(99,88,255,0.2)":"1px solid transparent", color: on?(accent?"#fff":"var(--accent)"):accent?"var(--accent)":"var(--text2)", fontFamily:"var(--font)", fontSize:13, fontWeight:on?700:500, cursor:"pointer", transition:"all 0.15s", textAlign:"left" }} onMouseEnter={e=>{if(!on)e.currentTarget.style.background="var(--bg3)"}} onMouseLeave={e=>{if(!on)e.currentTarget.style.background=accent?"var(--accent-bg)":"transparent"}}>
+              <><Icon size={15} strokeWidth={on?2.5:2}/><span>{label}</span>{id==="new" && <Zap size={11} style={{marginLeft:"auto"}} strokeWidth={2.5}/>}</>
             </button>
           )
         })}
@@ -180,7 +180,7 @@ function DashboardTab({ sessions, setActive }) {
           { label:"Today Sessions", value:MOCK_STATS.today.total,    color:"var(--accent)", icon:Activity },
           { label:"Completed",      value:MOCK_STATS.today.completed,color:"var(--green)",  icon:CheckCircle },
           { label:"Pending Review", value:MOCK_STATS.today.pending,  color:"var(--yellow)", icon:Clock },
-          { label:"Success Rate",   value:,color:"var(--blue)",icon:TrendingUp },
+          { label:"Success Rate",   value:`${MOCK_STATS.success_rate}%`,color:"var(--blue)",icon:TrendingUp },
         ].map(({ label,value,color,icon:Icon })=>(
           <Card key={label} style={{ padding:"16px 18px" }}>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
@@ -188,7 +188,7 @@ function DashboardTab({ sessions, setActive }) {
                 <div style={{ fontSize:10, color:"var(--text3)", fontWeight:600, textTransform:"uppercase", letterSpacing:"0.06em", marginBottom:6 }}>{label}</div>
                 <div style={{ fontSize:26, fontWeight:800, color, fontFamily:"var(--font-mono)", lineHeight:1 }}>{value}</div>
               </div>
-              <div style={{ width:36, height:36, borderRadius:10, background:, display:"flex", alignItems:"center", justifyContent:"center" }}><Icon size={16} color={color} strokeWidth={2}/></div>
+              <div style={{ width:36, height:36, borderRadius:10, background:`${color}18`, display:"flex", alignItems:"center", justifyContent:"center" }}><Icon size={16} color={color} strokeWidth={2}/></div>
             </div>
           </Card>
         ))}
@@ -204,7 +204,7 @@ function DashboardTab({ sessions, setActive }) {
             <button key={label} onClick={()=>setActive(action)} style={{ padding:"14px 16px", borderRadius:"var(--radius-sm)", background:"var(--bg3)", border:"1px solid var(--border)", textAlign:"left", cursor:"pointer", transition:"all 0.15s", fontFamily:"var(--font)" }}
             onMouseEnter={e=>{ e.currentTarget.style.borderColor=color; e.currentTarget.style.background="var(--bg4)" }}
             onMouseLeave={e=>{ e.currentTarget.style.borderColor="var(--border)"; e.currentTarget.style.background="var(--bg3)" }}>
-              <div style={{ width:30, height:30, borderRadius:8, background:, display:"flex", alignItems:"center", justifyContent:"center", marginBottom:10 }}><Icon size={14} color={color} strokeWidth={2.5}/></div>
+              <div style={{ width:30, height:30, borderRadius:8, background:`${color}18`, display:"flex", alignItems:"center", justifyContent:"center", marginBottom:10 }}><Icon size={14} color={color} strokeWidth={2.5}/></div>
               <div style={{ fontSize:12, fontWeight:700, color:"var(--text)" }}>{label}</div>
               <div style={{ fontSize:11, color:"var(--text3)", marginTop:2 }}>{sub}</div>
             </button>
@@ -409,7 +409,7 @@ function ReportsTab({ sessions }) {
   )
 }
 
-export default function AgentDashboard() {
+export default function AgentDashboard({ onExit, theme, toggleTheme }) {
   const [active, setActive] = useState("dashboard")
   const agent = { name:"Eshan Barua", code:"AGT-2026-042", zone:"Chittagong Sadar" }
   const tabs = { dashboard:<DashboardTab sessions={MOCK_SESSIONS} setActive={setActive}/>, sessions:<SessionsTab sessions={MOCK_SESSIONS}/>, new:<NewSessionTab/>, search:<SearchTab/>, reports:<ReportsTab sessions={MOCK_SESSIONS}/>, profile:<ProfileTab agent={agent}/> }
@@ -430,6 +430,8 @@ export default function AgentDashboard() {
               <span style={{ fontSize:11, fontWeight:700, color:"var(--green)" }}>API Live</span>
             </div>
             <button style={{ width:34, height:34, borderRadius:99, background:"var(--bg3)", border:"1px solid var(--border)", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer" }}><Bell size={14} color="var(--text3)"/></button>
+            <button onClick={toggleTheme} style={{ width:34, height:34, borderRadius:99, background:"var(--bg3)", border:"1px solid var(--border)", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", fontFamily:"var(--font)", fontSize:11 }}>{theme==="dark" ? "☀" : "🌙"}</button>
+            {onExit && <button onClick={onExit} style={{ padding:"6px 12px", borderRadius:"var(--radius-sm)", background:"var(--bg3)", border:"1px solid var(--border)", color:"var(--text3)", fontFamily:"var(--font)", fontSize:11, fontWeight:600, cursor:"pointer" }}>Exit</button>}
           </div>
         </div>
         <div style={{ padding:24 }}>{tabs[active]||tabs.dashboard}</div>
