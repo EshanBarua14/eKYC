@@ -23,6 +23,7 @@ from app.api.v1.routes.fallback      import router as fallback_router
 from app.api.v1.routes.cmi           import router as cmi_router
 from app.api.v1.routes.bfiu_report   import router as bfiu_report_router
 from app.api.v1.routes.file_storage  import router as file_storage_router
+from app.api.v1.routes.audit_pdf      import router as audit_pdf_router
 from app.api.v1.routes.rate_limits   import router as rate_limits_router
 
 v1_router = APIRouter()
@@ -49,4 +50,5 @@ v1_router.include_router(cmi_router)
 v1_router.include_router(bfiu_report_router)
 v1_router.include_router(settings_router)
 v1_router.include_router(file_storage_router)
+v1_router.include_router(audit_pdf_router)
 v1_router.include_router(rate_limits_router)
