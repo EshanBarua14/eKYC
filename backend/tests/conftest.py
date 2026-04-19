@@ -87,3 +87,20 @@ def clean_m13_data():
 def reset_demo_users_totp():
     """Ensure test admin users have TOTP set up in in-memory store."""
     yield
+
+@pytest.fixture(autouse=True, scope="session")
+def clean_m33_data():
+    try:
+        from app.db.database import db_session
+        from app.db.models.auth import Institution
+        stale = ["APR001","APR002","APR003","APR004","APR005",
+                 "INS001","INS002","INS003","INS004","INS006",
+                 "LST001","LST002","LST003","GET001","REV001",
+                 "REV002","REV003","REV004","REJ001","REJ002","REJ003",
+                 "STA001","STA002"]
+        with db_session() as db:
+            for code in stale:
+                db.query(Institution).filter_by(short_code=code).delete()
+    except Exception as e:
+        print(f"[conftest] M33 cleanup warning: {e}")
+    yield
