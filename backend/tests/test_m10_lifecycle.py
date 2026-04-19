@@ -233,8 +233,13 @@ class TestLifecycleAPI:
             "email": "admin_lc@demo.com", "phone": "+8801712345678",
             "full_name": "Lifecycle Admin", "role": "ADMIN", "password": "admin1234",
         })
+        import pyotp as _p10; _SS10 = "JBSWY3DPEHPK3PXP"
+        from app.api.v1.routes.auth import _demo_users
+        _uu10 = next((x for x in _demo_users if x.email == "admin_lc@demo.com"), None)
+        if _uu10 and not _uu10.totp_enabled: _uu10.totp_secret = _SS10; _uu10.totp_enabled = True
         r = self.client.post("/api/v1/auth/token", json={
             "email": "admin_lc@demo.com", "password": "admin1234",
+            "totp_code": _p10.TOTP(_SS10).now(),
         })
         self.token   = r.json()["access_token"]
         self.headers = {"Authorization": f"Bearer {self.token}"}

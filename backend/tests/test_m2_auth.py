@@ -245,12 +245,17 @@ class TestAuthAPI:
         assert r.status_code == 409
 
     def test_login_success(self):
+        import pyotp; _S = "JBSWY3DPEHPK3PXP"
         self.client.post("/api/v1/auth/register", json={
             "email": "admin@demo.com", "phone": "+8801712345678",
             "full_name": "Admin User", "role": "ADMIN", "password": "adminpass1",
         })
+        from app.api.v1.routes.auth import _demo_users
+        u = next((x for x in _demo_users if x.email == "admin@demo.com"), None)
+        if u and not u.totp_enabled: u.totp_secret = _S; u.totp_enabled = True
         r = self.client.post("/api/v1/auth/token", json={
             "email": "admin@demo.com", "password": "adminpass1",
+            "totp_code": pyotp.TOTP(_S).now(),
         })
         assert r.status_code == 200
         data = r.json()
@@ -274,8 +279,13 @@ class TestAuthAPI:
             "email": "checker@demo.com", "phone": "+8801712345678",
             "full_name": "Checker", "role": "CHECKER", "password": "checker123",
         })
+        import pyotp; _S2 = "JBSWY3DPEHPK3PXP"
+        from app.api.v1.routes.auth import _demo_users
+        u2 = next((x for x in _demo_users if x.email == "checker@demo.com"), None)
+        if u2 and not u2.totp_enabled: u2.totp_secret = _S2; u2.totp_enabled = True
         login = self.client.post("/api/v1/auth/token", json={
             "email": "checker@demo.com", "password": "checker123",
+            "totp_code": pyotp.TOTP(_S2).now(),
         })
         token = login.json()["access_token"]
         r = self.client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {token}"})
@@ -319,12 +329,17 @@ class TestAuthAPI:
         assert r.status_code == 422
 
     def test_admin_can_list_roles(self):
+        import pyotp; _S3 = "JBSWY3DPEHPK3PXP"
         self.client.post("/api/v1/auth/register", json={
             "email": "adm2@demo.com", "phone": "+8801712345678",
             "full_name": "Admin2", "role": "ADMIN", "password": "adminpass2",
         })
+        from app.api.v1.routes.auth import _demo_users
+        u3 = next((x for x in _demo_users if x.email == "adm2@demo.com"), None)
+        if u3 and not u3.totp_enabled: u3.totp_secret = _S3; u3.totp_enabled = True
         login = self.client.post("/api/v1/auth/token", json={
             "email": "adm2@demo.com", "password": "adminpass2",
+            "totp_code": pyotp.TOTP(_S3).now(),
         })
         token = login.json()["access_token"]
         r = self.client.get("/api/v1/auth/roles", headers={"Authorization": f"Bearer {token}"})

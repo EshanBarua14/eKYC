@@ -11,13 +11,26 @@ BASE   = "/api/v1/admin"
 AUTH   = "/api/v1/auth"
 
 # ── Helpers ───────────────────────────────────────────────────────────────
+import pyotp as _pyotp2
+_M29_TOTP_SECRET = "JBSWY3DPEHPK3PXP"
+
 def register_and_login(email, role, password="Test@12345"):
     client.post(f"{AUTH}/register", json={
         "email": email, "phone": "01700000000",
         "full_name": "Test User", "role": role,
         "password": password, "institution_id": "inst-demo-001",
     })
-    r = client.post(f"{AUTH}/token", json={"email": email, "password": password})
+    # For ADMIN/CHECKER roles, set up TOTP directly on in-memory user
+    if role.upper() in ("ADMIN", "CHECKER"):
+        from app.api.v1.routes.auth import _demo_users
+        user = next((u for u in _demo_users if u.email == email), None)
+        if user and not user.totp_enabled:
+            user.totp_secret = _M29_TOTP_SECRET
+            user.totp_enabled = True
+        totp_code = _pyotp2.TOTP(_M29_TOTP_SECRET).now()
+        r = client.post(f"{AUTH}/token", json={"email": email, "password": password, "totp_code": totp_code})
+    else:
+        r = client.post(f"{AUTH}/token", json={"email": email, "password": password})
     if r.status_code != 200:
         return None
     return r.json().get("access_token")

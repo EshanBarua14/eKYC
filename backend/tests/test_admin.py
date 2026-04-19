@@ -11,12 +11,26 @@ BASE = "/api/v1/admin"
 AUTH = "/api/v1/auth"
 
 # ── Auth helper ───────────────────────────────────────────────────────────
+import pyotp as _pyotp
+
+# Fixed TOTP secret for test admin — allows computing valid codes in tests
+_TEST_TOTP_SECRET = "JBSWY3DPEHPK3PXP"
+
 def get_admin_token():
+    # Register admin
     client.post(f"{AUTH}/register", json={
         "email":"admin_m13@test.com","phone":"01700000000",
         "full_name":"Admin M13","role":"ADMIN",
         "password":"Admin@12345","institution_id":"inst-demo-001"})
-    r = client.post(f"{AUTH}/token", json={"email":"admin_m13@test.com","password":"Admin@12345"})
+    # Set TOTP directly on in-memory user (auth route uses _demo_users list)
+    from app.api.v1.routes.auth import _demo_users
+    user = next((u for u in _demo_users if u.email == "admin_m13@test.com"), None)
+    if user and not user.totp_enabled:
+        user.totp_secret = _TEST_TOTP_SECRET
+        user.totp_enabled = True
+    totp_code = _pyotp.TOTP(_TEST_TOTP_SECRET).now()
+    r = client.post(f"{AUTH}/token", json={
+        "email":"admin_m13@test.com","password":"Admin@12345","totp_code":totp_code})
     return r.json().get("access_token","")
 
 def get_auditor_token():

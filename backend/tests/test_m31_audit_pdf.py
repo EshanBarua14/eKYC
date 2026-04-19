@@ -12,21 +12,13 @@ client = TestClient(app)
 BASE = "/api/v1/audit"
 AUTH = "/api/v1/auth"
 
+from tests.test_helpers import setup_totp_and_login
+
 def get_admin_token():
-    client.post(f"{AUTH}/register", json={
-        "email":"admin_m31@test.com","phone":"01700000000",
-        "full_name":"Admin M31","role":"ADMIN",
-        "password":"Admin@12345","institution_id":"inst-demo-001"})
-    r = client.post(f"{AUTH}/token", json={"email":"admin_m31@test.com","password":"Admin@12345"})
-    return r.json().get("access_token","")
+    return setup_totp_and_login(client, "admin_m31@test.com", "ADMIN")
 
 def get_auditor_token():
-    client.post(f"{AUTH}/register", json={
-        "email":"auditor_m31@test.com","phone":"01700000000",
-        "full_name":"Auditor M31","role":"AUDITOR",
-        "password":"Admin@12345","institution_id":"inst-demo-001"})
-    r = client.post(f"{AUTH}/token", json={"email":"auditor_m31@test.com","password":"Admin@12345"})
-    return r.json().get("access_token","")
+    return setup_totp_and_login(client, "auditor_m31@test.com", "AUDITOR")
 
 def ah(): return {"Authorization": f"Bearer {get_admin_token()}"}
 def audh(): return {"Authorization": f"Bearer {get_auditor_token()}"}

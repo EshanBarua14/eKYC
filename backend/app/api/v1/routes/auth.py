@@ -11,6 +11,7 @@ from pydantic import BaseModel, EmailStr, field_validator
 from jose import JWTError
 
 from app.core.security import decode_token, Role, has_permission, ROLE_PERMISSIONS
+from app.services.twofa_service import check_2fa_compliance, get_2fa_policy
 from app.services.auth_service import (
     hash_password, verify_password,
     generate_totp_secret, get_totp_uri, verify_totp, generate_otp,
@@ -147,10 +148,25 @@ def login(req: LoginRequest, request: Request):
     if not user.is_active:
         raise HTTPException(status_code=403, detail="Account deactivated")
 
-    # TOTP check (if enabled)
-    if user.totp_enabled:
-        if not req.totp_code:
-            raise HTTPException(status_code=401, detail="TOTP code required")
+    # ── 2FA enforcement (M32) ────────────────────────────────────────────
+    compliance = check_2fa_compliance(
+        role=user.role,
+        totp_enabled=user.totp_enabled,
+        totp_code=req.totp_code,
+        totp_secret=user.totp_secret,
+    )
+    if not compliance["allowed"]:
+        raise HTTPException(
+            status_code=401,
+            detail={
+                "error":           compliance.get("error_code","2FA_REQUIRED"),
+                "message":         compliance["reason"],
+                "action_required": compliance.get("action_required"),
+                "bfiu_ref":        "BFIU Circular No. 29 - Section 3.2.5",
+            }
+        )
+    # Verify TOTP code if provided and enabled
+    if user.totp_enabled and req.totp_code:
         if not verify_totp(user.totp_secret, req.totp_code):
             raise HTTPException(status_code=401, detail="Invalid TOTP code")
 

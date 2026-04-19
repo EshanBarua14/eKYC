@@ -263,9 +263,14 @@ class TestRiskAPI:
             "role": "CHECKER",
             "password": "checker123",
         })
+        import pyotp as _p8; _SS8 = "JBSWY3DPEHPK3PXP"
+        from app.api.v1.routes.auth import _demo_users
+        _uu8 = next((x for x in _demo_users if x.email == "checker_risk@demo.com"), None)
+        if _uu8 and not _uu8.totp_enabled: _uu8.totp_secret = _SS8; _uu8.totp_enabled = True
         r = self.client.post("/api/v1/auth/token", json={
             "email": "checker_risk@demo.com",
             "password": "checker123",
+            "totp_code": _p8.TOTP(_SS8).now(),
         })
         self.token   = r.json()["access_token"]
         self.headers = {"Authorization": f"Bearer {self.token}"}

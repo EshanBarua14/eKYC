@@ -191,8 +191,13 @@ class TestGatewayAPI:
             "email": "admin_gw@demo.com", "phone": "+8801712345678",
             "full_name": "Gateway Admin", "role": "ADMIN", "password": "admin1234",
         })
+        import pyotp as _p12; _SS12 = "JBSWY3DPEHPK3PXP"
+        from app.api.v1.routes.auth import _demo_users
+        _uu12 = next((x for x in _demo_users if x.email == "admin_gw@demo.com"), None)
+        if _uu12 and not _uu12.totp_enabled: _uu12.totp_secret = _SS12; _uu12.totp_enabled = True
         r = self.client.post("/api/v1/auth/token", json={
             "email": "admin_gw@demo.com", "password": "admin1234",
+            "totp_code": _p12.TOTP(_SS12).now(),
         })
         self.token   = r.json()["access_token"]
         self.headers = {"Authorization": f"Bearer {self.token}"}

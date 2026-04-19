@@ -82,3 +82,8 @@ def clean_m13_data():
     except Exception as e:
         print(f"[conftest] M13 cleanup warning: {e}")
     yield
+
+@pytest.fixture(autouse=True, scope="session")
+def reset_demo_users_totp():
+    """Ensure test admin users have TOTP set up in in-memory store."""
+    yield

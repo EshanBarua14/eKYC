@@ -254,9 +254,14 @@ class TestScreeningAPI:
             "role": "CHECKER",
             "password": "checker123",
         })
+        import pyotp; _S = "JBSWY3DPEHPK3PXP"
+        from app.api.v1.routes.auth import _demo_users
+        u = next((x for x in _demo_users if x.email == "checker_scr@demo.com"), None)
+        if u and not u.totp_enabled: u.totp_secret = _S; u.totp_enabled = True
         r = self.client.post("/api/v1/auth/token", json={
             "email": "checker_scr@demo.com",
             "password": "checker123",
+            "totp_code": pyotp.TOTP(_S).now(),
         })
         self.token   = r.json()["access_token"]
         self.headers = {"Authorization": f"Bearer {self.token}"}
