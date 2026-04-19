@@ -17,3 +17,25 @@ def clean_test_outcomes():
     except Exception as e:
         print(f"[conftest] cleanup warning: {e}")
     yield
+
+# ── E2E session cleanup — prevents stale-session 409 conflicts ──────────────
+import pytest
+
+E2E_SESSIONS_TO_CLEAN = [
+    "e2e_sess_003", "e2e_sess_004",
+]
+
+@pytest.fixture(autouse=True, scope="session")
+def clean_e2e_sessions():
+    """Delete known fixed e2e session IDs before test suite runs."""
+    import sys, os
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+    try:
+        from app.db.database import db_session
+        from app.db.models import OnboardingOutcome
+        with db_session() as db:
+            for sid in E2E_SESSIONS_TO_CLEAN:
+                db.query(OnboardingOutcome).filter_by(session_id=sid).delete()
+    except Exception as e:
+        print(f"[conftest] e2e cleanup warning: {e}")
+    yield
