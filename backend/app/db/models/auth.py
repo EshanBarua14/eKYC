@@ -8,9 +8,8 @@ from sqlalchemy import (
     Column, String, Boolean, DateTime,
     ForeignKey, JSON, Integer, Text
 )
-from sqlalchemy.orm import relationship, declarative_base
-
-Base = declarative_base()
+from sqlalchemy.orm import relationship
+from app.db.database import Base
 
 def _now():
     return datetime.now(timezone.utc)

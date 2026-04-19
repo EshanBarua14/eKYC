@@ -10,42 +10,12 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 from app.db.database import Base
+# Institution and User defined in auth.py (authoritative)
+from app.db.models.auth import Institution, User  # noqa: F401
 
 
 def _now():
     return datetime.now(timezone.utc)
-
-
-# ══════════════════════════════════════════════════════════════════════════
-# M1 / M13 — Institution (Multi-tenant)
-# ══════════════════════════════════════════════════════════════════════════
-class Institution(Base):
-    __tablename__ = "institutions"
-    id              = Column(String(16),  primary_key=True, index=True)
-    name            = Column(String(255), nullable=False)
-    short_code      = Column(String(20),  unique=True, nullable=False)
-    schema_name     = Column(String(64),  unique=True, nullable=False)
-    ip_whitelist    = Column(JSON,        default=list)
-    active          = Column(Boolean,     default=True)
-    created_at      = Column(DateTime,    default=_now)
-    updated_at      = Column(DateTime,    default=_now, onupdate=_now)
-
-
-# ══════════════════════════════════════════════════════════════════════════
-# M2 — User / RBAC
-# ══════════════════════════════════════════════════════════════════════════
-class User(Base):
-    __tablename__ = "users"
-    id             = Column(String(16),  primary_key=True, index=True)
-    username       = Column(String(128), unique=True, nullable=False, index=True)
-    email          = Column(String(255), unique=True, nullable=False)
-    role           = Column(String(20),  nullable=False)   # admin|checker|maker|agent|auditor
-    institution_id = Column(String(16),  ForeignKey("institutions.id"), nullable=True)
-    active         = Column(Boolean,     default=True)
-    created_at     = Column(DateTime,    default=_now)
-    updated_at     = Column(DateTime,    default=_now, onupdate=_now)
-
-    __table_args__ = (Index("ix_users_role_inst", "role", "institution_id"),)
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -58,7 +28,7 @@ class KYCProfile(Base):
     verdict                  = Column(String(16),   nullable=False)
     confidence               = Column(Float,        nullable=False)
     institution_type         = Column(String(32),   nullable=False, default="INSURANCE_LIFE")
-    institution_id           = Column(String(16),   ForeignKey("institutions.id"), nullable=True)
+    institution_id           = Column(String(16),   nullable=True)
     product_type             = Column(String(64),   nullable=True)
     product_amount           = Column(Float,        nullable=True)
     kyc_type                 = Column(String(16),   nullable=False)

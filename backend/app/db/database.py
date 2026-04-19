@@ -1,37 +1,59 @@
 """
-Database connection — SQLite for dev, PostgreSQL for production
+Database connection — PostgreSQL (production) with SQLite fallback (dev/CI)
 BFIU Circular No. 29 — data residency on local server
+M40: PostgreSQL migration
 """
 import os
-from sqlalchemy import create_engine, event
-from sqlalchemy.orm import sessionmaker, DeclarativeBase
 from contextlib import contextmanager
+from sqlalchemy import create_engine, event, text
+from sqlalchemy.orm import sessionmaker, DeclarativeBase
+from dotenv import load_dotenv
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./ekyc.db")
+load_dotenv()
 
-_connect_args = {"check_same_thread": False} if "sqlite" in DATABASE_URL else {}
+DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./ekyc.db")
+
+_is_sqlite   = DATABASE_URL.startswith("sqlite")
+_is_postgres = DATABASE_URL.startswith("postgresql")
+
+_connect_args = {"check_same_thread": False} if _is_sqlite else {}
+
+_pool_kwargs: dict = {}
+if _is_postgres:
+    _pool_kwargs = {
+        "pool_size":     5,
+        "max_overflow":  10,
+        "pool_timeout":  30,
+        "pool_recycle":  3600,
+        "pool_pre_ping": True,
+    }
 
 engine = create_engine(
     DATABASE_URL,
     connect_args=_connect_args,
-    pool_pre_ping=True,           # detect stale connections
-    pool_recycle=3600,            # recycle connections every hour
-    echo=os.getenv("SQL_ECHO","false").lower() == "true",
+    echo=os.getenv("SQL_ECHO", "false").lower() == "true",
+    **_pool_kwargs,
 )
 
-# Enable WAL mode for SQLite (better concurrent reads)
-if "sqlite" in DATABASE_URL:
+if _is_sqlite:
     @event.listens_for(engine, "connect")
-    def set_sqlite_pragma(dbapi_conn, connection_record):
-        cursor = dbapi_conn.cursor()
-        cursor.execute("PRAGMA journal_mode=WAL")
-        cursor.execute("PRAGMA foreign_keys=ON")
-        cursor.close()
+    def _set_sqlite_pragma(dbapi_conn, _record):
+        cur = dbapi_conn.cursor()
+        cur.execute("PRAGMA journal_mode=WAL")
+        cur.execute("PRAGMA foreign_keys=ON")
+        cur.close()
 
-SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False, expire_on_commit=False)
+SessionLocal = sessionmaker(
+    bind=engine,
+    autocommit=False,
+    autoflush=False,
+    expire_on_commit=False,
+)
+
 
 class Base(DeclarativeBase):
     pass
+
 
 def get_db():
     """FastAPI dependency — yields DB session."""
@@ -41,9 +63,10 @@ def get_db():
     finally:
         db.close()
 
+
 @contextmanager
 def db_session():
-    """Context manager for use outside FastAPI (services, scripts)."""
+    """Context manager for use outside FastAPI (services, Celery, scripts)."""
     db = SessionLocal()
     try:
         yield db
@@ -54,7 +77,28 @@ def db_session():
     finally:
         db.close()
 
+
+@contextmanager
+def tenant_session(schema: str = "public"):
+    """
+    Opens a session scoped to a specific PostgreSQL schema.
+    Falls back gracefully on SQLite (schema param ignored).
+    """
+    db = SessionLocal()
+    try:
+        if _is_postgres:
+            db.execute(text(f"SET search_path TO {schema}, public"))
+        yield db
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
+
+
 def init_db():
-    """Create all tables (dev / testing). Use Alembic in production."""
-    from app.db import models  # noqa — registers all models
+    """Create all tables. Use Alembic for production migrations."""
+    from app.db import models       # noqa — registers all models
+    import app.db.models_platform   # noqa
     Base.metadata.create_all(bind=engine)
