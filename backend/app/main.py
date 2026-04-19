@@ -54,6 +54,52 @@ except ImportError:
 @app.on_event("startup")
 def startup():
     init_db()
+    _seed_demo_users()
+
+
+def _seed_demo_users():
+    """Seed in-memory demo users with TOTP on startup — dev mode only."""
+    try:
+        from app.api.v1.routes.auth import _demo_users, _demo_institution
+        from app.db.models.auth import User
+        from app.services.auth_service import hash_password
+
+        TOTP_SECRET = "JBSWY3DPEHPK3PXP"
+
+        DEMO_USERS = [
+            {"id":"user-0001","email":"agent@demo.ekyc",  "phone":"01700000001","full_name":"Demo Agent",  "role":"AGENT",  "password":"DemoAgent@2026",  "totp":False},
+            {"id":"user-0002","email":"admin@demo.ekyc",  "phone":"01700000002","full_name":"Demo Admin",  "role":"ADMIN",  "password":"AdminDemo@2026",  "totp":True},
+            {"id":"user-0003","email":"maker@demo.ekyc",  "phone":"01700000003","full_name":"Demo Maker",  "role":"MAKER",  "password":"DemoMaker@2026",  "totp":False},
+            {"id":"user-0004","email":"checker@demo.ekyc","phone":"01700000004","full_name":"Demo Checker","role":"CHECKER","password":"DemoChecker@2026","totp":True},
+            {"id":"user-0005","email":"auditor@demo.ekyc","phone":"01700000005","full_name":"Demo Auditor","role":"AUDITOR","password":"DemoAudit@2026", "totp":True},
+        ]
+
+        existing_emails = {u.email for u in _demo_users}
+        for d in DEMO_USERS:
+            if d["email"] not in existing_emails:
+                user = User(
+                    id=d["id"],
+                    institution_id=_demo_institution.id,
+                    email=d["email"],
+                    phone=d["phone"],
+                    full_name=d["full_name"],
+                    role=d["role"],
+                    password_hash=hash_password(d["password"]),
+                    totp_secret=TOTP_SECRET if d["totp"] else None,
+                    totp_enabled=d["totp"],
+                    is_active=True,
+                    failed_login_count=0,
+                )
+                _demo_users.append(user)
+
+        import logging
+        logging.getLogger(__name__).info(
+            "[startup] Demo users seeded: %s",
+            [u.email for u in _demo_users]
+        )
+    except Exception as exc:
+        import logging
+        logging.getLogger(__name__).warning("[startup] Demo user seed failed: %s", exc)
 
 app.add_middleware(
     CORSMiddleware,

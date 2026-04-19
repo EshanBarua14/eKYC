@@ -9,7 +9,7 @@ import {
   Card, Btn, Badge, Spinner, SectionTitle,
   StatGrid, Divider, CheckItem,
 } from "./ui"
-import { API } from "../config"
+import { API, authHeaders, getToken, setToken, ensureAdminToken } from "../config"
 import SettingsPanel from "./SettingsPanel"
 
 const TABS = [
@@ -49,8 +49,10 @@ function TabNav({ active, setActive }) {
 
 // ── shared fetch helper ─────────────────────────────────────────────────────
 async function apiFetch(path, opts = {}) {
+  await ensureAdminToken()
   const r = await fetch(`${API}${path}`, {
-    headers: { "Content-Type": "application/json" }, ...opts,
+    ...opts,
+    headers: { ...authHeaders(), ...(opts.headers || {}) },
   })
   if (!r.ok) throw new Error(`${r.status} ${r.statusText}`)
   return r.json()

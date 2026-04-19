@@ -59,3 +59,52 @@ export const ensureDemoToken = async () => {
 
   return ""
 }
+
+// ── Admin token (2FA not required for demo admin) ─────────────────────────
+const ADMIN_TOKEN_KEY = "ekyc_admin_token"
+const ADMIN_EMAIL     = "admin@demo.ekyc"
+const ADMIN_PASSWORD  = "AdminDemo@2026"
+const ADMIN_PHONE     = "01700000002"
+const ADMIN_NAME      = "Demo Admin"
+
+export const getAdminToken  = () => localStorage.getItem(ADMIN_TOKEN_KEY) || getToken()
+export const setAdminToken  = (t) => { localStorage.setItem(ADMIN_TOKEN_KEY, t); setToken(t) }
+
+export const ensureAdminToken = async () => {
+  const existing = localStorage.getItem(ADMIN_TOKEN_KEY)
+  if (existing) { setToken(existing); return existing }
+
+  // Register admin (ignore 409)
+  try {
+    await fetch(`${API}/api/v1/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: ADMIN_EMAIL, phone: ADMIN_PHONE,
+        full_name: ADMIN_NAME, role: "admin",
+        password: ADMIN_PASSWORD, institution_id: "inst-demo-001",
+      })
+    })
+  } catch (_) {}
+
+  // Login
+  try {
+    const r = await fetch(`${API}/api/v1/auth/token`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: ADMIN_EMAIL, password: ADMIN_PASSWORD })
+    })
+    if (r.ok) {
+      const data = await r.json()
+      // Check if 2FA required
+      if (data.detail?.error === "2FA_REQUIRED" || data.detail?.action_required) {
+        console.warn("Admin requires 2FA — using agent token fallback")
+        return await ensureDemoToken()
+      }
+      const token = data.access_token || data.token || ""
+      if (token) { setAdminToken(token); return token }
+    }
+  } catch (_) {}
+
+  return await ensureDemoToken()
+}
