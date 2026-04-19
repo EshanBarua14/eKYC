@@ -620,6 +620,7 @@ export default function AdminConsole({ onExit, theme, toggleTheme }) {
     webhooks:     <WebhooksTab/>,
     health:       <HealthTab/>,
     auditlogs:    <AuditLogsTab/>,
+    settings:     <SettingsPanel/>,
   }
 
   return (
