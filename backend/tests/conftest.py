@@ -104,3 +104,20 @@ def clean_m33_data():
     except Exception as e:
         print(f"[conftest] M33 cleanup warning: {e}")
     yield
+
+
+# ── M41 Redis cleanup — flush rate limit and session keys before test suite ──
+@pytest.fixture(autouse=True, scope="session")
+def clean_redis_counters():
+    """Clear Redis rate limit and session counters before test suite."""
+    try:
+        from app.services.redis_client import get_redis
+        r = get_redis()
+        if r is not None:
+            keys = r.keys("rl:*") + r.keys("sess:*") + r.keys("att:*") + r.keys("idem:*")
+            if keys:
+                r.delete(*keys)
+            print(f"[conftest] Redis cleanup: deleted {len(keys)} keys")
+    except Exception as e:
+        print(f"[conftest] Redis cleanup warning: {e}")
+    yield
