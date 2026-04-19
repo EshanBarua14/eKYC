@@ -111,14 +111,20 @@ class TestEnforcement:
         limit = RATE_LIMITS["auth_token"]["requests"]
         for _ in range(limit + 1):
             r = client.post(f"{BASE}/check", json={"endpoint":"auth_token","client_key":key})
-        assert r.json()["detail"]["error"] == "RATE_LIMIT_EXCEEDED"
+        body = r.json()
+        err = body.get("error", body.get("detail", {}))
+        code = err.get("code") or err.get("error","")
+        assert "RATE_LIMIT_EXCEEDED" in str(code)
 
     def test_429_has_reset_at(self):
         key = "ip_enf_04"
         limit = RATE_LIMITS["auth_token"]["requests"]
         for _ in range(limit + 1):
             r = client.post(f"{BASE}/check", json={"endpoint":"auth_token","client_key":key})
-        assert "reset_at" in r.json()["detail"]
+        body = r.json()
+        err = body.get("error", body.get("detail", {}))
+        details = err.get("details", err)
+        assert "reset_at" in str(err) or "reset_at" in str(details)
 
     def test_different_clients_independent(self):
         limit = RATE_LIMITS["auth_token"]["requests"]

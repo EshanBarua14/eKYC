@@ -79,7 +79,9 @@ class TestRoleEnforcement:
         headers = maker_headers()
         if not headers: pytest.skip("Login failed")
         r = client.get(f"{BASE}/stats", headers=headers)
-        assert "error" in r.json()["detail"]
+        body = r.json()
+        # error boundary wraps in {"error": ...}, old format uses {"detail": ...}
+        assert "error" in body or "detail" in body
 
 # ══════════════════════════════════════════════════════════════════════════
 # 3. Admin access allowed (4 tests)

@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
+from app.middleware.error_boundary import register_error_handlers
 from app.api.v1.router import v1_router
 from app.db.database import engine, init_db
 from app.db import models
@@ -29,7 +30,8 @@ app = FastAPI(
 | KYC Profile | POST /api/v1/kyc/profile | Live |
 | Fingerprint | POST /api/v1/fingerprint/verify | Coming |
 | Risk Grading | POST /api/v1/risk/grade | Coming |
-| Sanctions Screen | POST /api/v1/sanctions/screen | Coming |
+| Sanctions Screen | POST /api/v1/sanctions/screen 
+| Coming |
     """,
     docs_url="/docs",
     redoc_url="/redoc",
@@ -61,6 +63,9 @@ app.add_middleware(
 )
 
 app.include_router(v1_router, prefix=settings.API_V1_PREFIX)
+
+# ── Error Boundary (M30) ─────────────────────────────────────────────────
+register_error_handlers(app)
 
 @app.get("/health", tags=["System"])
 async def health():

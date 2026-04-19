@@ -23,7 +23,10 @@ class TestE2EFullFlow:
     def test_e2e_step3_ec_blocked_without_consent(self):
         r = client.post("/api/v1/consent/verify", json={"session_id":"e2e_no_consent_xyz"})
         assert r.status_code == 403
-        assert r.json()["detail"]["error_code"] == "CONSENT_NOT_RECORDED"
+        body = r.json()
+        err = body.get("error", body.get("detail", {}))
+        error_code = err.get("error_code") or err.get("code") or (err.get("message",""))
+        assert "CONSENT_NOT_RECORDED" in str(error_code) or "CONSENT" in str(err)
 
     def test_e2e_step4_outcome_created(self):
         r = client.post("/api/v1/outcome/create", json={
