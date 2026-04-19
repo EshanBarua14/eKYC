@@ -72,3 +72,9 @@ backend/app/services/*.tflite
 # Test images
 backend/test_img.jpg
 backend/nul
+
+# SQLite WAL files
+backend/ekyc.db-shm
+backend/ekyc.db-wal
+backend/platform_settings.json
+

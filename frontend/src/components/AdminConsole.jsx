@@ -676,3 +676,4 @@ export default function AdminConsole({ onExit, theme, toggleTheme }) {
     </div>
   )
 }
+      {active === "settings" && <SettingsPanel/>}
