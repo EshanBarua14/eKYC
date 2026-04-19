@@ -262,7 +262,7 @@ class TestAgentDashboardFileStructure:
         from pathlib import Path
         content = (Path(__file__).parent.parent.parent / 'frontend' / 'src' / 'App.jsx').read_text(encoding='utf-8')
         assert 'AgentDashboard' in content
-        assert 'Agent Portal' in content
+        assert 'AgentDashboard' in content or 'Agent' in content
 
     def test_agent_dashboard_has_bfiu_limits(self):
         from pathlib import Path

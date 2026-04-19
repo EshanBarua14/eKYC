@@ -57,7 +57,7 @@ class SessionStatusRequest(BaseModel):
 # POST /nid/scan
 # ---------------------------------------------------------------------------
 @router.post("/scan")
-def scan_nid(
+async def scan_nid(
     req: NIDScanRequest,
     current_user: dict = Depends(get_current_user),
 ):
@@ -95,7 +95,7 @@ def scan_nid(
 # POST /nid/verify
 # ---------------------------------------------------------------------------
 @router.post("/verify")
-def verify_nid(
+async def verify_nid(
     req: NIDVerifyRequest,
     current_user: dict = Depends(get_current_user),
 ):
@@ -184,7 +184,7 @@ def verify_nid(
 # GET /nid/session-status
 # ---------------------------------------------------------------------------
 @router.get("/session-status")
-def session_status(
+async def session_status(
     nid_number: str,
     session_id: str,
     current_user: dict = Depends(get_current_user),
@@ -227,7 +227,7 @@ class NIDOCRRequest(BaseModel):
     session_id:      str
 
 @router.post("/scan-ocr")
-def scan_nid_ocr(req: NIDOCRRequest):
+async def scan_nid_ocr(req: NIDOCRRequest):
     """
     OCR scan NID card — no auth required for self-service portal.
     Returns structured fields extracted from front and back of NID card.

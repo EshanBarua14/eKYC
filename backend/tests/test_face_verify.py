@@ -4,26 +4,23 @@ BFIU Circular No. 29 — Section 3.3 Face Matching
 """
 import base64
 import json
-import urllib.request
+from fastapi.testclient import TestClient
+from app.main import app
+client = TestClient(app)
 import numpy as np
 import cv2
 import io
 from PIL import Image, ImageDraw
 
-API = "http://localhost:8000"
 
 PASS  = "✅ PASS"
 FAIL  = "❌ FAIL"
 results = []
 
 def post(endpoint, payload):
-    data = json.dumps(payload).encode()
-    req  = urllib.request.Request(
-        f"{API}{endpoint}", data=data,
-        headers={"Content-Type": "application/json"}
-    )
-    res  = urllib.request.urlopen(req, timeout=10)
-    return json.loads(res.read())
+    r = client.post(endpoint, json=payload)
+    r.raise_for_status()
+    return r.json()
 
 def img_to_b64(arr: np.ndarray) -> str:
     pil = Image.fromarray(arr.astype("uint8"))
@@ -72,23 +69,18 @@ def run(name, fn):
 # ── Tests ────────────────────────────────────────────────
 
 def test_health():
-    req = urllib.request.urlopen(f"{API}/health", timeout=5)
-    d   = json.loads(req.read())
-    ok  = d.get("status") == "ok"
-    return ok, f"status={d.get('status')}  service={d.get('service')}"
+    d = client.get("/health").json()
+    assert d.get("status") in ("ok","healthy"), f"health={d}"
 
 def test_no_face_both():
     blank = img_to_b64(make_blank())
     d = post("/api/v1/face/verify", {"nid_image_b64": blank, "live_image_b64": blank})
     ok = d["verdict"] == "FAILED"
-    return ok, f"verdict={d['verdict']}  reason='{d['verdict_reason']}'"
+    assert ok, f"verdict={d['verdict']}  reason='{d['verdict_reason']}'"
 
 def test_missing_fields():
-    try:
-        post("/api/v1/face/verify", {"nid_image_b64": ""})
-        return False, "Should have raised error"
-    except urllib.error.HTTPError as e:
-        return e.code == 422, f"HTTP {e.code} — correct validation error"
+    r = client.post("/api/v1/face/verify", json={})
+    assert r.status_code == 422, f"Expected 422, got {r.status_code}"
 
 def test_dark_image_liveness():
     dark = make_blank(color=(15, 15, 15))
@@ -96,7 +88,7 @@ def test_dark_image_liveness():
     d    = post("/api/v1/face/verify", {"nid_image_b64": b64, "live_image_b64": b64})
     lighting_pass = d["liveness"]["lighting"]["pass"]
     ok = not lighting_pass
-    return ok, f"lighting.pass={lighting_pass}  brightness={d['liveness']['lighting']['value']}"
+    assert ok, f"lighting.pass={lighting_pass}  brightness={d['liveness']['lighting']['value']}"
 
 def test_bright_image_liveness():
     bright = make_blank(color=(245, 245, 245))
@@ -104,7 +96,7 @@ def test_bright_image_liveness():
     d      = post("/api/v1/face/verify", {"nid_image_b64": b64, "live_image_b64": b64})
     lighting_pass = d["liveness"]["lighting"]["pass"]
     ok = lighting_pass
-    return ok, f"lighting.pass={lighting_pass}  brightness={d['liveness']['lighting']['value']}"
+    assert ok, f"lighting.pass={lighting_pass}  brightness={d['liveness']['lighting']['value']}"
 
 def test_low_resolution_liveness():
     tiny = make_blank(size=(100, 80))
@@ -112,7 +104,7 @@ def test_low_resolution_liveness():
     d    = post("/api/v1/face/verify", {"nid_image_b64": b64, "live_image_b64": b64})
     res_pass = d["liveness"]["resolution"]["pass"]
     ok = not res_pass
-    return ok, f"resolution.pass={res_pass}  value={d['liveness']['resolution']['value']}"
+    assert ok, f"resolution.pass={res_pass}  value={d['liveness']['resolution']['value']}"
 
 def test_adequate_resolution_liveness():
     big = make_blank(size=(480, 640))
@@ -120,7 +112,7 @@ def test_adequate_resolution_liveness():
     d   = post("/api/v1/face/verify", {"nid_image_b64": b64, "live_image_b64": b64})
     res_pass = d["liveness"]["resolution"]["pass"]
     ok = res_pass
-    return ok, f"resolution.pass={res_pass}  value={d['liveness']['resolution']['value']}"
+    assert ok, f"resolution.pass={res_pass}  value={d['liveness']['resolution']['value']}"
 
 def test_session_id_returned():
     blank = img_to_b64(make_blank())
@@ -130,19 +122,19 @@ def test_session_id_returned():
         "session_id": "unit_test_999"
     })
     ok = d["session_id"] == "unit_test_999"
-    return ok, f"session_id='{d['session_id']}'"
+    assert ok, f"session_id='{d['session_id']}'"
 
 def test_bfiu_ref_present():
     blank = img_to_b64(make_blank())
     d = post("/api/v1/face/verify", {"nid_image_b64": blank, "live_image_b64": blank})
     ok = "bfiu_ref" in d and d["bfiu_ref"]["guideline"] == "BFIU Circular No. 29"
-    return ok, f"guideline='{d.get('bfiu_ref',{}).get('guideline')}'"
+    assert ok, f"guideline='{d.get('bfiu_ref',{}).get('guideline')}'"
 
 def test_processing_time_present():
     blank = img_to_b64(make_blank())
     d = post("/api/v1/face/verify", {"nid_image_b64": blank, "live_image_b64": blank})
     ok = "processing_ms" in d and d["processing_ms"] > 0
-    return ok, f"processing_ms={d.get('processing_ms')}"
+    assert ok, f"processing_ms={d.get('processing_ms')}"
 
 def test_response_structure():
     blank = img_to_b64(make_blank())
@@ -150,20 +142,20 @@ def test_response_structure():
     required = ["verdict","verdict_reason","confidence","faces","liveness","bfiu_ref","session_id","timestamp","processing_ms"]
     missing  = [k for k in required if k not in d]
     ok = len(missing) == 0
-    return ok, f"missing fields: {missing if missing else 'none — all present'}"
+    assert ok, f"missing fields: {missing if missing else 'none — all present'}"
 
 def test_verdict_values_valid():
     blank = img_to_b64(make_blank())
     d = post("/api/v1/face/verify", {"nid_image_b64": blank, "live_image_b64": blank})
     ok = d["verdict"] in ["MATCHED", "REVIEW", "FAILED"]
-    return ok, f"verdict='{d['verdict']}' is a valid value"
+    assert ok, f"verdict='{d['verdict']}' is a valid value"
 
 def test_confidence_range():
     blank = img_to_b64(make_blank())
     d = post("/api/v1/face/verify", {"nid_image_b64": blank, "live_image_b64": blank})
     c  = d["confidence"]
     ok = 0 <= c <= 100
-    return ok, f"confidence={c}  in range [0, 100]"
+    assert ok, f"confidence={c}  in range [0, 100]"
 
 def test_liveness_structure():
     blank = img_to_b64(make_blank())
@@ -172,7 +164,7 @@ def test_liveness_structure():
     required = ["lighting","sharpness","resolution","face_size","overall_pass","score","max_score"]
     missing  = [k for k in required if k not in lv]
     ok = len(missing) == 0
-    return ok, f"missing liveness keys: {missing if missing else 'none — all present'}"
+    assert ok, f"missing liveness keys: {missing if missing else 'none — all present'}"
 
 def test_blurry_image_sharpness():
     img  = make_blank(size=(400,400))
@@ -181,7 +173,7 @@ def test_blurry_image_sharpness():
     d    = post("/api/v1/face/verify", {"nid_image_b64": b64, "live_image_b64": b64})
     sharp_pass = d["liveness"]["sharpness"]["pass"]
     ok = not sharp_pass
-    return ok, f"sharpness.pass={sharp_pass}  score={d['liveness']['sharpness']['value']}"
+    assert ok, f"sharpness.pass={sharp_pass}  score={d['liveness']['sharpness']['value']}"
 
 # ── Runner ───────────────────────────────────────────────
 

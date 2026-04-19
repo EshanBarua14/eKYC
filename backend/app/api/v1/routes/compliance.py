@@ -55,7 +55,7 @@ _FAILED_ONBOARDING = [
 ]
 
 @router.get("/posture")
-def compliance_posture():
+async def compliance_posture():
     overdue = [k for k in _KYC_QUEUES if k["status"]=="OVERDUE"]
     return {
         "generated_at": _iso(_now()),
@@ -85,7 +85,7 @@ def compliance_posture():
     }
 
 @router.get("/kyc-queues")
-def kyc_queues(grade: Optional[str]=None, status: Optional[str]=None):
+async def kyc_queues(grade: Optional[str]=None, status: Optional[str]=None):
     items = list(_KYC_QUEUES)
     if grade:  items = [k for k in items if k["risk_grade"]==grade.upper()]
     if status: items = [k for k in items if k["status"]==status.upper()]
@@ -102,20 +102,20 @@ def kyc_queues(grade: Optional[str]=None, status: Optional[str]=None):
     }
 
 @router.get("/edd-cases")
-def edd_cases(status: Optional[str]=None):
+async def edd_cases(status: Optional[str]=None):
     items = list(_EDD_CASES)
     if status: items = [e for e in items if e["status"]==status.upper()]
     return {"cases": items, "total": len(items), "bfiu_ref": "BFIU Circular No. 29 - Section 6.3"}
 
 @router.get("/screening-hits")
-def screening_hits(verdict: Optional[str]=None, check_type: Optional[str]=None):
+async def screening_hits(verdict: Optional[str]=None, check_type: Optional[str]=None):
     items = list(_SCREENING_HITS)
     if verdict:    items = [s for s in items if s["verdict"]==verdict.upper()]
     if check_type: items = [s for s in items if s["check_type"]==check_type.upper()]
     return {"hits": items, "total": len(items), "bfiu_ref": "BFIU Circular No. 29 - Section 5"}
 
 @router.get("/failed-onboarding")
-def failed_onboarding(step: Optional[str]=None):
+async def failed_onboarding(step: Optional[str]=None):
     items = list(_FAILED_ONBOARDING)
     if step: items = [f for f in items if f["step"]==step.upper()]
     by_step = {}
@@ -124,7 +124,7 @@ def failed_onboarding(step: Optional[str]=None):
     return {"failures": items, "total": len(items), "by_step": by_step}
 
 @router.get("/export")
-def export_report(
+async def export_report(
     fmt:       str = Query("json", pattern="^(json|csv)$"),
     date_from: Optional[str] = None,
     date_to:   Optional[str] = None,
@@ -153,7 +153,7 @@ def export_report(
     return {"format":"json","data":data}
 
 @router.get("/metrics")
-def metrics():
+async def metrics():
     random.seed(42)
     days = []
     for i in range(29,-1,-1):

@@ -39,7 +39,7 @@ class ConsentVerifyRequest(BaseModel):
     session_id: str
 
 @router.post("/record", status_code=201)
-def record_consent(req: ConsentRequest, request: Request):
+async def record_consent(req: ConsentRequest, request: Request):
     """
     Record explicit digital consent before EC database query.
     BFIU mandates consent is captured and stored immutably.
@@ -74,14 +74,14 @@ def record_consent(req: ConsentRequest, request: Request):
     return {"consent": record, "already_recorded": False}
 
 @router.get("/{session_id}")
-def get_consent(session_id: str):
+async def get_consent(session_id: str):
     """Retrieve consent record for a session."""
     if session_id not in _consents:
         raise HTTPException(404, f"No consent record found for session '{session_id}'")
     return {"consent": _consents[session_id]}
 
 @router.post("/verify")
-def verify_consent(req: ConsentVerifyRequest):
+async def verify_consent(req: ConsentVerifyRequest):
     """
     Gate check — verify consent exists before allowing EC query.
     Returns 403 if consent not recorded.
@@ -113,7 +113,7 @@ def verify_consent(req: ConsentVerifyRequest):
     }
 
 @router.post("/{session_id}/revoke")
-def revoke_consent(session_id: str):
+async def revoke_consent(session_id: str):
     """Revoke consent — blocks further EC queries for this session."""
     if session_id not in _consents:
         raise HTTPException(404, "Consent record not found")
@@ -122,7 +122,7 @@ def revoke_consent(session_id: str):
     return {"session_id": session_id, "status": "REVOKED"}
 
 @router.get("/list/all")
-def list_consents(limit: int = 50):
+async def list_consents(limit: int = 50):
     """List all consent records for audit."""
     records = list(_consents.values())[-limit:]
     return {"consents": records, "total": len(_consents)}

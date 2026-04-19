@@ -57,7 +57,7 @@ class PDFRequest(BaseModel):
 
 
 @router.post("/pdf/generate", status_code=201)
-def generate_pdf(req: PDFRequest):
+async def generate_pdf(req: PDFRequest):
     """Generate KYC PDF from verification data and cache it."""
     if req.verdict not in ("MATCHED", "REVIEW", "FAILED"):
         raise HTTPException(400, "verdict must be MATCHED, REVIEW, or FAILED")
@@ -85,7 +85,7 @@ def generate_pdf(req: PDFRequest):
 
 
 @router.get("/profile/{session_id}/pdf")
-def download_pdf(session_id: str):
+async def download_pdf(session_id: str):
     """Download the generated KYC PDF for a session."""
     if session_id not in _pdf_store:
         raise HTTPException(404, f"No PDF found for session '{session_id}'. Call POST /pdf/generate first.")
@@ -99,7 +99,7 @@ def download_pdf(session_id: str):
 
 
 @router.get("/pdf/list")
-def list_pdfs():
+async def list_pdfs():
     """List all generated PDFs (admin)."""
     return {
         "pdfs":  [{"session_id":v["session_id"],"verdict":v["verdict"],

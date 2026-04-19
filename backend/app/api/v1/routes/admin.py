@@ -56,11 +56,11 @@ class WebhookCreate(BaseModel):
 # 1. Institution Management
 # ══════════════════════════════════════════════════════════════════════════
 @router.get("/institutions")
-def list_institutions():
+async def list_institutions():
     return {"institutions": list(_institutions.values()), "total": len(_institutions)}
 
 @router.post("/institutions", status_code=201)
-def create_institution(body: Institution):
+async def create_institution(body: Institution):
     iid = str(uuid.uuid4())[:8]
     schema = body.schema_name or f"tenant_{body.short_code.lower()}"
     rec = {**body.model_dump(), "id": iid, "schema_name": schema,
@@ -69,7 +69,7 @@ def create_institution(body: Institution):
     return {"institution": rec}
 
 @router.put("/institutions/{iid}")
-def update_institution(iid: str, body: Institution):
+async def update_institution(iid: str, body: Institution):
     if iid not in _institutions:
         raise HTTPException(404, "Institution not found")
     _institutions[iid].update({**body.model_dump(),
@@ -77,7 +77,7 @@ def update_institution(iid: str, body: Institution):
     return {"institution": _institutions[iid]}
 
 @router.delete("/institutions/{iid}")
-def delete_institution(iid: str):
+async def delete_institution(iid: str):
     if iid not in _institutions:
         raise HTTPException(404, "Institution not found")
     del _institutions[iid]
@@ -89,7 +89,7 @@ def delete_institution(iid: str):
 VALID_ROLES = {"admin", "checker", "maker", "agent", "auditor"}
 
 @router.get("/users")
-def list_users(role: Optional[str] = None, institution_id: Optional[str] = None):
+async def list_users(role: Optional[str] = None, institution_id: Optional[str] = None):
     users = list(_users.values())
     if role:
         users = [u for u in users if u["role"] == role]
@@ -98,7 +98,7 @@ def list_users(role: Optional[str] = None, institution_id: Optional[str] = None)
     return {"users": users, "total": len(users)}
 
 @router.post("/users", status_code=201)
-def create_user(body: UserCreate):
+async def create_user(body: UserCreate):
     if body.role not in VALID_ROLES:
         raise HTTPException(400, f"Invalid role. Must be one of: {VALID_ROLES}")
     uid = str(uuid.uuid4())[:8]
@@ -108,7 +108,7 @@ def create_user(body: UserCreate):
     return {"user": rec}
 
 @router.put("/users/{uid}/activate")
-def set_user_active(uid: str, active: bool = True):
+async def set_user_active(uid: str, active: bool = True):
     if uid not in _users:
         raise HTTPException(404, "User not found")
     _users[uid]["active"] = active
@@ -116,7 +116,7 @@ def set_user_active(uid: str, active: bool = True):
     return {"user": _users[uid]}
 
 @router.delete("/users/{uid}")
-def delete_user(uid: str):
+async def delete_user(uid: str):
     if uid not in _users:
         raise HTTPException(404, "User not found")
     del _users[uid]
@@ -126,11 +126,11 @@ def delete_user(uid: str):
 # 3. Threshold Editor
 # ══════════════════════════════════════════════════════════════════════════
 @router.get("/thresholds")
-def get_thresholds():
+async def get_thresholds():
     return {"thresholds": _thresholds}
 
 @router.put("/thresholds")
-def update_threshold(body: ThresholdUpdate):
+async def update_threshold(body: ThresholdUpdate):
     if body.key not in _thresholds:
         raise HTTPException(400, f"Unknown threshold key: {body.key}")
     old = _thresholds[body.key]
@@ -139,7 +139,7 @@ def update_threshold(body: ThresholdUpdate):
             "updated_at": datetime.now(timezone.utc).isoformat()}
 
 @router.post("/thresholds/reset")
-def reset_thresholds():
+async def reset_thresholds():
     _thresholds.update({
         "simplified_max_amount":  500_000,
         "regular_min_amount":     500_001,
@@ -156,11 +156,11 @@ def reset_thresholds():
 # 4. Webhook Management
 # ══════════════════════════════════════════════════════════════════════════
 @router.get("/webhooks")
-def list_webhooks():
+async def list_webhooks():
     return {"webhooks": list(_webhooks.values()), "total": len(_webhooks)}
 
 @router.post("/webhooks", status_code=201)
-def create_webhook(body: WebhookCreate):
+async def create_webhook(body: WebhookCreate):
     wid = str(uuid.uuid4())[:8]
     rec = {**body.model_dump(), "id": wid,
            "delivery_count": 0, "last_delivery": None,
@@ -169,14 +169,14 @@ def create_webhook(body: WebhookCreate):
     return {"webhook": rec}
 
 @router.delete("/webhooks/{wid}")
-def delete_webhook(wid: str):
+async def delete_webhook(wid: str):
     if wid not in _webhooks:
         raise HTTPException(404, "Webhook not found")
     del _webhooks[wid]
     return {"deleted": wid}
 
 @router.get("/webhooks/logs")
-def webhook_logs(limit: int = Query(50, le=200)):
+async def webhook_logs(limit: int = Query(50, le=200)):
     # seed some demo logs if empty
     if not _webhook_logs:
         for i in range(5):
@@ -193,7 +193,7 @@ def webhook_logs(limit: int = Query(50, le=200)):
 # 5. System Health
 # ══════════════════════════════════════════════════════════════════════════
 @router.get("/health")
-def system_health():
+async def system_health():
     return {
         "status":      "healthy",
         "version":     "1.0.0-m13",
@@ -232,7 +232,7 @@ _audit_demo = [
 ]
 
 @router.get("/audit-logs")
-def get_audit_logs(
+async def get_audit_logs(
     event_type: Optional[str] = None,
     severity:   Optional[str] = None,
     limit: int = Query(50, le=200),
@@ -247,7 +247,7 @@ def get_audit_logs(
     return {"logs": logs[offset:offset+limit], "total": total, "offset": offset, "limit": limit}
 
 @router.get("/audit-logs/export")
-def export_audit_logs(fmt: str = Query("json", pattern="^(json|csv)$")):
+async def export_audit_logs(fmt: str = Query("json", pattern="^(json|csv)$")):
     if fmt == "csv":
         lines = ["id,event_type,actor,severity,timestamp"]
         for l in _audit_demo:

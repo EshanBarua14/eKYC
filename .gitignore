@@ -1,38 +1,57 @@
 # Python
 __pycache__/
-*.py[cod]
+*.pyc
 *.pyo
-.env
-venv/
-.venv/
+*.pyd
+.Python
 *.egg-info/
+dist/
+build/
+.eggs/
+venv/
+env/
+.venv/
 
-# ML Models (large files)
-*.caffemodel
-*.task
-*.tflite
-*.onnx
+# Environment — NEVER commit secrets
+.env
+*.env
+!.env.example
+
+# Database — dev only
+*.db
+*.sqlite
+*.sqlite3
+
+# Keys — NEVER commit private keys
+keys/private.pem
+keys/*.pem
+!keys/public.pem
 
 # Node
 node_modules/
-dist/
-.vite/
+frontend/dist/
+frontend/.vite/
 
 # OS
 .DS_Store
 Thumbs.db
+desktop.ini
 
 # IDE
 .vscode/
 .idea/
+*.swp
+*.swo
 
 # Logs
 *.log
-test_img.jpg
-.vs/
-backend/nul
+server.log
+nul
 
-# RS256 keys
-backend/keys/
-keys/
-*.pem
+# Coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Docker
+docker-compose.override.yml

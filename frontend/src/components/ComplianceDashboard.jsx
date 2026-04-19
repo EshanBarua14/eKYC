@@ -26,7 +26,7 @@ async function apiFetch(path) {
 function TabNav({ active, setActive }) {
   return (
     <div style={{ display:"flex", gap:4, padding:4, background:"var(--bg3)",
-                  borderRadius:"var(--radius)", border:"1px solid var(--border)", flexWrap:"wrap" }}>
+                  borderRadius:"var(--radius)", border:"1px solid var(--border)", flexWrap:"wrap", overflowX:"auto", scrollbarWidth:"none" }}>
       {TABS.map(t => {
         const Icon = t.icon; const on = active === t.id
         return (

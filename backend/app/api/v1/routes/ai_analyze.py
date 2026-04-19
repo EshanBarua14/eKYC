@@ -128,10 +128,18 @@ async def scan_nid(req: NIDScanRequest):
     if not is_nid:
         quality = "Invalid"; score = min(score, 1)
 
+    # Extract OCR fields from front image
+    try:
+        from app.services.nid_ocr_service import scan_nid_card
+        ocr = scan_nid_card(front_image_b64=req.image_b64)
+        fields = ocr.get("fields", {})
+    except Exception:
+        fields = {}
     return {
         "session_id": req.session_id, "is_valid_nid": is_nid,
         "nid_issues": nid_issues,     "face_on_card": face_found,
         "face_coords": face_coords,   "checks": checks,
         "quality_score": score,       "quality_label": quality,
+        "fields":        fields,
         "bfiu_ref": "BFIU Circular No. 29 - Section 3.3, Annexure-2d",
     }

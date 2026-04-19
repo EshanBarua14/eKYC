@@ -4,18 +4,21 @@ BFIU Circular No. 29 — Section 3.2
 Run: python tests/test_fingerprint.py
 Requires: uvicorn running on localhost:8000
 """
-import json, urllib.request, urllib.error, time
+import json, time
+from fastapi.testclient import TestClient
+from app.main import app
+client = TestClient(app)
+time
 
-API = "http://localhost:8000"
 results = []
 
 def post(ep, payload):
-    data = json.dumps(payload).encode()
-    req  = urllib.request.Request(f"{API}{ep}", data=data, headers={"Content-Type":"application/json"})
-    return json.loads(urllib.request.urlopen(req, timeout=10).read())
+    r = client.post(ep, json=payload)
+    r.raise_for_status()
+    return r.json()
 
 def get(ep):
-    return json.loads(urllib.request.urlopen(f"{API}{ep}", timeout=10).read())
+    return client.get(ep).json()
 
 def run(name, fn):
     print(f"  Testing: {name}")
@@ -38,38 +41,38 @@ BASE = {
 def test_status_endpoint():
     d = get("/api/v1/fingerprint/status")
     ok = "provider" in d and "bfiu_ref" in d and "hardware_slots" in d
-    return ok, f"provider={d.get('provider')} slots={list(d.get('hardware_slots',{}).keys())}"
+    assert ok, f"provider={d.get('provider')} slots={list(d.get('hardware_slots',{}).keys())}"
 
 def test_demo_match():
     post("/api/v1/fingerprint/demo", {"scenario": "MATCH"})
     d = post("/api/v1/fingerprint/verify", BASE)
     ok = d["verdict"] == "MATCHED" and d["matched"] is True
-    return ok, f"verdict={d['verdict']} score={d['score']} provider={d['provider']}"
+    assert ok, f"verdict={d['verdict']} score={d['score']} provider={d['provider']}"
 
 def test_demo_no_match():
     post("/api/v1/fingerprint/demo", {"scenario": "NO_MATCH"})
     d = post("/api/v1/fingerprint/verify", {**BASE, "session_id": f"fp_nm_{int(time.time())}"})
     ok = d["verdict"] == "NO_MATCH" and d["matched"] is False
-    return ok, f"verdict={d['verdict']} score={d['score']}"
+    assert ok, f"verdict={d['verdict']} score={d['score']}"
 
 def test_demo_low_quality():
     post("/api/v1/fingerprint/demo", {"scenario": "LOW_QUALITY"})
     d = post("/api/v1/fingerprint/verify", {**BASE, "session_id": f"fp_lq_{int(time.time())}"})
     ok = d["verdict"] == "LOW_QUALITY"
-    return ok, f"verdict={d['verdict']} quality={d['quality']}"
+    assert ok, f"verdict={d['verdict']} quality={d['quality']}"
 
 def test_demo_timeout():
     post("/api/v1/fingerprint/demo", {"scenario": "TIMEOUT"})
     d = post("/api/v1/fingerprint/verify", {**BASE, "session_id": f"fp_to_{int(time.time())}"})
     ok = d["verdict"] == "PROVIDER_TIMEOUT"
-    return ok, f"verdict={d['verdict']}"
+    assert ok, f"verdict={d['verdict']}"
 
 def test_response_has_bfiu_fields():
     post("/api/v1/fingerprint/demo", {"scenario": "MATCH"})
     d = post("/api/v1/fingerprint/verify", {**BASE, "session_id": f"fp_bfiu_{int(time.time())}"})
     required = ["verdict","matched","score","attempt_number","attempts_remaining","bfiu_ref","provider","processing_ms"]
     missing  = [k for k in required if k not in d]
-    return len(missing) == 0, f"missing={missing or 'none'}"
+    assert len(missing) == 0, f"missing={missing or 'none'}"
 
 def test_attempt_counter_increments():
     post("/api/v1/fingerprint/demo", {"scenario": "NO_MATCH"})
@@ -77,14 +80,14 @@ def test_attempt_counter_increments():
     d1 = post("/api/v1/fingerprint/verify", {**BASE, "session_id": sess})
     d2 = post("/api/v1/fingerprint/verify", {**BASE, "session_id": sess})
     ok = d1["attempt_number"] == 1 and d2["attempt_number"] == 2
-    return ok, f"attempt1={d1['attempt_number']} attempt2={d2['attempt_number']}"
+    assert ok, f"attempt1={d1['attempt_number']} attempt2={d2['attempt_number']}"
 
 def test_attempts_remaining_decrements():
     post("/api/v1/fingerprint/demo", {"scenario": "NO_MATCH"})
     sess = f"fp_rem_{int(time.time())}"
     d = post("/api/v1/fingerprint/verify", {**BASE, "session_id": sess})
     ok = d["attempts_remaining"] == 9
-    return ok, f"remaining={d['attempts_remaining']} (max=10)"
+    assert ok, f"remaining={d['attempts_remaining']} (max=10)"
 
 def test_fallback_required_after_3_fails():
     post("/api/v1/fingerprint/demo", {"scenario": "NO_MATCH"})
@@ -93,7 +96,7 @@ def test_fallback_required_after_3_fails():
     for _ in range(3):
         d = post("/api/v1/fingerprint/verify", {**BASE, "session_id": sess})
     ok = d["fallback_required"] is True
-    return ok, f"fallback_required={d['fallback_required']} after 3 attempts"
+    assert ok, f"fallback_required={d['fallback_required']} after 3 attempts"
 
 def test_attempt_limit_enforced():
     post("/api/v1/fingerprint/demo", {"scenario": "NO_MATCH"})
@@ -102,18 +105,18 @@ def test_attempt_limit_enforced():
     for _ in range(11):
         d = post("/api/v1/fingerprint/verify", {**BASE, "session_id": sess})
     ok = d["verdict"] == "LIMIT_EXCEEDED"
-    return ok, f"verdict={d['verdict']} after 11 attempts (limit=10)"
+    assert ok, f"verdict={d['verdict']} after 11 attempts (limit=10)"
 
 def test_invalid_demo_scenario():
     d = post("/api/v1/fingerprint/demo", {"scenario": "INVALID_SCENARIO"})
     ok = "error" in d
-    return ok, f"error={d.get('error','')[:40]}"
+    assert ok, f"error={d.get('error','')[:40]}"
 
 def test_hardware_slots_documented():
     d = get("/api/v1/fingerprint/status")
     slots = d.get("hardware_slots", {})
     ok = all(k in slots for k in ["MANTRA","NITGEN","DIGITALPERSONA"])
-    return ok, f"slots={list(slots.keys())}"
+    assert ok, f"slots={list(slots.keys())}"
 
 if __name__ == "__main__":
     print("\n" + "="*55)

@@ -30,7 +30,7 @@ class GenerateReportRequest(BaseModel):
 
 
 @router.post("/generate", status_code=201, operation_id="bfiu_generate")
-def generate(req: GenerateReportRequest):
+async def generate(req: GenerateReportRequest):
     """Generate BFIU monthly compliance report."""
     if not (1 <= req.month <= 12):
         raise HTTPException(400, "month must be between 1 and 12")
@@ -45,7 +45,7 @@ def generate(req: GenerateReportRequest):
 
 
 @router.get("/current-month",     operation_id="bfiu_current_month")
-def current_month_report():
+async def current_month_report():
     """Generate report for the current month instantly."""
     now   = datetime.now(timezone.utc)
     report = generate_monthly_report(now.year, now.month)
@@ -53,14 +53,14 @@ def current_month_report():
 
 
 @router.get("/list/all",          operation_id="bfiu_list_all")
-def list_all_reports():
+async def list_all_reports():
     """List all generated BFIU reports."""
     reports = list_reports()
     return {"reports": reports, "total": len(reports)}
 
 
 @router.get("/{report_id}/csv",   operation_id="bfiu_download_csv")
-def download_csv(report_id: str):
+async def download_csv(report_id: str):
     """Download report as BFIU-submission CSV."""
     report = get_report(report_id)
     if not report:
@@ -75,7 +75,7 @@ def download_csv(report_id: str):
 
 
 @router.get("/{report_id}",       operation_id="bfiu_get_report")
-def get_report_by_id(report_id: str):
+async def get_report_by_id(report_id: str):
     """Get BFIU report by ID."""
     report = get_report(report_id)
     if not report:

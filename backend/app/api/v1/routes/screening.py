@@ -47,14 +47,14 @@ class ExitListCheckRequest(BaseModel):
     institution_id: str
 
 @router.post("/unscr")
-def unscr_check(req: ScreenRequest, current_user: dict = Depends(get_current_user)):
+async def unscr_check(req: ScreenRequest, current_user: dict = Depends(get_current_user)):
     """Screen name against UNSCR consolidated list. Mandatory for all eKYC types."""
     if not req.name.strip():
         raise HTTPException(status_code=422, detail="Name cannot be empty")
     return screen_unscr(req.name)
 
 @router.post("/pep")
-def pep_check(req: ScreenRequest, current_user: dict = Depends(get_current_user)):
+async def pep_check(req: ScreenRequest, current_user: dict = Depends(get_current_user)):
     """Screen name against PEP/IP list. Mandatory for Regular eKYC only."""
     if req.kyc_type.upper() == "SIMPLIFIED":
         return {
@@ -66,23 +66,23 @@ def pep_check(req: ScreenRequest, current_user: dict = Depends(get_current_user)
     return screen_pep(req.name)
 
 @router.post("/adverse-media")
-def adverse_media_check(req: ScreenRequest, current_user: dict = Depends(get_current_user)):
+async def adverse_media_check(req: ScreenRequest, current_user: dict = Depends(get_current_user)):
     """Screen for adverse media. Mandatory for Regular, optional for Simplified."""
     return screen_adverse_media(req.name, req.kyc_type)
 
 @router.post("/exit-list/add", status_code=201)
-def exit_list_add(req: ExitListAddRequest, current_user: dict = Depends(get_current_user)):
+async def exit_list_add(req: ExitListAddRequest, current_user: dict = Depends(get_current_user)):
     """Add a name to institution exit list. Admin action."""
     entry = add_to_exit_list(req.institution_id, req.name, req.reason)
     return {"success": True, "entry": entry}
 
 @router.post("/exit-list/check")
-def exit_list_check(req: ExitListCheckRequest, current_user: dict = Depends(get_current_user)):
+async def exit_list_check(req: ExitListCheckRequest, current_user: dict = Depends(get_current_user)):
     """Check name against institution exit list."""
     return screen_exit_list(req.name, req.institution_id)
 
 @router.post("/full")
-def full_screening(req: ScreenRequest, current_user: dict = Depends(get_current_user)):
+async def full_screening(req: ScreenRequest, current_user: dict = Depends(get_current_user)):
     """
     Run all applicable screening checks based on eKYC type.
     SIMPLIFIED: UNSCR + Exit list
@@ -94,7 +94,7 @@ def full_screening(req: ScreenRequest, current_user: dict = Depends(get_current_
     return run_full_screening(req.name, req.kyc_type, req.institution_id)
 
 @router.get("/thresholds")
-def get_thresholds(current_user: dict = Depends(get_current_user)):
+async def get_thresholds(current_user: dict = Depends(get_current_user)):
     """Return current screening match thresholds."""
     return {
         "unscr_exact_threshold":  1.0,
