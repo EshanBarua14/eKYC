@@ -307,3 +307,20 @@ class BFIUReport(Base):
     generated_at   = Column(DateTime,    default=_now)
 
     __table_args__ = (Index("ix_bfiu_period", "period_year", "period_month"),)
+
+
+class UploadedFile(Base):
+    __tablename__ = "uploaded_files"
+    id             = Column(String(36),  primary_key=True, index=True)
+    session_id     = Column(String(128), nullable=False, index=True)
+    category       = Column(String(32),  nullable=False, index=True)
+    filename       = Column(String(255), nullable=False)
+    file_url       = Column(String(512), nullable=False)
+    file_path      = Column(String(512), nullable=True)
+    file_size      = Column(Integer,     nullable=True)
+    sha256         = Column(String(64),  nullable=True)
+    mime_type      = Column(String(64),  nullable=True)
+    uploaded_by    = Column(String(128), nullable=True)
+    institution_id = Column(String(16),  nullable=True)
+    bfiu_ref       = Column(String(64),  default="BFIU Circular No. 29")
+    created_at     = Column(DateTime,    default=_now, index=True)

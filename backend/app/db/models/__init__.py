@@ -8,6 +8,8 @@ from app.db.models_platform import (
     KYCProfile, ConsentRecord, OnboardingOutcome, FallbackCase,
     BOAccount, NotificationLog, AuditLog, Webhook, WebhookDelivery,
     BFIUReport,
+
+    UploadedFile,
 )
 
 __all__ = [
