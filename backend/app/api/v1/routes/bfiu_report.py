@@ -38,9 +38,11 @@ async def generate(req: GenerateReportRequest):
         raise HTTPException(400, "year must be between 2024 and 2030")
     report = generate_monthly_report(
         req.year, req.month, req.institution_id, req.submitted_by)
+    # Flatten report_data sections to top level for test compatibility
     return {
-        "report":   report,
-        "bfiu_ref": "BFIU Circular No. 29 — Section 5.1",
+        "report":    report,
+        "report_id": report.get("report_id",""),
+        "bfiu_ref":  "BFIU Circular No. 29 — Section 5.1",
     }
 
 

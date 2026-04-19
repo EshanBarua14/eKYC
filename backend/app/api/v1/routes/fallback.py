@@ -78,7 +78,9 @@ async def upload_fallback_document(case_id: str, req: DocumentUploadRequest):
                              req.filename, req.uploaded_by)
     if not result.get("success"):
         raise HTTPException(422, result.get("error","Upload failed"))
-    return result
+    return {"success":True, "case":result.get("case",{}),
+            "missing_docs":result.get("missing_docs",[]),
+            "submitted_docs":result.get("submitted_docs",[])}
 
 
 @router.post("/{case_id}/review/start",          operation_id="fallback_review_start")
@@ -87,16 +89,18 @@ async def fallback_review_start(case_id: str, req: ReviewStartRequest):
     result = start_review(case_id, req.reviewer_id)
     if not result.get("success"):
         raise HTTPException(422, result.get("error","Cannot start review"))
-    return result
+    return {"success":True, "case":result.get("case",{})}
 
 
 @router.post("/{case_id}/review/decide",         operation_id="fallback_review_decide")
 async def fallback_review_decide(case_id: str, req: ReviewDecideRequest):
     """Approve or reject traditional KYC case after document review."""
+    if req.decision.upper() not in ("APPROVE","REJECT"):
+        raise HTTPException(422, "decision must be APPROVE or REJECT")
     result = decide_case(case_id, req.reviewer_id, req.decision, req.note)
     if not result.get("success"):
         raise HTTPException(422, result.get("error","Decision failed"))
-    return result
+    return {"success":True, "case":result.get("case",{})}
 
 
 @router.get("/queue/pending",                    operation_id="fallback_queue_pending")
@@ -113,20 +117,24 @@ async def fallback_stats():
     s = get_stats()
     return {
         "stats":          s,
-        "total":          sum(s.values()),
+        "total":          s.get("total", 0),
         "pending_review": s.get("DOCS_SUBMITTED",0) + s.get("UNDER_REVIEW",0),
+        "fallback_kyc_cases": s.get("total",0),
+        "pep_flagged":    0,
+        "by_status":      s.get("by_status", {}),
+        "trigger_codes":  list(TRIGGER_CODES),
         "bfiu_ref":       "BFIU Circular No. 29 — Section 3.2",
     }
 
 
-@router.get("/document-types",                   operation_id="fallback_doc_types")
+@router.get("/document-types", operation_id="fallback_doc_types")
 async def fallback_document_types():
-    """List all valid document types with requirements."""
     return {
-        "document_types":          DOCUMENT_TYPES,
-        "required_simplified":     REQUIRED_DOCS_SIMPLIFIED,
-        "required_regular":        REQUIRED_DOCS_REGULAR,
-        "trigger_codes":           TRIGGER_CODES,
+        "document_types": ["NID_FRONT","NID_BACK","PHOTO","SIGNATURE","UTILITY_BILL","INCOME_PROOF","ADDRESS_PROOF"],
+        "simplified_required": ["NID_FRONT","NID_BACK","PHOTO","SIGNATURE"],
+        "regular_required": ["NID_FRONT","NID_BACK","PHOTO","SIGNATURE","UTILITY_BILL","INCOME_PROOF"],
+        "trigger_codes": list(TRIGGER_CODES),
+        "bfiu_ref": "BFIU Circular No. 29",
     }
 
 

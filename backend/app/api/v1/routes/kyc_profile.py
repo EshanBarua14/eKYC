@@ -14,6 +14,7 @@ from datetime import datetime, timezone
 
 from app.db.database import get_db
 from app.db.models import KYCProfile
+from app.services import file_storage
 from app.services.kyc_threshold import assign_kyc_type, calculate_risk_score
 
 router = APIRouter(prefix="/kyc", tags=["KYC Profile"])

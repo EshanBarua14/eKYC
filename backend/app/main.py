@@ -3,6 +3,7 @@ Xpert Fintech eKYC Platform — API Entry Point
 BFIU Circular No. 29 Compliant
 """
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.api.v1.router import v1_router
@@ -33,6 +34,20 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
 )
+
+
+# ── Rate Limiting (M28) ────────────────────────────────────────────────────
+try:
+    from slowapi import Limiter, _rate_limit_exceeded_handler
+    from slowapi.util import get_remote_address
+    from slowapi.errors import RateLimitExceeded
+    limiter = Limiter(key_func=get_remote_address)
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+    print("[M28] Rate limiting enabled")
+except ImportError:
+    print("[M28] slowapi not installed — rate limiting disabled")
+    limiter = None
 
 @app.on_event("startup")
 def startup():
@@ -68,3 +83,13 @@ async def health():
         "modules":   ["face_verify","ai_analysis","liveness","kyc_profile",
                       "consent","outcome","fallback","screening","admin"],
     }
+
+# ── Serve uploaded files (NID images, signatures, photos) ─────────────────
+import os as _os
+_UPLOAD_DIR = _os.path.join(_os.path.dirname(__file__), "../uploads")
+_os.makedirs(_UPLOAD_DIR, exist_ok=True)
+try:
+    app.mount("/uploads", StaticFiles(directory=_UPLOAD_DIR), name="uploads")
+    print(f"[M27] File storage mounted at /uploads → {_UPLOAD_DIR}")
+except Exception as _e:
+    print(f"[M27] Static files warning: {_e}")

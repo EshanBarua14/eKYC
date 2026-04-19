@@ -12,7 +12,7 @@
   "smtp_user": "",
   "smtp_password": "",
   "smtp_from": "noreply@xpertfintech.com.bd",
-  "match_threshold": 45,
+  "match_threshold": 40,
   "review_threshold": 30,
   "bfiu_max_attempts": 10,
   "bfiu_max_sessions": 2,

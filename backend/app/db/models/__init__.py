@@ -1,13 +1,18 @@
 # app/db/models/__init__.py
+# All ORM models — M1-M26
 # Auth models (M2)
 from .auth import Base, Institution, User, UserSession, AgentProfile
 
-# Legacy models (M6) - imported from flat models.py
-import sys, os
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from app.db.models_legacy import KYCProfile, KYCType, KYCStatus, InstitutionType
+# All platform models (M26 — full schema)
+from app.db.models_platform import (
+    KYCProfile, ConsentRecord, OnboardingOutcome, FallbackCase,
+    BOAccount, NotificationLog, AuditLog, Webhook, WebhookDelivery,
+    BFIUReport,
+)
 
 __all__ = [
     "Base", "Institution", "User", "UserSession", "AgentProfile",
-    "KYCProfile", "KYCType", "KYCStatus", "InstitutionType",
+    "KYCProfile", "ConsentRecord", "OnboardingOutcome", "FallbackCase",
+    "BOAccount", "NotificationLog", "AuditLog", "Webhook", "WebhookDelivery",
+    "BFIUReport",
 ]

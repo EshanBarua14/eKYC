@@ -28,7 +28,7 @@ if "sqlite" in DATABASE_URL:
         cursor.execute("PRAGMA foreign_keys=ON")
         cursor.close()
 
-SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
+SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False, expire_on_commit=False)
 
 class Base(DeclarativeBase):
     pass

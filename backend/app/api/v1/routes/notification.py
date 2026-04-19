@@ -70,11 +70,15 @@ async def route_notify_success(req: SuccessNotifyRequest):
         helpdesk_number  = req.helpdesk_number,
         timestamp        = req.timestamp,
     )
+    raw = result.get("channels", {})
+    channels_list = [{"channel": k.upper(), "status": v.get("status","SENT")} for k, v in raw.items()]
     return {
         **result,
+        "type":            "KYC_SUCCESS",
+        "channels":        channels_list,
+        "channels_notified": len(channels_list),
         "bfiu_ref":   "BFIU Circular No. 29 — Account Opening Notification",
         "dev_mode":   DEV_MODE,
-        "channels_notified": len(result["channels"]),
     }
 
 
@@ -94,11 +98,15 @@ async def route_notify_failure(req: FailureNotifyRequest):
         helpdesk_number  = req.helpdesk_number,
         timestamp        = req.timestamp,
     )
+    raw = result.get("channels", {})
+    channels_list = [{"channel": k.upper(), "status": v.get("status","SENT")} for k, v in raw.items()]
     return {
         **result,
+        "type":            "KYC_FAILURE",
+        "channels":        channels_list,
+        "channels_notified": len(channels_list),
         "bfiu_ref": "BFIU Circular No. 29 — Failure Notification",
         "dev_mode": DEV_MODE,
-        "channels_notified": len(result["channels"]),
     }
 
 

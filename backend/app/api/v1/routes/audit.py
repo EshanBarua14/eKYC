@@ -98,11 +98,13 @@ def query_audit_log(
     current_user:   dict = Depends(get_current_user),
 ):
     """Query audit log with optional filters."""
-    return query_log(
+    result = query_log(
         event_type=event_type, entity_type=entity_type,
         actor_id=actor_id, institution_id=institution_id,
         session_id=session_id, limit=limit, offset=offset,
     )
+    if isinstance(result, list): result = {"entries": result, "total": len(result)}
+    return result
 
 @router.get("/log/{entry_id}")
 def get_log_entry(entry_id: str, current_user: dict = Depends(get_current_user)):
@@ -142,7 +144,8 @@ def compliance_dashboard(
     current_user:   dict = Depends(get_current_user),
 ):
     """Compliance dashboard stats."""
-    return get_dashboard_stats(institution_id)
+    d = get_dashboard_stats(institution_id)
+    return d
 
 @router.get("/events")
 def list_event_types(current_user: dict = Depends(get_current_user)):

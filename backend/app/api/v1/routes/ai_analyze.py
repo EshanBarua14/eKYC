@@ -3,7 +3,7 @@ AI Analysis Routes — v2
 BFIU Circular No. 29 — Annexure-2
 Changes: /challenge passes session_id, returns consecutive progress + lbp_variance
 """
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from pydantic import BaseModel
 from app.services.ai_analysis import (
     analyze_from_b64, check_liveness_challenge, reset_session_counters,
@@ -69,7 +69,7 @@ async def reset_session(req: AnalyzeRequest):
 
 
 @router.post("/scan-nid")
-async def scan_nid(req: NIDScanRequest):
+async def scan_nid(request: Request,req: NIDScanRequest):
     img  = b64_to_numpy(req.image_b64)
     h, w = img.shape[:2]
     if max(h, w) > 1200:
