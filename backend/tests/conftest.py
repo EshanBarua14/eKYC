@@ -39,3 +39,46 @@ def clean_e2e_sessions():
     except Exception as e:
         print(f"[conftest] e2e cleanup warning: {e}")
     yield
+
+# ── M29 Admin test cleanup ───────────────────────────────────────────────
+M29_INSTITUTION_CODES = ["TIM29","TCMI29","DUPX9","BADTP","GETI9","AUDT9"]
+M29_USER_EMAILS = [
+    "admin_m29@test.com","maker_m29@test.com","auditor_m29@test.com",
+    "newuser_m29a@test.com","newuser_m29b@test.com",
+    "dup_m29@test.com","badrole@test.com","getuser_m29@test.com",
+]
+
+@pytest.fixture(autouse=True, scope="session")
+def clean_m29_data():
+    try:
+        from app.db.database import db_session
+        from app.db.models.auth import Institution, User
+        with db_session() as db:
+            for code in M29_INSTITUTION_CODES:
+                db.query(Institution).filter_by(short_code=code).delete()
+            for email in M29_USER_EMAILS:
+                db.query(User).filter_by(email=email).delete()
+    except Exception as e:
+        print(f"[conftest] M29 cleanup warning: {e}")
+    yield
+
+@pytest.fixture(autouse=True, scope="session")
+def clean_m13_data():
+    try:
+        from app.db.database import db_session
+        from app.db.models.auth import Institution, User
+        from app.db.models_platform import Base
+        stale_codes = ["FIL2","ACM2","CC2","LT2","ON2","TD2","DUPX9","TIM29",
+                       "TCMI29","BADTP","GETI9","AUDT9"]
+        stale_emails = ["admin_m13@test.com","auditor_m13@test.com",
+                        "admin_m29@test.com","maker_m29@test.com","auditor_m29@test.com",
+                        "newuser_m29a@test.com","newuser_m29b@test.com",
+                        "dup_m29@test.com","badrole@test.com","getuser_m29@test.com"]
+        with db_session() as db:
+            for code in stale_codes:
+                db.query(Institution).filter_by(short_code=code).delete()
+            for email in stale_emails:
+                db.query(User).filter_by(email=email).delete()
+    except Exception as e:
+        print(f"[conftest] M13 cleanup warning: {e}")
+    yield

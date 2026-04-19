@@ -208,7 +208,8 @@ class TestSecurityMisconfiguration:
         assert "Traceback" not in r.text
 
     def test_health_endpoint_accessible(self):
-        r = client.get("/api/v1/admin/health")
+        # Public health check — gateway health is unauthenticated
+        r = client.get("/api/v1/gateway/health")
         assert r.status_code == 200
 
     def test_openapi_docs_accessible(self):

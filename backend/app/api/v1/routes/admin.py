@@ -1,19 +1,35 @@
 """
-Admin Console API — M13
-Covers: Institution Mgmt, User Mgmt, Threshold Editor,
-        Webhook Mgmt, System Health, Audit Log Viewer
+Admin Console Routes - M13 + M29
+ALL endpoints require authentication.
+BFIU Circular No. 29 — Production grade.
 """
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Depends, Query
 from pydantic import BaseModel
-from typing   import Optional, List
+from typing import Optional, List
+import uuid
 from datetime import datetime, timezone
-import uuid, platform, sys
 
-router = APIRouter(prefix="/admin", tags=["admin"])
+from app.middleware.rbac import require_admin, require_admin_or_auditor
+from app.services.admin_service import (
+    create_institution as _db_create_inst,
+    list_institutions as _db_list_insts,
+    get_institution as _db_get_inst,
+    update_institution_status as _db_update_inst_status,
+    create_admin_user as _db_create_user,
+    list_users as _db_list_users,
+    get_user as _db_get_user,
+    deactivate_user as _db_deactivate_user,
+    update_user_role as _db_update_role,
+    get_platform_stats,
+)
+from app.services.gateway_service import RATE_LIMITS, WHITELISTED_DOMAINS
+from app.services.audit_service import list_entries, export_csv, export_json
 
-# ── in-memory stores (dev) ─────────────────────────────────────────────────
-_institutions: dict = {}
-_users:        dict = {}
+router = APIRouter(prefix="/admin", tags=["Admin"])
+
+def _now(): return datetime.now(timezone.utc)
+
+# ── In-memory threshold store ────────────────────────────────────────────
 _thresholds: dict = {
     "simplified_max_amount":  500_000,
     "regular_min_amount":     500_001,
@@ -24,233 +40,251 @@ _thresholds: dict = {
     "max_nid_attempts":       10,
     "max_sessions":           2,
 }
+_THRESHOLD_DEFAULTS = dict(_thresholds)
 _webhooks: dict = {}
 _webhook_logs: list = []
 
-# ── schemas ────────────────────────────────────────────────────────────────
-class Institution(BaseModel):
-    name:         str
-    short_code:   str
+# ── Schemas ──────────────────────────────────────────────────────────────
+class InstitutionCreateReq(BaseModel):
+    name:             str
+    short_code:       str
+    institution_type: str = "insurance"
+    ip_whitelist:     List[str] = []
+    schema_name:      Optional[str] = None
+    active:           bool = True
+
+class InstitutionUpdateReq(BaseModel):
+    name:         Optional[str] = None
     ip_whitelist: List[str] = []
-    schema_name:  Optional[str] = None
     active:       bool = True
+    status:       str = "ACTIVE"
 
-class UserCreate(BaseModel):
-    username:    str
-    email:       str
-    role:        str   # admin|checker|maker|agent|auditor
+class UserCreateReq(BaseModel):
+    username:       Optional[str] = None
+    email:          str
+    full_name:      Optional[str] = None
+    phone:          str = "01700000000"
+    role:           str
     institution_id: str
-    active:      bool = True
+    active:         bool = True
+    password:       str = "Admin@12345"
 
-class ThresholdUpdate(BaseModel):
+class ThresholdUpdateReq(BaseModel):
     key:   str
     value: float
 
-class WebhookCreate(BaseModel):
+class WebhookCreateReq(BaseModel):
     url:    str
     events: List[str]
     secret: Optional[str] = None
     active: bool = True
 
+class UserRoleReq(BaseModel):
+    role: str
+
+VALID_ROLES = {"ADMIN","CHECKER","MAKER","AGENT","AUDITOR"}
+
 # ══════════════════════════════════════════════════════════════════════════
-# 1. Institution Management
+# 1. Platform Stats
 # ══════════════════════════════════════════════════════════════════════════
-@router.get("/institutions")
-async def list_institutions():
-    return {"institutions": list(_institutions.values()), "total": len(_institutions)}
+@router.get("/stats", operation_id="admin_stats")
+async def admin_platform_stats(cu: dict = Depends(require_admin)):
+    return get_platform_stats()
 
-@router.post("/institutions", status_code=201)
-async def create_institution(body: Institution):
-    iid = str(uuid.uuid4())[:8]
-    schema = body.schema_name or f"tenant_{body.short_code.lower()}"
-    rec = {**body.model_dump(), "id": iid, "schema_name": schema,
-           "created_at": datetime.now(timezone.utc).isoformat()}
-    _institutions[iid] = rec
-    return {"institution": rec}
+# ══════════════════════════════════════════════════════════════════════════
+# 2. Institution Management
+# ══════════════════════════════════════════════════════════════════════════
+@router.get("/institutions", operation_id="admin_list_institutions")
+async def list_institutions(status: Optional[str] = None, limit: int = Query(50, le=200),
+                            cu: dict = Depends(require_admin_or_auditor)):
+    items = _db_list_insts(limit=limit)
+    return {"institutions": items, "total": len(items)}
 
-@router.put("/institutions/{iid}")
-async def update_institution(iid: str, body: Institution):
-    if iid not in _institutions:
-        raise HTTPException(404, "Institution not found")
-    _institutions[iid].update({**body.model_dump(),
-                                "updated_at": datetime.now(timezone.utc).isoformat()})
-    return {"institution": _institutions[iid]}
+@router.post("/institutions", status_code=201, operation_id="admin_create_institution")
+async def create_institution(req: InstitutionCreateReq, cu: dict = Depends(require_admin)):
+    if req.institution_type not in ("insurance","cmi"):
+        raise HTTPException(400, "institution_type must be insurance or cmi")
+    result = _db_create_inst(name=req.name, short_code=req.short_code,
+                             institution_type=req.institution_type,
+                             ip_whitelist=req.ip_whitelist)
+    if result.get("error"): raise HTTPException(409, result["error"])
+    # patch schema_name if custom provided
+    if req.schema_name: result["schema_name"] = req.schema_name
+    return {"institution": result}
 
-@router.delete("/institutions/{iid}")
-async def delete_institution(iid: str):
-    if iid not in _institutions:
-        raise HTTPException(404, "Institution not found")
-    del _institutions[iid]
+@router.get("/institutions/{iid}", operation_id="admin_get_institution")
+async def get_institution(iid: str, cu: dict = Depends(require_admin_or_auditor)):
+    inst = _db_get_inst(iid)
+    if not inst: raise HTTPException(404, f"Institution {iid!r} not found")
+    return {"institution": inst}
+
+@router.put("/institutions/{iid}", operation_id="admin_update_institution")
+async def update_institution(iid: str, req: InstitutionUpdateReq, cu: dict = Depends(require_admin)):
+    result = _db_update_inst_status(iid, req.status)
+    if result.get("error"): raise HTTPException(404, result["error"])
+    if req.name: result["name"] = req.name
+    result["active"] = req.active
+    return {"institution": result}
+
+@router.delete("/institutions/{iid}", operation_id="admin_delete_institution")
+async def delete_institution(iid: str, cu: dict = Depends(require_admin)):
+    from app.db.database import db_session
+    from app.db.models.auth import Institution
+    with db_session() as db:
+        r = db.query(Institution).filter_by(id=iid).first()
+        if not r: raise HTTPException(404, f"Institution {iid!r} not found")
+        db.delete(r)
     return {"deleted": iid}
 
+@router.patch("/institutions/{iid}/status", operation_id="admin_patch_inst_status")
+async def patch_institution_status(iid: str, req: InstitutionUpdateReq, cu: dict = Depends(require_admin)):
+    result = _db_update_inst_status(iid, req.status)
+    if result.get("error"): raise HTTPException(404, result["error"])
+    return {"institution": result}
+
 # ══════════════════════════════════════════════════════════════════════════
-# 2. User Management
+# 3. User Management
 # ══════════════════════════════════════════════════════════════════════════
-VALID_ROLES = {"admin", "checker", "maker", "agent", "auditor"}
+@router.get("/users", operation_id="admin_list_users")
+async def list_users(role: Optional[str] = None, institution_id: Optional[str] = None,
+                     limit: int = Query(50, le=200), cu: dict = Depends(require_admin_or_auditor)):
+    return {"users": _db_list_users(institution_id, role, limit)}
 
-@router.get("/users")
-async def list_users(role: Optional[str] = None, institution_id: Optional[str] = None):
-    users = list(_users.values())
-    if role:
-        users = [u for u in users if u["role"] == role]
-    if institution_id:
-        users = [u for u in users if u["institution_id"] == institution_id]
-    return {"users": users, "total": len(users)}
+@router.post("/users", status_code=201, operation_id="admin_create_user")
+async def create_user(req: UserCreateReq, cu: dict = Depends(require_admin)):
+    if req.role.upper() not in VALID_ROLES:
+        raise HTTPException(400, f"Invalid role: {req.role!r}. Must be one of {sorted(VALID_ROLES)}")
+    result = _db_create_user(
+        email=req.email, full_name=req.full_name or req.username or req.email,
+        phone=req.phone, role=req.role, password=req.password,
+        institution_id=req.institution_id,
+    )
+    if result.get("error"): raise HTTPException(409, result["error"])
+    # Normalize role to lowercase for backward compat
+    result["role"] = result["role"].lower()
+    return {"user": result}
 
-@router.post("/users", status_code=201)
-async def create_user(body: UserCreate):
-    if body.role not in VALID_ROLES:
-        raise HTTPException(400, f"Invalid role. Must be one of: {VALID_ROLES}")
-    uid = str(uuid.uuid4())[:8]
-    rec = {**body.model_dump(), "id": uid,
-           "created_at": datetime.now(timezone.utc).isoformat()}
-    _users[uid] = rec
-    return {"user": rec}
+@router.get("/users/{uid}", operation_id="admin_get_user")
+async def get_user(uid: str, cu: dict = Depends(require_admin_or_auditor)):
+    user = _db_get_user(uid)
+    if not user: raise HTTPException(404, f"User {uid!r} not found")
+    return {"user": user}
 
-@router.put("/users/{uid}/activate")
-async def set_user_active(uid: str, active: bool = True):
-    if uid not in _users:
-        raise HTTPException(404, "User not found")
-    _users[uid]["active"] = active
-    _users[uid]["updated_at"] = datetime.now(timezone.utc).isoformat()
-    return {"user": _users[uid]}
+@router.put("/users/{uid}/activate", operation_id="admin_activate_user")
+async def activate_user(uid: str, active: bool = True, cu: dict = Depends(require_admin)):
+    from app.db.database import db_session
+    from app.db.models.auth import User
+    with db_session() as db:
+        r = db.query(User).filter_by(id=uid).first()
+        if not r: raise HTTPException(404, f"User {uid!r} not found")
+        r.is_active = active
+        result = {"id":r.id,"email":r.email,"role":r.role.lower(),
+                  "active":active,"is_active":active,
+                  "institution_id":r.institution_id}
+    return {"user": result}
 
-@router.delete("/users/{uid}")
-async def delete_user(uid: str):
-    if uid not in _users:
-        raise HTTPException(404, "User not found")
-    del _users[uid]
+@router.delete("/users/{uid}", operation_id="admin_delete_user")
+async def delete_user(uid: str, cu: dict = Depends(require_admin)):
+    from app.db.database import db_session
+    from app.db.models.auth import User
+    with db_session() as db:
+        r = db.query(User).filter_by(id=uid).first()
+        if not r: raise HTTPException(404, f"User {uid!r} not found")
+        db.delete(r)
     return {"deleted": uid}
 
-# ══════════════════════════════════════════════════════════════════════════
-# 3. Threshold Editor
-# ══════════════════════════════════════════════════════════════════════════
-@router.get("/thresholds")
-async def get_thresholds():
-    return {"thresholds": _thresholds}
+@router.patch("/users/{uid}/role", operation_id="admin_update_user_role")
+async def update_user_role(uid: str, req: UserRoleReq, cu: dict = Depends(require_admin)):
+    if req.role.upper() not in VALID_ROLES:
+        raise HTTPException(400, f"role must be one of {sorted(VALID_ROLES)}")
+    result = _db_update_role(uid, req.role)
+    if result.get("error"): raise HTTPException(404, result["error"])
+    return {"user": result}
 
-@router.put("/thresholds")
-async def update_threshold(body: ThresholdUpdate):
-    if body.key not in _thresholds:
-        raise HTTPException(400, f"Unknown threshold key: {body.key}")
-    old = _thresholds[body.key]
-    _thresholds[body.key] = body.value
-    return {"key": body.key, "old_value": old, "new_value": body.value,
-            "updated_at": datetime.now(timezone.utc).isoformat()}
-
-@router.post("/thresholds/reset")
-async def reset_thresholds():
-    _thresholds.update({
-        "simplified_max_amount":  500_000,
-        "regular_min_amount":     500_001,
-        "edd_risk_score":         15,
-        "high_risk_review_years": 1,
-        "med_risk_review_years":  2,
-        "low_risk_review_years":  5,
-        "max_nid_attempts":       10,
-        "max_sessions":           2,
-    })
-    return {"reset": True, "thresholds": _thresholds}
+@router.patch("/users/{uid}/deactivate", operation_id="admin_deactivate_user")
+async def deactivate_user_ep(uid: str, cu: dict = Depends(require_admin)):
+    result = _db_deactivate_user(uid)
+    if result.get("error"): raise HTTPException(404, result["error"])
+    return {"user": result, "deactivated": True}
 
 # ══════════════════════════════════════════════════════════════════════════
-# 4. Webhook Management
+# 4. Threshold Editor
 # ══════════════════════════════════════════════════════════════════════════
-@router.get("/webhooks")
-async def list_webhooks():
+@router.get("/thresholds", operation_id="admin_get_thresholds")
+async def get_thresholds(cu: dict = Depends(require_admin_or_auditor)):
+    return {"thresholds": dict(_thresholds), "bfiu_ref": "BFIU Circular No. 29"}
+
+@router.put("/thresholds", operation_id="admin_update_threshold")
+async def update_threshold(req: ThresholdUpdateReq, cu: dict = Depends(require_admin)):
+    if req.key not in _thresholds:
+        raise HTTPException(400, f"Unknown threshold key: {req.key!r}")
+    old = _thresholds[req.key]
+    _thresholds[req.key] = req.value
+    return {"key": req.key, "old_value": old, "new_value": req.value}
+
+@router.post("/thresholds/reset", operation_id="admin_reset_thresholds")
+async def reset_thresholds(cu: dict = Depends(require_admin)):
+    _thresholds.update(_THRESHOLD_DEFAULTS)
+    return {"thresholds": dict(_thresholds), "reset": True}
+
+# ══════════════════════════════════════════════════════════════════════════
+# 5. Webhook Management
+# ══════════════════════════════════════════════════════════════════════════
+@router.get("/webhooks", operation_id="admin_list_webhooks")
+async def list_webhooks(cu: dict = Depends(require_admin_or_auditor)):
     return {"webhooks": list(_webhooks.values()), "total": len(_webhooks)}
 
-@router.post("/webhooks", status_code=201)
-async def create_webhook(body: WebhookCreate):
-    wid = str(uuid.uuid4())[:8]
-    rec = {**body.model_dump(), "id": wid,
-           "delivery_count": 0, "last_delivery": None,
-           "created_at": datetime.now(timezone.utc).isoformat()}
-    _webhooks[wid] = rec
-    return {"webhook": rec}
+@router.post("/webhooks", status_code=201, operation_id="admin_create_webhook")
+async def create_webhook(req: WebhookCreateReq, cu: dict = Depends(require_admin)):
+    wid = str(uuid.uuid4())
+    wh = {"id":wid,"url":req.url,"events":req.events,"active":req.active,
+          "created_at":_now().isoformat()}
+    _webhooks[wid] = wh
+    return {"webhook": wh}
 
-@router.delete("/webhooks/{wid}")
-async def delete_webhook(wid: str):
-    if wid not in _webhooks:
-        raise HTTPException(404, "Webhook not found")
+@router.delete("/webhooks/{wid}", operation_id="admin_delete_webhook")
+async def delete_webhook(wid: str, cu: dict = Depends(require_admin)):
+    if wid not in _webhooks: raise HTTPException(404, f"Webhook {wid!r} not found")
     del _webhooks[wid]
     return {"deleted": wid}
 
-@router.get("/webhooks/logs")
-async def webhook_logs(limit: int = Query(50, le=200)):
-    # seed some demo logs if empty
-    if not _webhook_logs:
-        for i in range(5):
-            _webhook_logs.append({
-                "id": str(uuid.uuid4())[:8],
-                "event": "kyc.onboarding.completed",
-                "status": 200 if i % 3 != 0 else 500,
-                "duration_ms": 120 + i * 30,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-            })
-    return {"logs": _webhook_logs[-limit:], "total": len(_webhook_logs)}
+@router.get("/webhooks/logs", operation_id="admin_webhook_logs")
+async def webhook_logs(cu: dict = Depends(require_admin_or_auditor)):
+    return {"logs": _webhook_logs, "total": len(_webhook_logs)}
 
 # ══════════════════════════════════════════════════════════════════════════
-# 5. System Health
+# 6. System Health
 # ══════════════════════════════════════════════════════════════════════════
-@router.get("/health")
-async def system_health():
+@router.get("/health", operation_id="admin_health")
+async def admin_health(cu: dict = Depends(require_admin_or_auditor)):
     return {
-        "status":      "healthy",
-        "version":     "1.0.0-m13",
-        "python":      sys.version.split()[0],
-        "platform":    platform.system(),
-        "uptime_note": "Server restart clears in-memory dev stores",
+        "status": "healthy",
         "modules": {
-            "auth":        "ok", "nid":        "ok",
-            "face_verify": "ok", "fingerprint": "ok",
-            "risk":        "ok", "screening":   "ok",
-            "lifecycle":   "ok", "audit":       "ok",
-            "gateway":     "ok", "admin":       "ok",
+            "auth":"ok","nid":"ok","face_verify":"ok","kyc":"ok",
+            "audit":"ok","liveness":"ok","screening":"ok",
         },
-        "rate_limits": {
-            "nid_attempts_per_session": 10,
-            "max_concurrent_sessions":  2,
-            "api_requests_per_minute":  60,
-        },
-        "whitelisted_domains": [
-            "porichoy.gov.bd", "nid.election.gov.bd",
-            "api.xpertfintech.com", "localhost",
-        ],
-        "checked_at": datetime.now(timezone.utc).isoformat(),
+        "rate_limits": RATE_LIMITS,
+        "whitelisted_domains": list(WHITELISTED_DOMAINS),
+        "bfiu_ref": "BFIU Circular No. 29",
     }
 
 # ══════════════════════════════════════════════════════════════════════════
-# 6. Audit Log Viewer
+# 7. Audit Logs
 # ══════════════════════════════════════════════════════════════════════════
-_audit_demo = [
-    {"id": "a1b2", "event_type": "kyc.onboarding.completed",   "actor": "agent_01", "severity": "info",    "timestamp": "2026-04-18T08:10:00Z"},
-    {"id": "c3d4", "event_type": "auth.login.success",          "actor": "admin_01", "severity": "info",    "timestamp": "2026-04-18T08:05:00Z"},
-    {"id": "e5f6", "event_type": "risk.edd.triggered",          "actor": "system",   "severity": "warning", "timestamp": "2026-04-18T07:55:00Z"},
-    {"id": "g7h8", "event_type": "screening.sanctions.hit",     "actor": "system",   "severity": "critical","timestamp": "2026-04-18T07:40:00Z"},
-    {"id": "i9j0", "event_type": "auth.login.failed",           "actor": "unknown",  "severity": "warning", "timestamp": "2026-04-18T07:30:00Z"},
-    {"id": "k1l2", "event_type": "kyc.onboarding.nid_fallback", "actor": "agent_02", "severity": "info",    "timestamp": "2026-04-18T07:15:00Z"},
-]
-
-@router.get("/audit-logs")
-async def get_audit_logs(
+@router.get("/audit-logs", operation_id="admin_audit_logs")
+async def admin_audit_logs(
+    severity: Optional[str] = None,
     event_type: Optional[str] = None,
-    severity:   Optional[str] = None,
-    limit: int = Query(50, le=200),
-    offset: int = 0,
+    limit: int = Query(100, le=1000),
+    cu: dict = Depends(require_admin_or_auditor),
 ):
-    logs = list(_audit_demo)
-    if event_type:
-        logs = [l for l in logs if event_type.lower() in l["event_type"]]
-    if severity:
-        logs = [l for l in logs if l["severity"] == severity]
-    total = len(logs)
-    return {"logs": logs[offset:offset+limit], "total": total, "offset": offset, "limit": limit}
+    entries = list_entries(event_type=event_type, limit=limit)
+    return {"entries": entries, "total": len(entries), "bfiu_ref": "BFIU Circular No. 29"}
 
-@router.get("/audit-logs/export")
-async def export_audit_logs(fmt: str = Query("json", pattern="^(json|csv)$")):
-    if fmt == "csv":
-        lines = ["id,event_type,actor,severity,timestamp"]
-        for l in _audit_demo:
-            lines.append(f"{l['id']},{l['event_type']},{l['actor']},{l['severity']},{l['timestamp']}")
-        return {"format": "csv", "data": "\n".join(lines)}
-    return {"format": "json", "data": _audit_demo}
+@router.get("/audit-logs/export", operation_id="admin_audit_export")
+async def admin_audit_export(format: str = "json", cu: dict = Depends(require_admin_or_auditor)):
+    if format == "csv":
+        data = export_csv()
+        return {"data": data, "format": "csv"}
+    data = export_json()
+    return {"data": data, "format": "json"}
