@@ -79,3 +79,6 @@ backend/ekyc.db-wal
 backend/platform_settings.json
 
 backend/app/platform_settings.json
+
+# Test-generated upload files
+backend/uploads/
