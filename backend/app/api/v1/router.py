@@ -1,5 +1,6 @@
 """v1 API router"""
 from fastapi import APIRouter
+from app.api.v1.routes.settings import router as settings_router
 from app.api.v1.routes.face_verify  import router as face_router
 from app.api.v1.routes.ai_analyze   import router as ai_router
 from app.api.v1.routes.kyc_profile  import router as kyc_router
@@ -54,3 +55,5 @@ v1_router.include_router(outcome_router)
 v1_router.include_router(fallback_router)
 v1_router.include_router(cmi_router)
 v1_router.include_router(bfiu_report_router)
+
+v1_router.include_router(settings_router)

@@ -10,6 +10,7 @@ import {
   StatGrid, Divider, CheckItem,
 } from "./ui"
 import { API } from "../config"
+import SettingsPanel from "./SettingsPanel"
 
 const TABS = [
   { id:"institutions", label:"Institutions",   icon: Building2    },
@@ -18,6 +19,7 @@ const TABS = [
   { id:"webhooks",     label:"Webhooks",        icon: Webhook      },
   { id:"health",       label:"System Health",   icon: Activity     },
   { id:"auditlogs",    label:"Audit Logs",      icon: ClipboardList},
+  { id:"settings",     label:"Settings",         icon: Sliders      },
 ]
 
 function TabNav({ active, setActive }) {
