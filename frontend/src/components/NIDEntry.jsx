@@ -2,7 +2,7 @@
 import { useState } from "react"
 import { Card, Btn, SectionTitle, Divider, Badge, Spinner } from "./ui"
 import { CreditCard, Calendar, CheckCircle, AlertCircle, Shield } from "lucide-react"
-import { API } from "../config"
+import { API, authHeaders, ensureDemoToken } from "../config"
 
 export default function NIDEntry({ onVerified }) {
   const [nidNumber, setNidNumber] = useState("")
@@ -31,9 +31,10 @@ export default function NIDEntry({ onVerified }) {
     setLoading(true); setError(""); setResult(null)
     try {
       // Call EC NID verification via our backend
+      await ensureDemoToken()
       const r = await fetch(`${API}/api/v1/nid/verify`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders(),
         body: JSON.stringify({
           nid_number: nidNumber,
           session_id: `entry_${Date.now()}`,

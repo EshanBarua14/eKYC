@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Card, Btn, Badge, Spinner, SectionTitle, StatGrid, Divider, CheckItem } from "./ui"
-import { API } from "../config.js"
+import { API, authHeaders, ensureDemoToken } from "../config.js"
 import axios from "axios"
 import {
   Users, Shield, FileText, Search, Bell, LogOut, ChevronRight,
@@ -235,7 +235,7 @@ function NewSessionTab() {
   const verifyNID = async () => {
     setChecking(true); setError("")
     try {
-      const r = await axios.post(API+"/api/v1/nid/verify", { nid_number:form.nid, session_id:"agent_"+Date.now() }, { headers:{ Authorization:"Bearer demo-token" }})
+      const r = await axios.post(API+"/api/v1/nid/verify", { nid_number:form.nid, session_id:"agent_"+Date.now() }, { headers: authHeaders() })
       setNidResult(r.data)
       if (r.data.ec_data) setForm(f=>({...f, full_name:r.data.ec_data.full_name_en||""}))
       setStep(2)
@@ -333,7 +333,7 @@ function SearchTab() {
   const [loading, setLoading] = useState(false)
   const search = async () => {
     try {
-      const r = await axios.post(API+"/api/v1/nid/verify", { nid_number:query, session_id:"search_"+Date.now() }, { headers:{ Authorization:"Bearer demo-token" }})
+      const r = await axios.post(API+"/api/v1/nid/verify", { nid_number:query, session_id:"search_"+Date.now() }, { headers: authHeaders() })
       setResult(r.data)
     } catch(e) { setResult({ found:false, ec_source:"DEMO", reason:"NID not found" }) }
     finally { setLoading(false) }

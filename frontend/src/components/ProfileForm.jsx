@@ -14,7 +14,6 @@ export default function ProfileForm({ nidScan, matchResult, onSubmit, onBack }) 
     // Debug: log what we received
     console.log("ProfileForm nidScan:", nidScan)
     console.log("ProfileForm matchResult:", matchResult)
-    const ec  = matchResult?.ec_data || {}
     const f   = nidScan?.fields      || {}
     // Try every possible field name variant from OCR + EC
     return {
@@ -39,6 +38,10 @@ export default function ProfileForm({ nidScan, matchResult, onSubmit, onBack }) 
     }
   })
   const [errors, setErrors] = useState({})
+
+  // ec must be accessible in JSX scope (not just inside useState initializer)
+  // ec accessible in JSX scope
+  const ec = matchResult?.ec_data || {}
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
