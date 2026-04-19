@@ -16,5 +16,5 @@ __all__ = [
     "Base", "Institution", "User", "UserSession", "AgentProfile",
     "KYCProfile", "ConsentRecord", "OnboardingOutcome", "FallbackCase",
     "BOAccount", "NotificationLog", "AuditLog", "Webhook", "WebhookDelivery",
-    "BFIUReport",
+    "BFIUReport", "UNSCREntry", "UNSCRListMeta",
 ]

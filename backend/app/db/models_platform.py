@@ -294,3 +294,48 @@ class UploadedFile(Base):
     institution_id = Column(String(16),  nullable=True)
     bfiu_ref       = Column(String(64),  default="BFIU Circular No. 29")
     created_at     = Column(DateTime,    default=_now, index=True)
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# M37 — UNSCR Consolidated List
+# ══════════════════════════════════════════════════════════════════════════
+class UNSCREntry(Base):
+    __tablename__ = "unscr_entries"
+
+    id              = Column(Integer,     primary_key=True, autoincrement=True)
+    un_ref_id       = Column(String(64),  nullable=False, index=True)   # UN reference number
+    entry_type      = Column(String(16),  nullable=False, index=True)   # INDIVIDUAL | ENTITY
+    primary_name    = Column(String(512), nullable=False)
+    aliases         = Column(JSON,        nullable=True)                # list of alias strings
+    nationality     = Column(String(64),  nullable=True)
+    dob             = Column(String(32),  nullable=True)
+    passport_no     = Column(String(64),  nullable=True)
+    committee       = Column(String(64),  nullable=True)                # e.g. 1267, 1988, 1718
+    listed_on       = Column(String(32),  nullable=True)
+    narrative       = Column(Text,        nullable=True)
+    search_vector   = Column(Text,        nullable=True)                # FTS: name + aliases joined
+    list_version    = Column(String(32),  nullable=False, index=True)   # YYYY-MM-DD pull date
+    is_active       = Column(Boolean,     nullable=False, default=True, index=True)
+    created_at      = Column(DateTime(timezone=True), default=_now, nullable=False)
+    updated_at      = Column(DateTime(timezone=True), default=_now, onupdate=_now, nullable=False)
+
+    __table_args__ = (
+        Index("ix_unscr_primary_name", "primary_name"),
+        Index("ix_unscr_type_active",  "entry_type", "is_active"),
+    )
+
+
+class UNSCRListMeta(Base):
+    """Tracks each UN list pull — version, row count, status."""
+    __tablename__ = "unscr_list_meta"
+
+    id              = Column(Integer,     primary_key=True, autoincrement=True)
+    list_version    = Column(String(32),  nullable=False, unique=True)
+    pull_url        = Column(String(512), nullable=True)
+    total_entries   = Column(Integer,     nullable=False, default=0)
+    new_entries     = Column(Integer,     nullable=False, default=0)
+    removed_entries = Column(Integer,     nullable=False, default=0)
+    status          = Column(String(16),  nullable=False, default="SUCCESS")  # SUCCESS | FAILED | PARTIAL
+    error_message   = Column(Text,        nullable=True)
+    pulled_at       = Column(DateTime(timezone=True), default=_now, nullable=False)
+    pulled_by       = Column(String(64),  nullable=False, default="celery_beat")

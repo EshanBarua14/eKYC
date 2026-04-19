@@ -21,6 +21,7 @@ celery_app = Celery(
         "app.worker.tasks.nid_verify",
         "app.worker.tasks.bfiu_report",
         "app.worker.tasks.periodic_review",
+        "app.worker.tasks.unscr_pull",
     ],
 )
 
@@ -57,5 +58,10 @@ celery_app.conf.beat_schedule = {
     "nid-retry-sweep": {
         "task":     "app.worker.tasks.nid_verify.sweep_pending_nid_queue",
         "schedule": crontab(minute="*/15"),
+    },
+    # UNSCR daily list pull — every day at 00:30 UTC
+    "unscr-daily-pull": {
+        "task":     "app.worker.tasks.unscr_pull.pull_unscr_list_daily",
+        "schedule": crontab(hour=0, minute=30),
     },
 }
