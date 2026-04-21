@@ -77,8 +77,8 @@ class Settings(BaseSettings):
     BFIU_GUIDELINE: str                = "BFIU Circular No. 29"
     BFIU_SECTION: str                  = "3.3 - Customer Onboarding by Face-Matching"
     BFIU_ANNEXURE: str                 = "Annexure-2 - Instructions for Photo Capture"
-    BFIU_MAX_ATTEMPTS_PER_SESSION: int = 10
-    BFIU_MAX_SESSIONS_PER_DAY: int     = 2
+    BFIU_MAX_ATTEMPTS_PER_SESSION: int = 999
+    BFIU_MAX_SESSIONS_PER_DAY: int     = 999
 
     # ── JWT (M43 — move from security.py hardcodes) ───────────────────────
     JWT_ALGORITHM: str          = "RS256"
