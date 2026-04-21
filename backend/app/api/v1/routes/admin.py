@@ -257,8 +257,21 @@ async def webhook_logs(cu: dict = Depends(require_admin_or_auditor)):
 # ══════════════════════════════════════════════════════════════════════════
 @router.get("/health", operation_id="admin_health")
 async def admin_health(cu: dict = Depends(require_admin_or_auditor)):
+    from app.db.database import engine
+    from sqlalchemy import text
+    db_ok = False
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        db_ok = True
+    except Exception:
+        pass
+    from app.core.config import settings
     return {
-        "status": "healthy",
+        "status":    "healthy" if db_ok else "degraded",
+        "db":        "ok" if db_ok else "error",
+        "version":   settings.APP_VERSION,
+        "timestamp": _now().isoformat(),
         "modules": {
             "auth":"ok","nid":"ok","face_verify":"ok","kyc":"ok",
             "audit":"ok","liveness":"ok","screening":"ok",
