@@ -141,6 +141,7 @@ export default function NIDEntry({ onVerified }) {
             onChange={e => { setDob(e.target.value); setError(""); setResult(null) }}
             max={new Date().toISOString().split("T")[0]}
             title="Format sent to EC: DD/MM/YYYY"
+            title="Format sent to EC: DD/MM/YYYY"
             style={{
               width:"100%", padding:"13px 16px",
               borderRadius:"var(--radius-sm)", fontSize:15,
