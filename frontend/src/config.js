@@ -70,9 +70,17 @@ const ADMIN_NAME      = "Demo Admin"
 export const getAdminToken  = () => localStorage.getItem(ADMIN_TOKEN_KEY) || getToken()
 export const setAdminToken  = (t) => { localStorage.setItem(ADMIN_TOKEN_KEY, t); setToken(t) }
 
+function isTokenExpired(token) {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]))
+    return payload.exp < Math.floor(Date.now() / 1000) + 30
+  } catch { return true }
+}
+
 export const ensureAdminToken = async () => {
   const existing = localStorage.getItem(ADMIN_TOKEN_KEY)
-  if (existing) { setToken(existing); return existing }
+  // Token missing or expired — clear and re-login
+  localStorage.removeItem(ADMIN_TOKEN_KEY)
 
   // Register admin (ignore 409)
   try {
