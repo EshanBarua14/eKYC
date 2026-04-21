@@ -34,7 +34,8 @@ export default function ProfileForm({ nidScan, matchResult, nidEntry, onSubmit, 
       nominee_name:      "",
       nominee_relation:  "",
       nominee_dob:       "",
-  }))
+    }
+  })
   const [errors, setErrors] = useState({})
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
