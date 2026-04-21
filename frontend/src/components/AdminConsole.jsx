@@ -474,16 +474,16 @@ function HealthTab() {
     <div style={{display:"grid",gap:16}}>
       <Card glow={data.status==="healthy"}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
-          <SectionTitle sub={`Checked: ${data.checked_at?.slice(11,19)} UTC`}>System Status</SectionTitle>
+          <SectionTitle sub={`Checked: ${(data.timestamp||data.checked_at||"")?.slice(11,19)} UTC`}>System Status</SectionTitle>
           <div style={{display:"flex",gap:8}}>
             <Badge color={data.status==="healthy"?"green":"red"}>{data.status?.toUpperCase()}</Badge>
             <Btn size="sm" variant="ghost" onClick={load}><RefreshCw size={12}/>Refresh</Btn>
           </div>
         </div>
         <StatGrid items={[
-          ["Version",  data.version,  "var(--accent)"],
-          ["Python",   data.python,   "var(--blue)"],
-          ["Platform", data.platform, "var(--text2)"],
+          ["Version",  data.version  || "1.0.0",    "var(--accent)"],
+          ["DB",       data.db       || "unknown",  "var(--blue)"],
+          ["BFIU Ref", "Circular 29",               "var(--text2)"],
         ]}/>
       </Card>
 
@@ -504,7 +504,7 @@ function HealthTab() {
               padding:"7px 10px",borderRadius:"var(--radius-sm)",marginBottom:4,
               background:"var(--bg3)",border:"1px solid var(--border)"}}>
               <span style={{fontSize:12,color:"var(--text2)"}}>{k.replace(/_/g," ")}</span>
-              <span style={{fontSize:12,fontFamily:"var(--font-mono)",fontWeight:700,color:"var(--accent)"}}>{v}</span>
+              <span style={{fontSize:12,fontFamily:"var(--font-mono)",fontWeight:700,color:"var(--accent)"}}>{typeof v==="object" ? `${v.requests}/${v.window_seconds}s` : v}</span>
             </div>
           ))}
         </Card>
