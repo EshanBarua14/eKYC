@@ -19,6 +19,7 @@ from app.services.auth_service import (
     check_permission,
 )
 from app.db.models.auth import Institution, User
+from app.middleware.rate_limit_dep import rate_limit
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 security = HTTPBearer()
@@ -138,7 +139,7 @@ def register_user(req: RegisterRequest):
 # ---------------------------------------------------------------------------
 # POST /auth/token
 # ---------------------------------------------------------------------------
-@router.post("/token", response_model=TokenResponse)
+@router.post("/token", response_model=TokenResponse, dependencies=[Depends(rate_limit("auth_token"))])
 def login(req: LoginRequest, request: Request):
     """Issue JWT access + refresh token pair."""
     user = _get_demo_user(req.email)

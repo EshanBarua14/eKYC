@@ -108,6 +108,29 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from starlette.types import ASGIApp, Receive, Scope, Send
+
+class SecurityHeadersMiddleware:
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+        async def send_with_headers(message):
+            if message["type"] == "http.response.start":
+                raw = list(message.get("headers", []))
+                raw += [
+                    (b"x-content-type-options", b"nosniff"),
+                    (b"x-frame-options", b"DENY"),
+                    (b"x-xss-protection", b"1; mode=block"),
+                    (b"referrer-policy", b"strict-origin-when-cross-origin"),
+                ]
+                message["headers"] = raw
+            await send(message)
+        await self.app(scope, receive, send_with_headers)
+
+app.add_middleware(SecurityHeadersMiddleware)
 app.include_router(v1_router, prefix=settings.API_V1_PREFIX)
 
 # ── Error Boundary (M30) ─────────────────────────────────────────────────
