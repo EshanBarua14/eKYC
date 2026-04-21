@@ -36,7 +36,7 @@ DEFAULT_SETTINGS = {
     "bfiu_max_sessions":   2,
     # Institution
     "institution_name":    "Xpert Fintech Ltd.",
-    "institution_type":    "INSURANCE_LIFE",
+    "institution_type":    "bank",  # BFIU Circular No. 29 regulated entity
     "institution_code":    "XFL",
     "helpdesk_number":     "+880-2-XXXXXXXX",
     "helpdesk_email":      "support@xpertfintech.com.bd",

@@ -102,8 +102,9 @@ async def list_institutions(status: Optional[str] = None, limit: int = Query(50,
 
 @router.post("/institutions", status_code=201, operation_id="admin_create_institution")
 async def create_institution(req: InstitutionCreateReq, cu: dict = Depends(require_admin)):
-    if req.institution_type not in ("insurance","cmi"):
-        raise HTTPException(400, "institution_type must be insurance or cmi")
+    VALID_INST_TYPES = {"bank","insurance","cmi","mfi","nbfi","ngo","cooperative","leasing","exchange","brokerage","merchant_bank"}
+    if req.institution_type not in VALID_INST_TYPES:
+        raise HTTPException(400, f"institution_type must be one of {sorted(VALID_INST_TYPES)}")
     result = _db_create_inst(name=req.name, short_code=req.short_code,
                              institution_type=req.institution_type,
                              ip_whitelist=req.ip_whitelist)

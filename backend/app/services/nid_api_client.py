@@ -13,8 +13,18 @@ from app.core.config import settings
 
 log = logging.getLogger(__name__)
 
-# ── Client mode ───────────────────────────────────────────────────────────
-NID_API_MODE     = "DEMO"   # LIVE | DEMO | STUB
+# ── Client mode (reads from platform_settings.json at runtime) ───────────
+def _get_nid_settings():
+    import json, os
+    sf = os.path.join(os.path.dirname(__file__), "../../platform_settings.json")
+    try:
+        with open(sf, "r", encoding="utf-8") as f:
+            s = json.load(f)
+        return s.get("nid_api_mode", "DEMO"), s.get("nid_api_base_url", "https://nid.ec.gov.bd/api/v1"), s.get("nid_api_key", ""), s.get("nid_api_secret", "")
+    except Exception:
+        return "DEMO", "https://nid.ec.gov.bd/api/v1", "", ""
+
+NID_API_MODE     = "DEMO"   # fallback default — overridden at runtime
 NID_API_BASE_URL = "https://nid.ec.gov.bd/api/v1"
 
 # ── Retry config ──────────────────────────────────────────────────────────
@@ -78,10 +88,11 @@ def lookup_nid(nid_number: str, mode: str = None) -> dict:
     status: verified | not_found | pending_verification | ec_error
     """
     nid_number = nid_number.strip()
-    effective_mode = mode or NID_API_MODE
+    runtime_mode, runtime_url, runtime_key, runtime_secret = _get_nid_settings()
+    effective_mode = mode or runtime_mode
 
     if effective_mode == "LIVE":
-        return _live_lookup(nid_number)
+        return _live_lookup(nid_number, runtime_url, runtime_key, runtime_secret)
     elif effective_mode == "DEMO":
         return _demo_lookup(nid_number)
     else:
@@ -194,7 +205,7 @@ def _stub_lookup(nid_number: str) -> dict:
     }
 
 
-def _live_lookup(nid_number: str) -> dict:
+def _live_lookup(nid_number: str, base_url: str = None, api_key: str = None, api_secret: str = None) -> dict:
     """
     Live EC NID API call with timeout handling.
     Returns EC_UNAVAILABLE on connection failure for Celery retry queue.
@@ -213,13 +224,15 @@ def _live_lookup(nid_number: str) -> dict:
         adapter = HTTPAdapter(max_retries=retry_strategy)
         session.mount("https://", adapter)
 
+        _key = api_key or settings.SECRET_KEY
+        _url = base_url or NID_API_BASE_URL
         headers = {
-            "Authorization": f"Bearer {settings.SECRET_KEY}",
+            "Authorization": f"Bearer {_key}",
             "Content-Type":  "application/json",
             "X-Institution": "XPERT_FINTECH",
         }
         resp = session.post(
-            f"{NID_API_BASE_URL}/verify",
+            f"{_url}/verify",
             json={"nid_number": nid_number},
             headers=headers,
             timeout=REQUEST_TIMEOUT,

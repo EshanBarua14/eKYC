@@ -11,7 +11,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./ekyc.db")
+# PostgreSQL required — no SQLite in production
+DATABASE_URL: str = os.getenv(
+    "DATABASE_URL",
+    "postgresql://ekyc_user:ekyc_pass@localhost:5432/ekyc_db"
+)
 
 _is_sqlite   = DATABASE_URL.startswith("sqlite")
 _is_postgres = DATABASE_URL.startswith("postgresql")
