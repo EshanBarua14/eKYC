@@ -270,6 +270,7 @@ async def admin_health(cu: dict = Depends(require_admin_or_auditor)):
     return {
         "status":    "healthy" if db_ok else "degraded",
         "db":        "ok" if db_ok else "error",
+        "db_name":   "ekyc_db (PostgreSQL)" if db_ok else "unavailable",
         "version":   settings.APP_VERSION,
         "timestamp": _now().isoformat(),
         "modules": {

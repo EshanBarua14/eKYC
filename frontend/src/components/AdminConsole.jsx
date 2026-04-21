@@ -482,7 +482,7 @@ function HealthTab() {
         </div>
         <StatGrid items={[
           ["Version",  data.version  || "1.0.0",    "var(--accent)"],
-          ["DB",       data.db       || "unknown",  "var(--blue)"],
+          ["DB",       data.db_name  || data.db || "unknown",  "var(--blue)"],
           ["BFIU Ref", "Circular 29",               "var(--text2)"],
         ]}/>
       </Card>
