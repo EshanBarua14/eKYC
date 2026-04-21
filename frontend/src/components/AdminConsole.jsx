@@ -150,7 +150,7 @@ const ROLE_COLORS = { admin:"accent", checker:"yellow", maker:"blue", agent:"gre
 
 function UsersTab() {
   const [users, setUsers]   = useState([])
-  const [form,  setForm]    = useState({ username:"", email:"", role:"agent", institution_id:"", active:true })
+  const [form,  setForm]    = useState({ full_name:"", email:"", role:"agent", institution_id:"inst-demo-001", phone:"01700000000", password:"Demo@12345", active:true })
   const [loading, setLoading] = useState(false)
   const [err, setErr]       = useState("")
   const [filterRole, setFilterRole] = useState("")
@@ -169,7 +169,7 @@ function UsersTab() {
     setLoading(true); setErr("")
     try {
       await apiFetch("/api/v1/admin/users", { method:"POST", body: JSON.stringify(form) })
-      setForm({ username:"", email:"", role:"agent", institution_id:"", active:true })
+      setForm({ full_name:"", email:"", role:"agent", institution_id:"inst-demo-001", phone:"01700000000", password:"Demo@12345", active:true })
       await load()
     } catch(e) { setErr(e.message) }
     setLoading(false)
@@ -191,7 +191,7 @@ function UsersTab() {
       <Card>
         <SectionTitle sub="Assign role and institution">Create User</SectionTitle>
         <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:10}}>
-          {[["username","Username"],["email","Email"],["institution_id","Institution ID"]].map(([k,ph])=>(
+          {[["full_name","Full Name"],["email","Email"],["phone","Phone (01XXXXXXXXX)"]].map(([k,ph])=>(
             <input key={k} placeholder={ph} value={form[k]} onChange={e=>setForm(f=>({...f,[k]:e.target.value}))}
               style={{ padding:"9px 12px", borderRadius:"var(--radius-sm)", fontSize:13,
                 background:"var(--bg3)", border:"1px solid var(--border)",
@@ -537,6 +537,8 @@ function AuditLogsTab() {
   const [sevFilter, setSevFilter] = useState("")
   const [loading, setLoading]     = useState(false)
   const [err, setErr]             = useState("")
+  const [page, setPage]           = useState(1)
+  const PAGE_SIZE = 20
 
   const load = useCallback(async () => {
     setLoading(true); setErr("")
@@ -544,6 +546,8 @@ function AuditLogsTab() {
       const q = new URLSearchParams()
       if (evFilter)  q.set("event_type", evFilter)
       if (sevFilter) q.set("severity", sevFilter)
+      q.set("limit", PAGE_SIZE)
+      q.set("offset", (page-1)*PAGE_SIZE)
       const d = await apiFetch(`/api/v1/admin/audit-logs?${q}`)
       setLogs(d.entries || d.logs || []); setTotal(d.total || 0)
     } catch(e) { setErr(e.message) }
@@ -587,7 +591,8 @@ function AuditLogsTab() {
         ? <div style={{display:"flex",justifyContent:"center",padding:32}}><Spinner/></div>
         : logs.length===0
           ? <div style={{color:"var(--text3)",fontSize:13,textAlign:"center",padding:24}}>No logs match the filter</div>
-          : logs.map(l=>(
+          : <>
+        {logs.map(l=>(
             <div key={l.id} style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
               padding:"10px 14px", borderRadius:"var(--radius-sm)", marginBottom:5,
               background:"var(--bg3)", border:"1px solid var(--border)" }}>
