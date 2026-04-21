@@ -9,39 +9,33 @@ const PROFESSIONS = [
   "Driver","Laborer","Trader","Other"
 ]
 
-export default function ProfileForm({ nidScan, matchResult, onSubmit, onBack }) {
+export default function ProfileForm({ nidScan, matchResult, nidEntry, onSubmit, onBack }) {
+  // ec and f must be defined BEFORE useState initializer
+  const ec = matchResult?.ec_data || matchResult?.ec_result?.ec_data || nidEntry?.ecResult?.ec_data || {}
+  const f0 = nidScan?.fields || {}
+
   const [form, setForm] = useState(() => {
-    // Debug: log what we received
-    console.log("ProfileForm nidScan:", nidScan)
-    console.log("ProfileForm matchResult:", matchResult)
-    const f   = nidScan?.fields      || {}
-    // Try every possible field name variant from OCR + EC
     return {
-      full_name:         ec.full_name_en      || f.full_name_en      || f.name_en      || f.name      || "",
-      full_name_bn:      ec.full_name_bn      || f.full_name_bn      || f.name_bn      || "",
-      fathers_name:      ec.fathers_name      || f.fathers_name_en   || f.father_name  || f.fathers_name || "",
-      mothers_name:      ec.mothers_name      || f.mothers_name_en   || f.mother_name  || f.mothers_name || "",
-      spouse_name:       ec.spouse_name       || f.spouse_name       || "",
-      date_of_birth:     ec.date_of_birth     || f.date_of_birth     || f.dob          || "",
-      gender:            ec.gender            || f.gender            || "M",
+      full_name:         ec.full_name_en      || f0.full_name_en      || f0.name_en      || f0.name      || "",
+      full_name_bn:      ec.full_name_bn      || f0.full_name_bn      || f0.name_bn      || "",
+      fathers_name:      ec.fathers_name      || f0.fathers_name_en   || f0.father_name  || f0.fathers_name || "",
+      mothers_name:      ec.mothers_name      || f0.mothers_name_en   || f0.mother_name  || f0.mothers_name || "",
+      spouse_name:       ec.spouse_name       || f0.spouse_name       || "",
+      date_of_birth:     ec.date_of_birth     || f0.date_of_birth     || f0.dob          || "",
+      gender:            ec.gender            || f0.gender            || "M",
       profession:        "",
-      mobile:            f.mobile             || "",
-      email:             f.email              || "",
-      present_address:   ec.present_address   || f.present_address   || f.address      || "",
-      permanent_address: ec.permanent_address || f.permanent_address || f.address      || "",
-      nationality:       ec.nationality       || f.nationality       || "Bangladeshi",
+      mobile:            f0.mobile            || "",
+      email:             f0.email             || "",
+      present_address:   ec.present_address   || f0.present_address   || f0.address      || "",
+      permanent_address: ec.permanent_address || f0.permanent_address || f0.address      || "",
+      nationality:       ec.nationality       || f0.nationality       || "Bangladeshi",
       monthly_income:    "",
       source_of_funds:   "",
       nominee_name:      "",
       nominee_relation:  "",
       nominee_dob:       "",
-    }
-  })
+  }))
   const [errors, setErrors] = useState({})
-
-  // ec must be accessible in JSX scope (not just inside useState initializer)
-  // ec accessible in JSX scope
-  const ec = matchResult?.ec_data || {}
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 

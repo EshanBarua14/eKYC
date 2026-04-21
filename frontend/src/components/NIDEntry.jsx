@@ -38,7 +38,7 @@ export default function NIDEntry({ onVerified }) {
         body: JSON.stringify({
           nid_number: nidNumber,
           session_id: `entry_${Date.now()}`,
-          ocr_fields: { date_of_birth: dob }
+          ocr_fields: { date_of_birth: dob ? dob.split("-").reverse().join("/") : "" }
         })
       })
       if (r.status === 403) {
@@ -140,6 +140,7 @@ export default function NIDEntry({ onVerified }) {
             value={dob}
             onChange={e => { setDob(e.target.value); setError(""); setResult(null) }}
             max={new Date().toISOString().split("T")[0]}
+            title="Format sent to EC: DD/MM/YYYY"
             style={{
               width:"100%", padding:"13px 16px",
               borderRadius:"var(--radius-sm)", fontSize:15,

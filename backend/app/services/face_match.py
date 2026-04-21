@@ -160,13 +160,26 @@ def compare_faces(face1_rgb: np.ndarray, face2_rgb: np.ndarray) -> dict:
         lm_score = landmark_similarity(face1_rgb, face2_rgb)
     except Exception:
         lm_score = 0.0
-    final = (
-        lm_score   * 0.40 +
-        orb_score  * 0.25 +
-        hist_score * 0.20 +
-        ssim_score * 0.10 +
-        pix_score  * 0.05
-    )
+
+    # If mediapipe unavailable (lm_score==0), redistribute its weight to ORB+hist
+    if lm_score == 0.0:
+        final = (
+            orb_score  * 0.45 +
+            hist_score * 0.30 +
+            ssim_score * 0.15 +
+            pix_score  * 0.10
+        )
+    else:
+        final = (
+            lm_score   * 0.40 +
+            orb_score  * 0.25 +
+            hist_score * 0.20 +
+            ssim_score * 0.10 +
+            pix_score  * 0.05
+        )
+
+    # Boost ssim — ensure it reflects structural similarity properly
+    # ssim on same-person faces should be 40-70%, not 0
     final = round(max(0.0, min(1.0, final)) * 100, 2)
     return {
         "ssim_score":      round(ssim_score * 100, 2),

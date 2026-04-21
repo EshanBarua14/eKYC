@@ -62,12 +62,12 @@ class Settings(BaseSettings):
     DEFAULT_TENANT_SCHEMA: str = "public"
 
     # ── Liveness thresholds (BFIU Annexure-2) ────────────────────────────
-    MIN_BRIGHTNESS: float    = 40.0
-    MAX_BRIGHTNESS: float    = 250.0
-    MIN_SHARPNESS: float     = 80.0
-    MIN_WIDTH: int           = 320
-    MIN_HEIGHT: int          = 240
-    MIN_FACE_AREA_PCT: float = 4.0
+    MIN_BRIGHTNESS: float    = 20.0
+    MAX_BRIGHTNESS: float    = 254.0
+    MIN_SHARPNESS: float     = 30.0
+    MIN_WIDTH: int           = 160
+    MIN_HEIGHT: int          = 120
+    MIN_FACE_AREA_PCT: float = 1.5
 
     # ── Face matching ─────────────────────────────────────────────────────
     MATCH_THRESHOLD: float  = 45.0

@@ -169,7 +169,7 @@ export default function App() {
         )}
         {step === STEPS.PROFILE && (
           <ProfileForm
-            nidScan={nidScan} matchResult={matchResult}
+            nidScan={nidScan} matchResult={matchResult} nidEntry={nidEntry}
             onSubmit={(data) => { setProfileData(data); setStep(STEPS.SIGNATURE) }}
             onBack={() => setStep(STEPS.REPORT)}
           />
