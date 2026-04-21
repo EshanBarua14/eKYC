@@ -220,7 +220,19 @@ export default function SettingsPanel({ onBack }) {
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
               <Field label="Institution Name" k="institution_name" value={settings.institution_name} onChange={set} required/>
               <Field label="Institution Type" k="institution_type" value={settings.institution_type} onChange={set}
-                options={[["INSURANCE_LIFE","Life Insurance"],["INSURANCE_NON_LIFE","Non-Life Insurance"],["CMI","Capital Market Intermediary (CMI)"]]}/>
+                options={[
+                ["bank","Bank (Scheduled Bank — BB)"],
+                ["insurance","Insurance (Life/Non-Life — IDRA)"],
+                ["cmi","Capital Market Intermediary (BSEC)"],
+                ["mfi","Microfinance Institution (MRA)"],
+                ["nbfi","Non-Bank Financial Institution (BB)"],
+                ["ngo","NGO (NGO Affairs Bureau)"],
+                ["cooperative","Cooperative Society"],
+                ["leasing","Leasing Company (BB)"],
+                ["exchange","Money Exchange House (BB)"],
+                ["brokerage","Stock Broker/Dealer (BSEC)"],
+                ["merchant_bank","Merchant Bank (BSEC)"],
+              ]}/>
               <Field label="Institution Code" k="institution_code" value={settings.institution_code} onChange={set} mono
                 hint="Short code used in session IDs and reports"/>
               <Field label="Helpdesk Phone" k="helpdesk_number" value={settings.helpdesk_number} onChange={set}

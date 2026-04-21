@@ -592,24 +592,39 @@ function AuditLogsTab() {
         : logs.length===0
           ? <div style={{color:"var(--text3)",fontSize:13,textAlign:"center",padding:24}}>No logs match the filter</div>
           : <>
-        {logs.map(l=>(
-            <div key={l.id} style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
-              padding:"10px 14px", borderRadius:"var(--radius-sm)", marginBottom:5,
-              background:"var(--bg3)", border:"1px solid var(--border)" }}>
-              <div style={{display:"flex",alignItems:"center",gap:10}}>
-                <div style={{width:8,height:8,borderRadius:"50%",flexShrink:0,
-                  background: l.severity==="critical"?"var(--red)":l.severity==="warning"?"var(--yellow)":"var(--blue)"}}/>
-                <div>
-                  <div style={{fontSize:12,fontWeight:700,color:"var(--text)",fontFamily:"var(--font-mono)"}}>{l.event_type}</div>
-                  <div style={{fontSize:11,color:"var(--text3)"}}>actor: {l.actor}</div>
+            {logs.map(l=>(
+              <div key={l.id} style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
+                padding:"10px 14px", borderRadius:"var(--radius-sm)", marginBottom:5,
+                background:"var(--bg3)", border:"1px solid var(--border)" }}>
+                <div style={{display:"flex",alignItems:"center",gap:10}}>
+                  <div style={{width:8,height:8,borderRadius:"50%",flexShrink:0,
+                    background: l.severity==="critical"?"var(--red)":l.severity==="warning"?"var(--yellow)":"var(--blue)"}}/>
+                  <div>
+                    <div style={{fontSize:12,fontWeight:700,color:"var(--text)",fontFamily:"var(--font-mono)"}}>{l.event_type}</div>
+                    <div style={{fontSize:11,color:"var(--text3)"}}>actor: {l.actor_id || l.actor}</div>
+                  </div>
+                </div>
+                <div style={{display:"flex",gap:8,alignItems:"center"}}>
+                  <Badge color={SEV_COLORS[l.severity]||"blue"}>{l.severity||"info"}</Badge>
+                  <span style={{fontSize:10,color:"var(--text3)",fontFamily:"var(--font-mono)"}}>{l.timestamp?.slice(0,19).replace("T"," ")}</span>
                 </div>
               </div>
-              <div style={{display:"flex",gap:8,alignItems:"center"}}>
-                <Badge color={SEV_COLORS[l.severity]||"blue"}>{l.severity}</Badge>
-                <span style={{fontSize:10,color:"var(--text3)",fontFamily:"var(--font-mono)"}}>{l.timestamp?.slice(0,19).replace("T"," ")}</span>
+            ))}
+            {total > PAGE_SIZE && (
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginTop:12,paddingTop:12,borderTop:"1px solid var(--border)"}}>
+                <span style={{fontSize:12,color:"var(--text3)"}}>
+                  Showing {(page-1)*PAGE_SIZE+1}–{Math.min(page*PAGE_SIZE,total)} of {total}
+                </span>
+                <div style={{display:"flex",gap:6}}>
+                  <Btn size="sm" variant="ghost" onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={page===1}>← Prev</Btn>
+                  <span style={{fontSize:12,color:"var(--text2)",padding:"4px 10px",background:"var(--bg3)",borderRadius:"var(--radius-sm)",border:"1px solid var(--border)"}}>
+                    {page} / {Math.ceil(total/PAGE_SIZE)}
+                  </span>
+                  <Btn size="sm" variant="ghost" onClick={()=>setPage(p=>p+1)} disabled={page*PAGE_SIZE>=total}>Next →</Btn>
+                </div>
               </div>
-            </div>
-          ))}
+            )}
+          </>}
     </Card>
   )
 }
