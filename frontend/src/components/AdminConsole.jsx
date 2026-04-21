@@ -357,7 +357,7 @@ function WebhooksTab() {
     try { const d = await apiFetch("/api/v1/admin/webhooks"); setHooks(d.webhooks) } catch(e) { setErr(e.message) }
   }
   const loadLogs = async () => {
-    try { const d = await apiFetch("/api/v1/admin/webhooks/logs"); setLogs(d.logs) } catch(e) {}
+    try { const d = await apiFetch("/api/v1/admin/webhooks/logs"); setLogs(d.logs || []) } catch(e) {}
   }
 
   useEffect(() => { loadHooks(); loadLogs() }, [])
@@ -545,7 +545,7 @@ function AuditLogsTab() {
       if (evFilter)  q.set("event_type", evFilter)
       if (sevFilter) q.set("severity", sevFilter)
       const d = await apiFetch(`/api/v1/admin/audit-logs?${q}`)
-      setLogs(d.logs); setTotal(d.total)
+      setLogs(d.entries || d.logs || []); setTotal(d.total || 0)
     } catch(e) { setErr(e.message) }
     setLoading(false)
   }, [evFilter, sevFilter])
