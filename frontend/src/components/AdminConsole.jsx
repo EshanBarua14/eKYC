@@ -548,6 +548,8 @@ function AuditLogsTab() {
       if (sevFilter) q.set("severity", sevFilter)
       q.set("limit", PAGE_SIZE)
       q.set("offset", (page-1)*PAGE_SIZE)
+      q.set("limit", PAGE_SIZE)
+      q.set("offset", (page-1)*PAGE_SIZE)
       const d = await apiFetch(`/api/v1/admin/audit-logs?${q}`)
       setLogs(d.entries || d.logs || []); setTotal(d.total || 0)
     } catch(e) { setErr(e.message) }

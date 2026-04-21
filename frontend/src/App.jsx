@@ -1,37 +1,46 @@
 import { useState, useEffect } from "react"
-import { Shield, Sun, Moon, Fingerprint, ChevronRight } from "lucide-react"
-import NIDEntry          from "./components/NIDEntry"
-import NIDScanner        from "./components/NIDScanner"
-import LivenessCapture   from "./components/LivenessCapture"
-import MatchReport       from "./components/MatchReport"
-import ProfileForm       from "./components/ProfileForm"
-import SignatureCapture  from "./components/SignatureCapture"
-import CompletionScreen  from "./components/CompletionScreen"
-import AgentDashboard    from "./components/AgentDashboard"
-import AdminConsole      from "./components/AdminConsole"
+import { Shield, Sun, Moon, Fingerprint } from "lucide-react"
+import RBACLogin           from "./components/RBACLogin"
+import NIDEntry            from "./components/NIDEntry"
+import NIDScanner          from "./components/NIDScanner"
+import LivenessCapture     from "./components/LivenessCapture"
+import MatchReport         from "./components/MatchReport"
+import ProfileForm         from "./components/ProfileForm"
+import SignatureCapture    from "./components/SignatureCapture"
+import CompletionScreen    from "./components/CompletionScreen"
+import AgentDashboard      from "./components/AgentDashboard"
+import AdminConsole        from "./components/AdminConsole"
 import ComplianceDashboard from "./components/ComplianceDashboard"
 import "./App.css"
 
 const STEPS = { ENTRY:1, NID:2, LIVENESS:3, REPORT:4, PROFILE:5, SIGNATURE:6, COMPLETE:7 }
-const PORTALS = { CUSTOMER:"customer", AGENT:"agent", ADMIN:"admin", COMPLIANCE:"compliance" }
 
 const STEP_META = [
-  { n:1, label:"NID Entry",   desc:"Enter NID number & DOB"            },
-  { n:2, label:"Scan NID",    desc:"Upload NID card front & back"      },
-  { n:3, label:"Liveness",    desc:"AI face challenge"                  },
-  { n:4, label:"Verify",      desc:"EC biometric match result"          },
-  { n:5, label:"Profile",     desc:"Confirm personal information"       },
-  { n:6, label:"Signature",   desc:"Sign your KYC form"                 },
-  { n:7, label:"Complete",    desc:"Profile saved & certificate ready"  },
+  { n:1, label:"NID Entry",  desc:"Enter NID number & DOB"            },
+  { n:2, label:"Scan NID",   desc:"Upload NID card front & back"      },
+  { n:3, label:"Liveness",   desc:"AI face challenge"                  },
+  { n:4, label:"Verify",     desc:"EC biometric match result"          },
+  { n:5, label:"Profile",    desc:"Confirm personal information"       },
+  { n:6, label:"Signature",  desc:"Sign your KYC form"                 },
+  { n:7, label:"Complete",   desc:"Profile saved & certificate ready"  },
 ]
+
+function decodeRole(token) {
+  try {
+    if (!token) return null
+    const p = JSON.parse(atob(token.split(".")[1]))
+    if (p.exp < Math.floor(Date.now() / 1000)) return null
+    return (p.role || "").toUpperCase() || null
+  } catch { return null }
+}
 
 function StepBar({ current }) {
   return (
     <div className="step-bar">
       {STEP_META.map((s, i) => {
-        const done   = current > s.n
-        const active = current === s.n
-        const pending= current < s.n
+        const done    = current > s.n
+        const active  = current === s.n
+        const pending = current < s.n
         return (
           <div key={s.n} style={{ display:"flex", alignItems:"flex-start", flex: i < STEP_META.length-1 ? 1 : "none" }}>
             <div className="step-node">
@@ -56,16 +65,22 @@ function StepBar({ current }) {
 }
 
 export default function App() {
-  const [portal,    setPortal]    = useState("customer")
-  const [theme,     setTheme]     = useState(() => localStorage.getItem("ekyc-theme") || "light")
-  const [step,      setStep]      = useState(STEPS.ENTRY)
-  const [nidEntry,  setNidEntry]  = useState(null)
-  const [nidB64,    setNidB64]    = useState(null)
-  const [nidScan,   setNidScan]   = useState(null)
-  const [liveB64,   setLiveB64]   = useState(null)
-  const [liveness,  setLiveness]  = useState(null)
-  const [matchResult, setMatchResult] = useState(null)
-  const [profileData, setProfileData] = useState(null)
+  const [authToken, setAuthToken] = useState(() =>
+    localStorage.getItem("ekyc_admin_token") || localStorage.getItem("ekyc_token") || ""
+  )
+  const [userRole, setUserRole] = useState(() =>
+    decodeRole(localStorage.getItem("ekyc_admin_token") || localStorage.getItem("ekyc_token"))
+  )
+  const [showLogin,     setShowLogin]     = useState(false)
+  const [theme,         setTheme]         = useState(() => localStorage.getItem("ekyc-theme") || "light")
+  const [step,          setStep]          = useState(STEPS.ENTRY)
+  const [nidEntry,      setNidEntry]      = useState(null)
+  const [nidB64,        setNidB64]        = useState(null)
+  const [nidScan,       setNidScan]       = useState(null)
+  const [liveB64,       setLiveB64]       = useState(null)
+  const [liveness,      setLiveness]      = useState(null)
+  const [matchResult,   setMatchResult]   = useState(null)
+  const [profileData,   setProfileData]   = useState(null)
   const [signatureData, setSignatureData] = useState(null)
 
   useEffect(() => {
@@ -73,23 +88,66 @@ export default function App() {
     localStorage.setItem("ekyc-theme", theme)
   }, [theme])
 
+  const handleLogin = (token, role) => {
+    setAuthToken(token)
+    setUserRole(role.toUpperCase())
+    setShowLogin(false)
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem("ekyc_admin_token")
+    localStorage.removeItem("ekyc_token")
+    setAuthToken("")
+    setUserRole(null)
+    setShowLogin(false)
+  }
+
   const reset = () => {
     setStep(STEPS.ENTRY)
-    setNidEntry(null)
-    setNidB64(null); setNidScan(null)
-    setLiveB64(null); setLiveness(null)
+    setNidEntry(null); setNidB64(null); setNidScan(null)
+    setLiveB64(null);  setLiveness(null)
     setMatchResult(null); setProfileData(null); setSignatureData(null)
   }
 
   const toggleTheme = () => setTheme(t => t === "light" ? "dark" : "light")
 
-  if (portal === PORTALS.COMPLIANCE)
-    return <div data-theme={theme}><ComplianceDashboard onExit={() => setPortal("customer")} theme={theme} toggleTheme={toggleTheme}/></div>
-  if (portal === PORTALS.ADMIN)
-    return <div data-theme={theme}><AdminConsole onExit={() => setPortal("customer")} theme={theme} toggleTheme={toggleTheme}/></div>
-  if (portal === PORTALS.AGENT)
-    return <div data-theme={theme}><AgentDashboard onExit={() => setPortal("customer")} theme={theme} toggleTheme={toggleTheme}/></div>
+  // ── ADMIN → AdminConsole ───────────────────────────────────────────────
+  if (userRole === "ADMIN") {
+    return (
+      <div data-theme={theme}>
+        <AdminConsole onExit={handleLogout} theme={theme} toggleTheme={toggleTheme} />
+      </div>
+    )
+  }
 
+  // ── CHECKER / AUDITOR → ComplianceDashboard ───────────────────────────
+  if (userRole === "CHECKER" || userRole === "AUDITOR") {
+    return (
+      <div data-theme={theme}>
+        <ComplianceDashboard onExit={handleLogout} theme={theme} toggleTheme={toggleTheme} />
+      </div>
+    )
+  }
+
+  // ── MAKER / AGENT → AgentDashboard ────────────────────────────────────
+  if (userRole === "MAKER" || userRole === "AGENT") {
+    return (
+      <div data-theme={theme}>
+        <AgentDashboard onExit={handleLogout} theme={theme} toggleTheme={toggleTheme} />
+      </div>
+    )
+  }
+
+  // ── Staff Login (full-page) ────────────────────────────────────────────
+  if (showLogin) {
+    return (
+      <div data-theme={theme}>
+        <RBACLogin onLogin={handleLogin} onCancel={() => setShowLogin(false)} />
+      </div>
+    )
+  }
+
+  // ── Public Customer eKYC portal ───────────────────────────────────────
   return (
     <div style={{ minHeight:"100vh" }}>
       <header className="app-header">
@@ -108,17 +166,13 @@ export default function App() {
               <div className="api-live-dot"/>
               <span className="api-live-text">API Live</span>
             </div>
-            <button className="portal-btn portal-btn-agent" onClick={() => setPortal(PORTALS.AGENT)}>
-              <Fingerprint size={12} strokeWidth={2.5}/> Agent
-            </button>
-            <button className="portal-btn portal-btn-admin" onClick={() => setPortal(PORTALS.ADMIN)}>
-              <Shield size={12} strokeWidth={2.5}/> Admin
-            </button>
-            <button className="portal-btn portal-btn-compliance" onClick={() => setPortal(PORTALS.COMPLIANCE)}>
-              <ChevronRight size={12} strokeWidth={2.5}/> Compliance
+            <button className="portal-btn portal-btn-agent" onClick={() => setShowLogin(true)}>
+              <Fingerprint size={12} strokeWidth={2.5}/> Staff Login
             </button>
             <button className="theme-toggle" onClick={toggleTheme}>
-              {theme === "light" ? <><Moon size={13} strokeWidth={2}/> Dark</> : <><Sun size={13} strokeWidth={2}/> Light</>}
+              {theme === "light"
+                ? <><Moon size={13} strokeWidth={2}/> Dark</>
+                : <><Sun  size={13} strokeWidth={2}/> Light</>}
             </button>
           </div>
         </div>
@@ -137,7 +191,9 @@ export default function App() {
             <span className="gradient-text">Onboarding</span>
           </h1>
           <p className="hero-sub">
-            Complete your Bangladesh eKYC in 7 steps — NID entry, card scan, liveness detection, EC face verification, personal profile, signature, and digital certificate. BFIU Circular No. 29 compliant.
+            Complete your Bangladesh eKYC in 7 steps — NID entry, card scan, liveness detection,
+            EC face verification, personal profile, signature, and digital certificate.
+            BFIU Circular No. 29 compliant.
           </p>
         </div>
 
@@ -149,16 +205,12 @@ export default function App() {
         {step === STEPS.NID && (
           <NIDScanner
             nidEntry={nidEntry}
-            onNIDCaptured={(b64, scan) => {
-              setNidB64(b64); setNidScan(scan); setStep(STEPS.LIVENESS)
-            }}
+            onNIDCaptured={(b64, scan) => { setNidB64(b64); setNidScan(scan); setStep(STEPS.LIVENESS) }}
             onBack={() => setStep(STEPS.ENTRY)}
           />
         )}
         {step === STEPS.LIVENESS && (
-          <LivenessCapture onLivenessPassed={(b64, res) => {
-            setLiveB64(b64); setLiveness(res); setStep(STEPS.REPORT)
-          }}/>
+          <LivenessCapture onLivenessPassed={(b64, res) => { setLiveB64(b64); setLiveness(res); setStep(STEPS.REPORT) }}/>
         )}
         {step === STEPS.REPORT && (
           <MatchReport

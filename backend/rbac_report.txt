@@ -1,0 +1,735 @@
+============================= test session starts =============================
+platform win32 -- Python 3.12.10, pytest-8.3.5, pluggy-1.6.0 -- E:\Projects\eKYC\backend\venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: E:\Projects\eKYC\backend
+plugins: anyio-4.13.0, timeout-2.4.0
+collecting ... collected 58 items
+
+tests/test_m45_rbac.py::TestRBACLogin::test_admin_login_succeeds FAILED  [  1%]
+tests/test_m45_rbac.py::TestRBACLogin::test_checker_login_requires_totp FAILED [  3%]
+tests/test_m45_rbac.py::TestRBACLogin::test_checker_login_with_totp_succeeds FAILED [  5%]
+tests/test_m45_rbac.py::TestRBACLogin::test_maker_login_no_totp_required FAILED [  6%]
+tests/test_m45_rbac.py::TestRBACLogin::test_agent_login_succeeds FAILED  [  8%]
+tests/test_m45_rbac.py::TestRBACLogin::test_auditor_login_succeeds FAILED [ 10%]
+tests/test_m45_rbac.py::TestRBACLogin::test_wrong_password_blocked PASSED [ 12%]
+tests/test_m45_rbac.py::TestRBACLogin::test_unknown_user_blocked PASSED  [ 13%]
+tests/test_m45_rbac.py::TestRBACLogin::test_no_token_returns_403 PASSED  [ 15%]
+tests/test_m45_rbac.py::TestRBACLogin::test_jwt_payload_contains_role FAILED [ 17%]
+tests/test_m45_rbac.py::TestAdminRole::test_admin_can_list_institutions FAILED [ 18%]
+tests/test_m45_rbac.py::TestAdminRole::test_admin_can_list_users FAILED  [ 20%]
+tests/test_m45_rbac.py::TestAdminRole::test_admin_can_view_health FAILED [ 22%]
+tests/test_m45_rbac.py::TestAdminRole::test_admin_can_view_audit_logs FAILED [ 24%]
+tests/test_m45_rbac.py::TestAdminRole::test_admin_can_view_thresholds FAILED [ 25%]
+tests/test_m45_rbac.py::TestAdminRole::test_admin_can_view_webhooks FAILED [ 27%]
+tests/test_m45_rbac.py::TestAdminRole::test_admin_can_access_me FAILED   [ 29%]
+tests/test_m45_rbac.py::TestCheckerRole::test_checker_can_access_me FAILED [ 31%]
+tests/test_m45_rbac.py::TestCheckerRole::test_checker_can_view_audit_logs FAILED [ 32%]
+tests/test_m45_rbac.py::TestCheckerRole::test_checker_can_view_institutions FAILED [ 34%]
+tests/test_m45_rbac.py::TestCheckerRole::test_checker_cannot_create_institution FAILED [ 36%]
+tests/test_m45_rbac.py::TestCheckerRole::test_checker_cannot_delete_institution FAILED [ 37%]
+tests/test_m45_rbac.py::TestCheckerRole::test_checker_cannot_create_user FAILED [ 39%]
+tests/test_m45_rbac.py::TestCheckerRole::test_checker_cannot_update_thresholds FAILED [ 41%]
+tests/test_m45_rbac.py::TestMakerRole::test_maker_can_access_me FAILED   [ 43%]
+tests/test_m45_rbac.py::TestMakerRole::test_maker_cannot_access_admin_stats FAILED [ 44%]
+tests/test_m45_rbac.py::TestMakerRole::test_maker_cannot_list_institutions FAILED [ 46%]
+tests/test_m45_rbac.py::TestMakerRole::test_maker_cannot_list_users FAILED [ 48%]
+tests/test_m45_rbac.py::TestMakerRole::test_maker_cannot_view_audit_logs FAILED [ 50%]
+tests/test_m45_rbac.py::TestMakerRole::test_maker_cannot_create_institution FAILED [ 51%]
+tests/test_m45_rbac.py::TestAgentRole::test_agent_can_access_me FAILED   [ 53%]
+tests/test_m45_rbac.py::TestAgentRole::test_agent_cannot_access_admin FAILED [ 55%]
+tests/test_m45_rbac.py::TestAgentRole::test_agent_cannot_view_users FAILED [ 56%]
+tests/test_m45_rbac.py::TestAgentRole::test_agent_cannot_view_audit_logs FAILED [ 58%]
+tests/test_m45_rbac.py::TestAgentRole::test_agent_cannot_view_thresholds FAILED [ 60%]
+tests/test_m45_rbac.py::TestAgentRole::test_agent_cannot_create_user FAILED [ 62%]
+tests/test_m45_rbac.py::TestAuditorRole::test_auditor_can_access_me FAILED [ 63%]
+tests/test_m45_rbac.py::TestAuditorRole::test_auditor_can_view_audit_logs FAILED [ 65%]
+tests/test_m45_rbac.py::TestAuditorRole::test_auditor_can_view_institutions FAILED [ 67%]
+tests/test_m45_rbac.py::TestAuditorRole::test_auditor_can_view_health FAILED [ 68%]
+tests/test_m45_rbac.py::TestAuditorRole::test_auditor_cannot_create_institution FAILED [ 70%]
+tests/test_m45_rbac.py::TestAuditorRole::test_auditor_cannot_create_user FAILED [ 72%]
+tests/test_m45_rbac.py::TestAuditorRole::test_auditor_cannot_update_thresholds FAILED [ 74%]
+tests/test_m45_rbac.py::TestAuditorRole::test_auditor_cannot_delete_webhook FAILED [ 75%]
+tests/test_m45_rbac.py::TestTokenSecurity::test_no_token_blocked PASSED  [ 77%]
+tests/test_m45_rbac.py::TestTokenSecurity::test_tampered_token_blocked FAILED [ 79%]
+tests/test_m45_rbac.py::TestTokenSecurity::test_alg_none_attack_blocked FAILED [ 81%]
+tests/test_m45_rbac.py::TestTokenSecurity::test_expired_token_rejected PASSED [ 82%]
+tests/test_m45_rbac.py::TestTwoFactorEnforcement::test_admin_without_totp_blocked FAILED [ 84%]
+tests/test_m45_rbac.py::TestTwoFactorEnforcement::test_checker_without_totp_blocked FAILED [ 86%]
+tests/test_m45_rbac.py::TestTwoFactorEnforcement::test_admin_wrong_totp_blocked FAILED [ 87%]
+tests/test_m45_rbac.py::TestTwoFactorEnforcement::test_maker_no_totp_required FAILED [ 89%]
+tests/test_m45_rbac.py::TestTwoFactorEnforcement::test_agent_no_totp_required FAILED [ 91%]
+tests/test_m45_rbac.py::TestPrivilegeEscalation::test_agent_cannot_promote_self FAILED [ 93%]
+tests/test_m45_rbac.py::TestPrivilegeEscalation::test_maker_cannot_reset_thresholds FAILED [ 94%]
+tests/test_m45_rbac.py::TestPrivilegeEscalation::test_auditor_cannot_delete_audit_logs FAILED [ 96%]
+tests/test_m45_rbac.py::TestPrivilegeEscalation::test_checker_cannot_access_admin_only_endpoints FAILED [ 98%]
+tests/test_m45_rbac.py::TestPrivilegeEscalation::test_agent_cannot_view_admin_stats FAILED [100%]
+
+================================== FAILURES ===================================
+___________________ TestRBACLogin.test_admin_login_succeeds ___________________
+tests\test_m45_rbac.py:50: in test_admin_login_succeeds
+    assert r.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = <Response [401 Unauthorized]>.status_code
+---------------------------- Captured stdout setup ----------------------------
+[conftest] Redis cleanup: deleted 4 keys
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [6556c8af-e549-4d59-8655-432b88aa4d79] HTTP 401 UNAUTHORIZED: Invalid credentials
+_______________ TestRBACLogin.test_checker_login_requires_totp ________________
+tests\test_m45_rbac.py:57: in test_checker_login_requires_totp
+    assert "2FA" in r.text or "TOTP" in r.text or "setup" in r.text.lower()
+E   assert ('2FA' in '{"error":{"code":"UNAUTHORIZED","message":"Invalid credentials","status":401,"request_id":"bf38dc64-a341-43ff-8d60-1672b67f6584","timestamp":"2026-04-21T09:34:45.027771+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1"}}' or 'TOTP' in '{"error":{"code":"UNAUTHORIZED","message":"Invalid credentials","status":401,"request_id":"bf38dc64-a341-43ff-8d60-1672b67f6584","timestamp":"2026-04-21T09:34:45.027771+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1"}}' or 'setup' in '{"error":{"code":"unauthorized","message":"invalid credentials","status":401,"request_id":"bf38dc64-a341-43ff-8d60-1672b67f6584","timestamp":"2026-04-21t09:34:45.027771+00:00","bfiu_ref":"bfiu circular no. 29 - section 6.1"}}')
+E    +  where '{"error":{"code":"UNAUTHORIZED","message":"Invalid credentials","status":401,"request_id":"bf38dc64-a341-43ff-8d60-1672b67f6584","timestamp":"2026-04-21T09:34:45.027771+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1"}}' = <Response [401 Unauthorized]>.text
+E    +  and   '{"error":{"code":"UNAUTHORIZED","message":"Invalid credentials","status":401,"request_id":"bf38dc64-a341-43ff-8d60-1672b67f6584","timestamp":"2026-04-21T09:34:45.027771+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1"}}' = <Response [401 Unauthorized]>.text
+E    +  and   '{"error":{"code":"unauthorized","message":"invalid credentials","status":401,"request_id":"bf38dc64-a341-43ff-8d60-1672b67f6584","timestamp":"2026-04-21t09:34:45.027771+00:00","bfiu_ref":"bfiu circular no. 29 - section 6.1"}}' = <built-in method lower of str object at 0x00000217A2726450>()
+E    +    where <built-in method lower of str object at 0x00000217A2726450> = '{"error":{"code":"UNAUTHORIZED","message":"Invalid credentials","status":401,"request_id":"bf38dc64-a341-43ff-8d60-1672b67f6584","timestamp":"2026-04-21T09:34:45.027771+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1"}}'.lower
+E    +      where '{"error":{"code":"UNAUTHORIZED","message":"Invalid credentials","status":401,"request_id":"bf38dc64-a341-43ff-8d60-1672b67f6584","timestamp":"2026-04-21T09:34:45.027771+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1"}}' = <Response [401 Unauthorized]>.text
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [bf38dc64-a341-43ff-8d60-1672b67f6584] HTTP 401 UNAUTHORIZED: Invalid credentials
+_____________ TestRBACLogin.test_checker_login_with_totp_succeeds _____________
+tests\test_m45_rbac.py:65: in test_checker_login_with_totp_succeeds
+    assert r.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = <Response [401 Unauthorized]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [d1377eb6-3174-4658-8588-d20ec566e1e3] HTTP 401 UNAUTHORIZED: Invalid credentials
+_______________ TestRBACLogin.test_maker_login_no_totp_required _______________
+tests\test_m45_rbac.py:71: in test_maker_login_no_totp_required
+    assert r.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = <Response [401 Unauthorized]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [da5058ff-26c2-4e64-a355-b963893ef08f] HTTP 401 UNAUTHORIZED: Invalid credentials
+___________________ TestRBACLogin.test_agent_login_succeeds ___________________
+tests\test_m45_rbac.py:77: in test_agent_login_succeeds
+    assert r.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = <Response [401 Unauthorized]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [2658e7a3-a951-4eb2-b082-d8b861633646] HTTP 401 UNAUTHORIZED: Invalid credentials
+__________________ TestRBACLogin.test_auditor_login_succeeds __________________
+tests\test_m45_rbac.py:83: in test_auditor_login_succeeds
+    assert r.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = <Response [401 Unauthorized]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [6e611ba3-e948-425a-a371-e33077b6d9ce] HTTP 401 UNAUTHORIZED: Invalid credentials
+________________ TestRBACLogin.test_jwt_payload_contains_role _________________
+tests\test_m45_rbac.py:100: in test_jwt_payload_contains_role
+    token = get_token("AGENT")
+tests\test_m45_rbac.py:34: in get_token
+    assert r.status_code == 200, f"{role} login failed: {r.text}"
+E   AssertionError: AGENT login failed: {"error":{"code":"UNAUTHORIZED","message":"Invalid credentials","status":401,"request_id":"25bc5965-92c2-41ac-b272-6b7e13059b17","timestamp":"2026-04-21T09:34:45.209544+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1"}}
+E   assert 401 == 200
+E    +  where 401 = <Response [401 Unauthorized]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [25bc5965-92c2-41ac-b272-6b7e13059b17] HTTP 401 UNAUTHORIZED: Invalid credentials
+_______________ TestAdminRole.test_admin_can_list_institutions ________________
+tests\test_m45_rbac.py:111: in test_admin_can_list_institutions
+    r = client.get(f"{ADMIN}/institutions", headers=hdrs("ADMIN"))
+tests\test_m45_rbac.py:38: in hdrs
+    return {"Authorization": f"Bearer {get_token(role)}"}
+tests\test_m45_rbac.py:34: in get_token
+    assert r.status_code == 200, f"{role} login failed: {r.text}"
+E   AssertionError: ADMIN login failed: {"error":{"code":"UNAUTHORIZED","message":"Invalid credentials","status":401,"request_id":"413b3fd9-e761-4001-86e6-38fefb143143","timestamp":"2026-04-21T09:34:45.237952+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1"}}
+E   assert 401 == 200
+E    +  where 401 = <Response [401 Unauthorized]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [413b3fd9-e761-4001-86e6-38fefb143143] HTTP 401 UNAUTHORIZED: Invalid credentials
+___________________ TestAdminRole.test_admin_can_list_users ___________________
+tests\test_m45_rbac.py:116: in test_admin_can_list_users
+    r = client.get(f"{ADMIN}/users", headers=hdrs("ADMIN"))
+tests\test_m45_rbac.py:38: in hdrs
+    return {"Authorization": f"Bearer {get_token(role)}"}
+tests\test_m45_rbac.py:34: in get_token
+    assert r.status_code == 200, f"{role} login failed: {r.text}"
+E   AssertionError: ADMIN login failed: {"error":{"code":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","status":429,"request_id":"0ef35136-da9a-4576-a74d-e180efa0dd7d","timestamp":"2026-04-21T09:34:45.268082+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1","details":{"error":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","limit":10,"remaining":0,"reset_at":1776764144.2675755,"bfiu_ref":"BFIU Circular No. 29 - Section 7.1"}}}
+E   assert 429 == 200
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [0ef35136-da9a-4576-a74d-e180efa0dd7d] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+__________________ TestAdminRole.test_admin_can_view_health ___________________
+tests\test_m45_rbac.py:120: in test_admin_can_view_health
+    r = client.get(f"{ADMIN}/health", headers=hdrs("ADMIN"))
+tests\test_m45_rbac.py:38: in hdrs
+    return {"Authorization": f"Bearer {get_token(role)}"}
+tests\test_m45_rbac.py:34: in get_token
+    assert r.status_code == 200, f"{role} login failed: {r.text}"
+E   AssertionError: ADMIN login failed: {"error":{"code":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","status":429,"request_id":"9379e089-7d9a-4b13-85d5-d8a81d1ebc88","timestamp":"2026-04-21T09:34:45.303136+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1","details":{"error":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","limit":10,"remaining":0,"reset_at":1776764144.303136,"bfiu_ref":"BFIU Circular No. 29 - Section 7.1"}}}
+E   assert 429 == 200
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [9379e089-7d9a-4b13-85d5-d8a81d1ebc88] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+________________ TestAdminRole.test_admin_can_view_audit_logs _________________
+tests\test_m45_rbac.py:125: in test_admin_can_view_audit_logs
+    r = client.get(f"{ADMIN}/audit-logs", headers=hdrs("ADMIN"))
+tests\test_m45_rbac.py:38: in hdrs
+    return {"Authorization": f"Bearer {get_token(role)}"}
+tests\test_m45_rbac.py:34: in get_token
+    assert r.status_code == 200, f"{role} login failed: {r.text}"
+E   AssertionError: ADMIN login failed: {"error":{"code":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","status":429,"request_id":"8bb92bce-1fa7-4e60-9aa4-bbdfb6319664","timestamp":"2026-04-21T09:34:45.338534+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1","details":{"error":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","limit":10,"remaining":0,"reset_at":1776764144.3375268,"bfiu_ref":"BFIU Circular No. 29 - Section 7.1"}}}
+E   assert 429 == 200
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [8bb92bce-1fa7-4e60-9aa4-bbdfb6319664] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+________________ TestAdminRole.test_admin_can_view_thresholds _________________
+tests\test_m45_rbac.py:129: in test_admin_can_view_thresholds
+    r = client.get(f"{ADMIN}/thresholds", headers=hdrs("ADMIN"))
+tests\test_m45_rbac.py:38: in hdrs
+    return {"Authorization": f"Bearer {get_token(role)}"}
+tests\test_m45_rbac.py:34: in get_token
+    assert r.status_code == 200, f"{role} login failed: {r.text}"
+E   AssertionError: ADMIN login failed: {"error":{"code":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","status":429,"request_id":"a3c3d0aa-18f4-4d7d-bc89-75a59c0d3d39","timestamp":"2026-04-21T09:34:45.373421+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1","details":{"error":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","limit":10,"remaining":0,"reset_at":1776764144.3734214,"bfiu_ref":"BFIU Circular No. 29 - Section 7.1"}}}
+E   assert 429 == 200
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [a3c3d0aa-18f4-4d7d-bc89-75a59c0d3d39] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+_________________ TestAdminRole.test_admin_can_view_webhooks __________________
+tests\test_m45_rbac.py:133: in test_admin_can_view_webhooks
+    r = client.get(f"{ADMIN}/webhooks", headers=hdrs("ADMIN"))
+tests\test_m45_rbac.py:38: in hdrs
+    return {"Authorization": f"Bearer {get_token(role)}"}
+tests\test_m45_rbac.py:34: in get_token
+    assert r.status_code == 200, f"{role} login failed: {r.text}"
+E   AssertionError: ADMIN login failed: {"error":{"code":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","status":429,"request_id":"f959d4c3-6899-4f07-b2c1-7d7dddcf0f4b","timestamp":"2026-04-21T09:34:45.410449+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1","details":{"error":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","limit":10,"remaining":0,"reset_at":1776764144.4094403,"bfiu_ref":"BFIU Circular No. 29 - Section 7.1"}}}
+E   assert 429 == 200
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [f959d4c3-6899-4f07-b2c1-7d7dddcf0f4b] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+___________________ TestAdminRole.test_admin_can_access_me ____________________
+tests\test_m45_rbac.py:137: in test_admin_can_access_me
+    r = client.get(f"{AUTH}/me", headers=hdrs("ADMIN"))
+tests\test_m45_rbac.py:38: in hdrs
+    return {"Authorization": f"Bearer {get_token(role)}"}
+tests\test_m45_rbac.py:34: in get_token
+    assert r.status_code == 200, f"{role} login failed: {r.text}"
+E   AssertionError: ADMIN login failed: {"error":{"code":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","status":429,"request_id":"58bacd60-377e-4ff4-baa7-d55185ccf7fc","timestamp":"2026-04-21T09:34:45.451056+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1","details":{"error":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","limit":10,"remaining":0,"reset_at":1776764144.4510562,"bfiu_ref":"BFIU Circular No. 29 - Section 7.1"}}}
+E   assert 429 == 200
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [58bacd60-377e-4ff4-baa7-d55185ccf7fc] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+_________________ TestCheckerRole.test_checker_can_access_me __________________
+tests\test_m45_rbac.py:146: in test_checker_can_access_me
+    r = client.get(f"{AUTH}/me", headers=hdrs("CHECKER"))
+tests\test_m45_rbac.py:38: in hdrs
+    return {"Authorization": f"Bearer {get_token(role)}"}
+tests\test_m45_rbac.py:34: in get_token
+    assert r.status_code == 200, f"{role} login failed: {r.text}"
+E   AssertionError: CHECKER login failed: {"error":{"code":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","status":429,"request_id":"c57d31d3-2a6e-4c7a-b44e-2080f3693be8","timestamp":"2026-04-21T09:34:45.490052+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1","details":{"error":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","limit":10,"remaining":0,"reset_at":1776764144.4900525,"bfiu_ref":"BFIU Circular No. 29 - Section 7.1"}}}
+E   assert 429 == 200
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [c57d31d3-2a6e-4c7a-b44e-2080f3693be8] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+______________ TestCheckerRole.test_checker_can_view_audit_logs _______________
+tests\test_m45_rbac.py:151: in test_checker_can_view_audit_logs
+    r = client.get(f"{ADMIN}/audit-logs", headers=hdrs("CHECKER"))
+tests\test_m45_rbac.py:38: in hdrs
+    return {"Authorization": f"Bearer {get_token(role)}"}
+tests\test_m45_rbac.py:34: in get_token
+    assert r.status_code == 200, f"{role} login failed: {r.text}"
+E   AssertionError: CHECKER login failed: {"error":{"code":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","status":429,"request_id":"0e7da7aa-2433-4e59-939c-91150266132c","timestamp":"2026-04-21T09:34:45.520162+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1","details":{"error":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","limit":10,"remaining":0,"reset_at":1776764144.5201628,"bfiu_ref":"BFIU Circular No. 29 - Section 7.1"}}}
+E   assert 429 == 200
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [0e7da7aa-2433-4e59-939c-91150266132c] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+_____________ TestCheckerRole.test_checker_can_view_institutions ______________
+tests\test_m45_rbac.py:155: in test_checker_can_view_institutions
+    r = client.get(f"{ADMIN}/institutions", headers=hdrs("CHECKER"))
+tests\test_m45_rbac.py:38: in hdrs
+    return {"Authorization": f"Bearer {get_token(role)}"}
+tests\test_m45_rbac.py:34: in get_token
+    assert r.status_code == 200, f"{role} login failed: {r.text}"
+E   AssertionError: CHECKER login failed: {"error":{"code":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","status":429,"request_id":"aa7db14b-5f3b-4f1f-a400-1db846185d9b","timestamp":"2026-04-21T09:34:45.569606+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1","details":{"error":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","limit":10,"remaining":0,"reset_at":1776764144.5686045,"bfiu_ref":"BFIU Circular No. 29 - Section 7.1"}}}
+E   assert 429 == 200
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [aa7db14b-5f3b-4f1f-a400-1db846185d9b] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+___________ TestCheckerRole.test_checker_cannot_create_institution ____________
+tests\test_m45_rbac.py:159: in test_checker_cannot_create_institution
+    r = client.post(f"{ADMIN}/institutions", headers=hdrs("CHECKER"),
+tests\test_m45_rbac.py:38: in hdrs
+    return {"Authorization": f"Bearer {get_token(role)}"}
+tests\test_m45_rbac.py:34: in get_token
+    assert r.status_code == 200, f"{role} login failed: {r.text}"
+E   AssertionError: CHECKER login failed: {"error":{"code":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","status":429,"request_id":"807b3a91-4536-421c-aa79-563c96894483","timestamp":"2026-04-21T09:34:45.593939+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1","details":{"error":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","limit":10,"remaining":0,"reset_at":1776764144.5939388,"bfiu_ref":"BFIU Circular No. 29 - Section 7.1"}}}
+E   assert 429 == 200
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [807b3a91-4536-421c-aa79-563c96894483] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+___________ TestCheckerRole.test_checker_cannot_delete_institution ____________
+tests\test_m45_rbac.py:164: in test_checker_cannot_delete_institution
+    r = client.delete(f"{ADMIN}/institutions/inst-demo-001", headers=hdrs("CHECKER"))
+tests\test_m45_rbac.py:38: in hdrs
+    return {"Authorization": f"Bearer {get_token(role)}"}
+tests\test_m45_rbac.py:34: in get_token
+    assert r.status_code == 200, f"{role} login failed: {r.text}"
+E   AssertionError: CHECKER login failed: {"error":{"code":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","status":429,"request_id":"884486d1-cb25-48e6-9cc1-5852e4c0d9ff","timestamp":"2026-04-21T09:34:45.618833+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1","details":{"error":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","limit":10,"remaining":0,"reset_at":1776764144.618834,"bfiu_ref":"BFIU Circular No. 29 - Section 7.1"}}}
+E   assert 429 == 200
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [884486d1-cb25-48e6-9cc1-5852e4c0d9ff] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+_______________ TestCheckerRole.test_checker_cannot_create_user _______________
+tests\test_m45_rbac.py:168: in test_checker_cannot_create_user
+    r = client.post(f"{ADMIN}/users", headers=hdrs("CHECKER"),
+tests\test_m45_rbac.py:38: in hdrs
+    return {"Authorization": f"Bearer {get_token(role)}"}
+tests\test_m45_rbac.py:34: in get_token
+    assert r.status_code == 200, f"{role} login failed: {r.text}"
+E   AssertionError: CHECKER login failed: {"error":{"code":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","status":429,"request_id":"2ecab7f4-fa2c-4e02-985b-d5e1a221bb4d","timestamp":"2026-04-21T09:34:45.644239+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1","details":{"error":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","limit":10,"remaining":0,"reset_at":1776764144.6442394,"bfiu_ref":"BFIU Circular No. 29 - Section 7.1"}}}
+E   assert 429 == 200
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [2ecab7f4-fa2c-4e02-985b-d5e1a221bb4d] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+____________ TestCheckerRole.test_checker_cannot_update_thresholds ____________
+tests\test_m45_rbac.py:173: in test_checker_cannot_update_thresholds
+    r = client.put(f"{ADMIN}/thresholds", headers=hdrs("CHECKER"),
+tests\test_m45_rbac.py:38: in hdrs
+    return {"Authorization": f"Bearer {get_token(role)}"}
+tests\test_m45_rbac.py:34: in get_token
+    assert r.status_code == 200, f"{role} login failed: {r.text}"
+E   AssertionError: CHECKER login failed: {"error":{"code":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","status":429,"request_id":"e23cee17-d8d4-4f70-bed4-5fd455671bba","timestamp":"2026-04-21T09:34:45.667563+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1","details":{"error":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","limit":10,"remaining":0,"reset_at":1776764144.6675634,"bfiu_ref":"BFIU Circular No. 29 - Section 7.1"}}}
+E   assert 429 == 200
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [e23cee17-d8d4-4f70-bed4-5fd455671bba] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+___________________ TestMakerRole.test_maker_can_access_me ____________________
+tests\test_m45_rbac.py:182: in test_maker_can_access_me
+    r = client.get(f"{AUTH}/me", headers=hdrs("MAKER"))
+tests\test_m45_rbac.py:38: in hdrs
+    return {"Authorization": f"Bearer {get_token(role)}"}
+tests\test_m45_rbac.py:34: in get_token
+    assert r.status_code == 200, f"{role} login failed: {r.text}"
+E   AssertionError: MAKER login failed: {"error":{"code":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","status":429,"request_id":"78e1887e-62b9-420b-b428-b615ebf2b357","timestamp":"2026-04-21T09:34:45.695202+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1","details":{"error":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","limit":10,"remaining":0,"reset_at":1776764144.6941879,"bfiu_ref":"BFIU Circular No. 29 - Section 7.1"}}}
+E   assert 429 == 200
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [78e1887e-62b9-420b-b428-b615ebf2b357] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+_____________ TestMakerRole.test_maker_cannot_access_admin_stats ______________
+tests\test_m45_rbac.py:187: in test_maker_cannot_access_admin_stats
+    r = client.get(f"{ADMIN}/stats", headers=hdrs("MAKER"))
+tests\test_m45_rbac.py:38: in hdrs
+    return {"Authorization": f"Bearer {get_token(role)}"}
+tests\test_m45_rbac.py:34: in get_token
+    assert r.status_code == 200, f"{role} login failed: {r.text}"
+E   AssertionError: MAKER login failed: {"error":{"code":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","status":429,"request_id":"f6d89c9e-5a4a-42b1-869b-17005364fcae","timestamp":"2026-04-21T09:34:45.717515+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1","details":{"error":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","limit":10,"remaining":0,"reset_at":1776764144.7175155,"bfiu_ref":"BFIU Circular No. 29 - Section 7.1"}}}
+E   assert 429 == 200
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [f6d89c9e-5a4a-42b1-869b-17005364fcae] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+______________ TestMakerRole.test_maker_cannot_list_institutions ______________
+tests\test_m45_rbac.py:191: in test_maker_cannot_list_institutions
+    r = client.get(f"{ADMIN}/institutions", headers=hdrs("MAKER"))
+tests\test_m45_rbac.py:38: in hdrs
+    return {"Authorization": f"Bearer {get_token(role)}"}
+tests\test_m45_rbac.py:34: in get_token
+    assert r.status_code == 200, f"{role} login failed: {r.text}"
+E   AssertionError: MAKER login failed: {"error":{"code":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","status":429,"request_id":"a4e772c2-439b-4411-b246-cc78dd7352aa","timestamp":"2026-04-21T09:34:45.740211+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1","details":{"error":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","limit":10,"remaining":0,"reset_at":1776764144.7402115,"bfiu_ref":"BFIU Circular No. 29 - Section 7.1"}}}
+E   assert 429 == 200
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [a4e772c2-439b-4411-b246-cc78dd7352aa] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+_________________ TestMakerRole.test_maker_cannot_list_users __________________
+tests\test_m45_rbac.py:195: in test_maker_cannot_list_users
+    r = client.get(f"{ADMIN}/users", headers=hdrs("MAKER"))
+tests\test_m45_rbac.py:38: in hdrs
+    return {"Authorization": f"Bearer {get_token(role)}"}
+tests\test_m45_rbac.py:34: in get_token
+    assert r.status_code == 200, f"{role} login failed: {r.text}"
+E   AssertionError: MAKER login failed: {"error":{"code":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","status":429,"request_id":"1f534f83-e331-4721-872a-32c5ce847404","timestamp":"2026-04-21T09:34:45.761286+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1","details":{"error":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","limit":10,"remaining":0,"reset_at":1776764144.7612867,"bfiu_ref":"BFIU Circular No. 29 - Section 7.1"}}}
+E   assert 429 == 200
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [1f534f83-e331-4721-872a-32c5ce847404] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+_______________ TestMakerRole.test_maker_cannot_view_audit_logs _______________
+tests\test_m45_rbac.py:199: in test_maker_cannot_view_audit_logs
+    r = client.get(f"{ADMIN}/audit-logs", headers=hdrs("MAKER"))
+tests\test_m45_rbac.py:38: in hdrs
+    return {"Authorization": f"Bearer {get_token(role)}"}
+tests\test_m45_rbac.py:34: in get_token
+    assert r.status_code == 200, f"{role} login failed: {r.text}"
+E   AssertionError: MAKER login failed: {"error":{"code":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","status":429,"request_id":"990e807f-4e89-44e8-98e4-3b2118f4a9c0","timestamp":"2026-04-21T09:34:45.786015+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1","details":{"error":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","limit":10,"remaining":0,"reset_at":1776764144.7860157,"bfiu_ref":"BFIU Circular No. 29 - Section 7.1"}}}
+E   assert 429 == 200
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [990e807f-4e89-44e8-98e4-3b2118f4a9c0] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+_____________ TestMakerRole.test_maker_cannot_create_institution ______________
+tests\test_m45_rbac.py:203: in test_maker_cannot_create_institution
+    r = client.post(f"{ADMIN}/institutions", headers=hdrs("MAKER"),
+tests\test_m45_rbac.py:38: in hdrs
+    return {"Authorization": f"Bearer {get_token(role)}"}
+tests\test_m45_rbac.py:34: in get_token
+    assert r.status_code == 200, f"{role} login failed: {r.text}"
+E   AssertionError: MAKER login failed: {"error":{"code":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","status":429,"request_id":"866826b4-7f3e-477d-a8e2-0eda0f3cb532","timestamp":"2026-04-21T09:34:45.808151+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1","details":{"error":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","limit":10,"remaining":0,"reset_at":1776764144.8081515,"bfiu_ref":"BFIU Circular No. 29 - Section 7.1"}}}
+E   assert 429 == 200
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [866826b4-7f3e-477d-a8e2-0eda0f3cb532] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+___________________ TestAgentRole.test_agent_can_access_me ____________________
+tests\test_m45_rbac.py:212: in test_agent_can_access_me
+    r = client.get(f"{AUTH}/me", headers=hdrs("AGENT"))
+tests\test_m45_rbac.py:38: in hdrs
+    return {"Authorization": f"Bearer {get_token(role)}"}
+tests\test_m45_rbac.py:34: in get_token
+    assert r.status_code == 200, f"{role} login failed: {r.text}"
+E   AssertionError: AGENT login failed: {"error":{"code":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","status":429,"request_id":"41d98a60-08c0-4496-89d5-70d3055dd40b","timestamp":"2026-04-21T09:34:45.830219+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1","details":{"error":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","limit":10,"remaining":0,"reset_at":1776764144.8302197,"bfiu_ref":"BFIU Circular No. 29 - Section 7.1"}}}
+E   assert 429 == 200
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [41d98a60-08c0-4496-89d5-70d3055dd40b] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+________________ TestAgentRole.test_agent_cannot_access_admin _________________
+tests\test_m45_rbac.py:217: in test_agent_cannot_access_admin
+    r = client.get(f"{ADMIN}/institutions", headers=hdrs("AGENT"))
+tests\test_m45_rbac.py:38: in hdrs
+    return {"Authorization": f"Bearer {get_token(role)}"}
+tests\test_m45_rbac.py:34: in get_token
+    assert r.status_code == 200, f"{role} login failed: {r.text}"
+E   AssertionError: AGENT login failed: {"error":{"code":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","status":429,"request_id":"a0d973d1-57bc-4c59-8d9f-5c13d4535ce9","timestamp":"2026-04-21T09:34:45.854260+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1","details":{"error":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","limit":10,"remaining":0,"reset_at":1776764144.8532379,"bfiu_ref":"BFIU Circular No. 29 - Section 7.1"}}}
+E   assert 429 == 200
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [a0d973d1-57bc-4c59-8d9f-5c13d4535ce9] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+_________________ TestAgentRole.test_agent_cannot_view_users __________________
+tests\test_m45_rbac.py:221: in test_agent_cannot_view_users
+    r = client.get(f"{ADMIN}/users", headers=hdrs("AGENT"))
+tests\test_m45_rbac.py:38: in hdrs
+    return {"Authorization": f"Bearer {get_token(role)}"}
+tests\test_m45_rbac.py:34: in get_token
+    assert r.status_code == 200, f"{role} login failed: {r.text}"
+E   AssertionError: AGENT login failed: {"error":{"code":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","status":429,"request_id":"b76f0ea9-1123-4c73-a7be-4f27948e4dc9","timestamp":"2026-04-21T09:34:45.877244+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1","details":{"error":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","limit":10,"remaining":0,"reset_at":1776764144.8772447,"bfiu_ref":"BFIU Circular No. 29 - Section 7.1"}}}
+E   assert 429 == 200
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [b76f0ea9-1123-4c73-a7be-4f27948e4dc9] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+_______________ TestAgentRole.test_agent_cannot_view_audit_logs _______________
+tests\test_m45_rbac.py:225: in test_agent_cannot_view_audit_logs
+    r = client.get(f"{ADMIN}/audit-logs", headers=hdrs("AGENT"))
+tests\test_m45_rbac.py:38: in hdrs
+    return {"Authorization": f"Bearer {get_token(role)}"}
+tests\test_m45_rbac.py:34: in get_token
+    assert r.status_code == 200, f"{role} login failed: {r.text}"
+E   AssertionError: AGENT login failed: {"error":{"code":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","status":429,"request_id":"d35587b1-6542-47f2-8317-5e55a36446dc","timestamp":"2026-04-21T09:34:45.901635+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1","details":{"error":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","limit":10,"remaining":0,"reset_at":1776764144.9006574,"bfiu_ref":"BFIU Circular No. 29 - Section 7.1"}}}
+E   assert 429 == 200
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [d35587b1-6542-47f2-8317-5e55a36446dc] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+_______________ TestAgentRole.test_agent_cannot_view_thresholds _______________
+tests\test_m45_rbac.py:229: in test_agent_cannot_view_thresholds
+    r = client.get(f"{ADMIN}/thresholds", headers=hdrs("AGENT"))
+tests\test_m45_rbac.py:38: in hdrs
+    return {"Authorization": f"Bearer {get_token(role)}"}
+tests\test_m45_rbac.py:34: in get_token
+    assert r.status_code == 200, f"{role} login failed: {r.text}"
+E   AssertionError: AGENT login failed: {"error":{"code":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","status":429,"request_id":"f9765619-381d-466b-b3f6-fffc3c9e6272","timestamp":"2026-04-21T09:34:45.925421+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1","details":{"error":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","limit":10,"remaining":0,"reset_at":1776764144.9254212,"bfiu_ref":"BFIU Circular No. 29 - Section 7.1"}}}
+E   assert 429 == 200
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [f9765619-381d-466b-b3f6-fffc3c9e6272] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+_________________ TestAgentRole.test_agent_cannot_create_user _________________
+tests\test_m45_rbac.py:233: in test_agent_cannot_create_user
+    r = client.post(f"{ADMIN}/users", headers=hdrs("AGENT"),
+tests\test_m45_rbac.py:38: in hdrs
+    return {"Authorization": f"Bearer {get_token(role)}"}
+tests\test_m45_rbac.py:34: in get_token
+    assert r.status_code == 200, f"{role} login failed: {r.text}"
+E   AssertionError: AGENT login failed: {"error":{"code":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","status":429,"request_id":"518a9dcb-d37a-4b6b-b4e1-82f0d6e52f57","timestamp":"2026-04-21T09:34:45.947405+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1","details":{"error":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","limit":10,"remaining":0,"reset_at":1776764144.9474053,"bfiu_ref":"BFIU Circular No. 29 - Section 7.1"}}}
+E   assert 429 == 200
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [518a9dcb-d37a-4b6b-b4e1-82f0d6e52f57] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+_________________ TestAuditorRole.test_auditor_can_access_me __________________
+tests\test_m45_rbac.py:242: in test_auditor_can_access_me
+    r = client.get(f"{AUTH}/me", headers=hdrs("AUDITOR"))
+tests\test_m45_rbac.py:38: in hdrs
+    return {"Authorization": f"Bearer {get_token(role)}"}
+tests\test_m45_rbac.py:34: in get_token
+    assert r.status_code == 200, f"{role} login failed: {r.text}"
+E   AssertionError: AUDITOR login failed: {"error":{"code":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","status":429,"request_id":"99e2babe-f739-44e8-9b79-db3f29931920","timestamp":"2026-04-21T09:34:45.972521+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1","details":{"error":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","limit":10,"remaining":0,"reset_at":1776764144.9723155,"bfiu_ref":"BFIU Circular No. 29 - Section 7.1"}}}
+E   assert 429 == 200
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [99e2babe-f739-44e8-9b79-db3f29931920] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+______________ TestAuditorRole.test_auditor_can_view_audit_logs _______________
+tests\test_m45_rbac.py:247: in test_auditor_can_view_audit_logs
+    r = client.get(f"{ADMIN}/audit-logs", headers=hdrs("AUDITOR"))
+tests\test_m45_rbac.py:38: in hdrs
+    return {"Authorization": f"Bearer {get_token(role)}"}
+tests\test_m45_rbac.py:34: in get_token
+    assert r.status_code == 200, f"{role} login failed: {r.text}"
+E   AssertionError: AUDITOR login failed: {"error":{"code":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","status":429,"request_id":"b0e8c7ed-966e-41b8-b244-b7f3d5598e44","timestamp":"2026-04-21T09:34:45.995996+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1","details":{"error":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","limit":10,"remaining":0,"reset_at":1776764144.9959967,"bfiu_ref":"BFIU Circular No. 29 - Section 7.1"}}}
+E   assert 429 == 200
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [b0e8c7ed-966e-41b8-b244-b7f3d5598e44] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+_____________ TestAuditorRole.test_auditor_can_view_institutions ______________
+tests\test_m45_rbac.py:251: in test_auditor_can_view_institutions
+    r = client.get(f"{ADMIN}/institutions", headers=hdrs("AUDITOR"))
+tests\test_m45_rbac.py:38: in hdrs
+    return {"Authorization": f"Bearer {get_token(role)}"}
+tests\test_m45_rbac.py:34: in get_token
+    assert r.status_code == 200, f"{role} login failed: {r.text}"
+E   AssertionError: AUDITOR login failed: {"error":{"code":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","status":429,"request_id":"ec39cac7-f9e3-4f46-a807-6f42e454c6f7","timestamp":"2026-04-21T09:34:46.017141+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1","details":{"error":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","limit":10,"remaining":0,"reset_at":1776764145.0169318,"bfiu_ref":"BFIU Circular No. 29 - Section 7.1"}}}
+E   assert 429 == 200
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [ec39cac7-f9e3-4f46-a807-6f42e454c6f7] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+________________ TestAuditorRole.test_auditor_can_view_health _________________
+tests\test_m45_rbac.py:255: in test_auditor_can_view_health
+    r = client.get(f"{ADMIN}/health", headers=hdrs("AUDITOR"))
+tests\test_m45_rbac.py:38: in hdrs
+    return {"Authorization": f"Bearer {get_token(role)}"}
+tests\test_m45_rbac.py:34: in get_token
+    assert r.status_code == 200, f"{role} login failed: {r.text}"
+E   AssertionError: AUDITOR login failed: {"error":{"code":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","status":429,"request_id":"6e73d716-cf32-4728-a8ac-c89c461312cf","timestamp":"2026-04-21T09:34:46.048378+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1","details":{"error":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","limit":10,"remaining":0,"reset_at":1776764145.0483785,"bfiu_ref":"BFIU Circular No. 29 - Section 7.1"}}}
+E   assert 429 == 200
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [6e73d716-cf32-4728-a8ac-c89c461312cf] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+___________ TestAuditorRole.test_auditor_cannot_create_institution ____________
+tests\test_m45_rbac.py:259: in test_auditor_cannot_create_institution
+    r = client.post(f"{ADMIN}/institutions", headers=hdrs("AUDITOR"),
+tests\test_m45_rbac.py:38: in hdrs
+    return {"Authorization": f"Bearer {get_token(role)}"}
+tests\test_m45_rbac.py:34: in get_token
+    assert r.status_code == 200, f"{role} login failed: {r.text}"
+E   AssertionError: AUDITOR login failed: {"error":{"code":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","status":429,"request_id":"83cc4b38-a8e3-48d5-bf0b-ae37355064ba","timestamp":"2026-04-21T09:34:46.089923+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1","details":{"error":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","limit":10,"remaining":0,"reset_at":1776764145.088601,"bfiu_ref":"BFIU Circular No. 29 - Section 7.1"}}}
+E   assert 429 == 200
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [83cc4b38-a8e3-48d5-bf0b-ae37355064ba] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+_______________ TestAuditorRole.test_auditor_cannot_create_user _______________
+tests\test_m45_rbac.py:264: in test_auditor_cannot_create_user
+    r = client.post(f"{ADMIN}/users", headers=hdrs("AUDITOR"),
+tests\test_m45_rbac.py:38: in hdrs
+    return {"Authorization": f"Bearer {get_token(role)}"}
+tests\test_m45_rbac.py:34: in get_token
+    assert r.status_code == 200, f"{role} login failed: {r.text}"
+E   AssertionError: AUDITOR login failed: {"error":{"code":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","status":429,"request_id":"660d6f2b-d137-4f6e-932f-b3a083eab1cb","timestamp":"2026-04-21T09:34:46.129482+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1","details":{"error":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","limit":10,"remaining":0,"reset_at":1776764145.129482,"bfiu_ref":"BFIU Circular No. 29 - Section 7.1"}}}
+E   assert 429 == 200
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [660d6f2b-d137-4f6e-932f-b3a083eab1cb] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+____________ TestAuditorRole.test_auditor_cannot_update_thresholds ____________
+tests\test_m45_rbac.py:269: in test_auditor_cannot_update_thresholds
+    r = client.put(f"{ADMIN}/thresholds", headers=hdrs("AUDITOR"),
+tests\test_m45_rbac.py:38: in hdrs
+    return {"Authorization": f"Bearer {get_token(role)}"}
+tests\test_m45_rbac.py:34: in get_token
+    assert r.status_code == 200, f"{role} login failed: {r.text}"
+E   AssertionError: AUDITOR login failed: {"error":{"code":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","status":429,"request_id":"29ab97bf-b748-40cb-95f8-a464f1b0f6dd","timestamp":"2026-04-21T09:34:46.163705+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1","details":{"error":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","limit":10,"remaining":0,"reset_at":1776764145.163705,"bfiu_ref":"BFIU Circular No. 29 - Section 7.1"}}}
+E   assert 429 == 200
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [29ab97bf-b748-40cb-95f8-a464f1b0f6dd] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+_____________ TestAuditorRole.test_auditor_cannot_delete_webhook ______________
+tests\test_m45_rbac.py:274: in test_auditor_cannot_delete_webhook
+    r = client.delete(f"{ADMIN}/webhooks/fake-id", headers=hdrs("AUDITOR"))
+tests\test_m45_rbac.py:38: in hdrs
+    return {"Authorization": f"Bearer {get_token(role)}"}
+tests\test_m45_rbac.py:34: in get_token
+    assert r.status_code == 200, f"{role} login failed: {r.text}"
+E   AssertionError: AUDITOR login failed: {"error":{"code":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","status":429,"request_id":"7e4cc521-1b92-49c0-abd6-f13d183ef00d","timestamp":"2026-04-21T09:34:46.210585+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1","details":{"error":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","limit":10,"remaining":0,"reset_at":1776764145.2105856,"bfiu_ref":"BFIU Circular No. 29 - Section 7.1"}}}
+E   assert 429 == 200
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [7e4cc521-1b92-49c0-abd6-f13d183ef00d] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+________________ TestTokenSecurity.test_tampered_token_blocked ________________
+tests\test_m45_rbac.py:286: in test_tampered_token_blocked
+    token = get_token("AGENT")
+tests\test_m45_rbac.py:34: in get_token
+    assert r.status_code == 200, f"{role} login failed: {r.text}"
+E   AssertionError: AGENT login failed: {"error":{"code":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","status":429,"request_id":"7d16265c-319e-40b4-b055-e5fb946e73b1","timestamp":"2026-04-21T09:34:46.264360+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1","details":{"error":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","limit":10,"remaining":0,"reset_at":1776764144.2640054,"bfiu_ref":"BFIU Circular No. 29 - Section 7.1"}}}
+E   assert 429 == 200
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [7d16265c-319e-40b4-b055-e5fb946e73b1] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+_______________ TestTokenSecurity.test_alg_none_attack_blocked ________________
+tests\test_m45_rbac.py:295: in test_alg_none_attack_blocked
+    token = get_token("AGENT")
+tests\test_m45_rbac.py:34: in get_token
+    assert r.status_code == 200, f"{role} login failed: {r.text}"
+E   AssertionError: AGENT login failed: {"error":{"code":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","status":429,"request_id":"5d5d8479-4d8e-4b48-88b9-1c0fe5313df0","timestamp":"2026-04-21T09:34:46.296217+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1","details":{"error":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","limit":10,"remaining":0,"reset_at":1776764144.295214,"bfiu_ref":"BFIU Circular No. 29 - Section 7.1"}}}
+E   assert 429 == 200
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [5d5d8479-4d8e-4b48-88b9-1c0fe5313df0] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+__________ TestTwoFactorEnforcement.test_admin_without_totp_blocked ___________
+tests\test_m45_rbac.py:328: in test_admin_without_totp_blocked
+    assert r.status_code == 401
+E   assert 429 == 401
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [d1610e8e-6fd1-4ec9-abc6-08b587388112] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+_________ TestTwoFactorEnforcement.test_checker_without_totp_blocked __________
+tests\test_m45_rbac.py:334: in test_checker_without_totp_blocked
+    assert r.status_code == 401
+E   assert 429 == 401
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [54e2de86-ccd4-4507-b522-002167872e3a] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+___________ TestTwoFactorEnforcement.test_admin_wrong_totp_blocked ____________
+tests\test_m45_rbac.py:339: in test_admin_wrong_totp_blocked
+    assert r.status_code in (401, 422)
+E   assert 429 in (401, 422)
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [eba3c16f-d6f7-4f92-b832-13afeba7214f] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+____________ TestTwoFactorEnforcement.test_maker_no_totp_required _____________
+tests\test_m45_rbac.py:344: in test_maker_no_totp_required
+    assert r.status_code == 200
+E   assert 429 == 200
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [f6d68847-2cbe-48a7-8bbd-5c7098cf824a] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+____________ TestTwoFactorEnforcement.test_agent_no_totp_required _____________
+tests\test_m45_rbac.py:349: in test_agent_no_totp_required
+    assert r.status_code == 200
+E   assert 429 == 200
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [d7d0475a-d133-4f2a-a325-2630bff55e64] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+___________ TestPrivilegeEscalation.test_agent_cannot_promote_self ____________
+tests\test_m45_rbac.py:356: in test_agent_cannot_promote_self
+    r = client.put(f"{ADMIN}/users/user-0001/role", headers=hdrs("AGENT"),
+tests\test_m45_rbac.py:38: in hdrs
+    return {"Authorization": f"Bearer {get_token(role)}"}
+tests\test_m45_rbac.py:34: in get_token
+    assert r.status_code == 200, f"{role} login failed: {r.text}"
+E   AssertionError: AGENT login failed: {"error":{"code":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","status":429,"request_id":"741e87b5-be39-4801-ad30-01b416e0b06b","timestamp":"2026-04-21T09:34:46.528612+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1","details":{"error":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","limit":10,"remaining":0,"reset_at":1776764144.5286121,"bfiu_ref":"BFIU Circular No. 29 - Section 7.1"}}}
+E   assert 429 == 200
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [741e87b5-be39-4801-ad30-01b416e0b06b] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+_________ TestPrivilegeEscalation.test_maker_cannot_reset_thresholds __________
+tests\test_m45_rbac.py:361: in test_maker_cannot_reset_thresholds
+    r = client.post(f"{ADMIN}/thresholds/reset", headers=hdrs("MAKER"))
+tests\test_m45_rbac.py:38: in hdrs
+    return {"Authorization": f"Bearer {get_token(role)}"}
+tests\test_m45_rbac.py:34: in get_token
+    assert r.status_code == 200, f"{role} login failed: {r.text}"
+E   AssertionError: MAKER login failed: {"error":{"code":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","status":429,"request_id":"71c5530d-8683-4dcf-b3ff-a58452cfcb1a","timestamp":"2026-04-21T09:34:46.569874+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1","details":{"error":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","limit":10,"remaining":0,"reset_at":1776764144.5698743,"bfiu_ref":"BFIU Circular No. 29 - Section 7.1"}}}
+E   assert 429 == 200
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [71c5530d-8683-4dcf-b3ff-a58452cfcb1a] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+________ TestPrivilegeEscalation.test_auditor_cannot_delete_audit_logs ________
+tests\test_m45_rbac.py:365: in test_auditor_cannot_delete_audit_logs
+    r = client.delete(f"{ADMIN}/audit-logs/some-id", headers=hdrs("AUDITOR"))
+tests\test_m45_rbac.py:38: in hdrs
+    return {"Authorization": f"Bearer {get_token(role)}"}
+tests\test_m45_rbac.py:34: in get_token
+    assert r.status_code == 200, f"{role} login failed: {r.text}"
+E   AssertionError: AUDITOR login failed: {"error":{"code":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","status":429,"request_id":"418d501c-eeab-4787-8608-cd5a86630e71","timestamp":"2026-04-21T09:34:46.617898+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1","details":{"error":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","limit":10,"remaining":0,"reset_at":1776764144.6178985,"bfiu_ref":"BFIU Circular No. 29 - Section 7.1"}}}
+E   assert 429 == 200
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [418d501c-eeab-4787-8608-cd5a86630e71] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+___ TestPrivilegeEscalation.test_checker_cannot_access_admin_only_endpoints ___
+tests\test_m45_rbac.py:369: in test_checker_cannot_access_admin_only_endpoints
+    r = client.delete(f"{ADMIN}/users/user-0001", headers=hdrs("CHECKER"))
+tests\test_m45_rbac.py:38: in hdrs
+    return {"Authorization": f"Bearer {get_token(role)}"}
+tests\test_m45_rbac.py:34: in get_token
+    assert r.status_code == 200, f"{role} login failed: {r.text}"
+E   AssertionError: CHECKER login failed: {"error":{"code":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","status":429,"request_id":"01d9c8e3-9a15-4e78-bd69-e56d985f3165","timestamp":"2026-04-21T09:34:46.662572+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1","details":{"error":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","limit":10,"remaining":0,"reset_at":1776764144.6625724,"bfiu_ref":"BFIU Circular No. 29 - Section 7.1"}}}
+E   assert 429 == 200
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [01d9c8e3-9a15-4e78-bd69-e56d985f3165] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+_________ TestPrivilegeEscalation.test_agent_cannot_view_admin_stats __________
+tests\test_m45_rbac.py:373: in test_agent_cannot_view_admin_stats
+    r = client.get(f"{ADMIN}/stats", headers=hdrs("AGENT"))
+tests\test_m45_rbac.py:38: in hdrs
+    return {"Authorization": f"Bearer {get_token(role)}"}
+tests\test_m45_rbac.py:34: in get_token
+    assert r.status_code == 200, f"{role} login failed: {r.text}"
+E   AssertionError: AGENT login failed: {"error":{"code":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","status":429,"request_id":"89cd4156-ef04-4e5e-9be5-b66fe990efab","timestamp":"2026-04-21T09:34:46.699484+00:00","bfiu_ref":"BFIU Circular No. 29 - Section 6.1","details":{"error":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Limit: 10 per 60s.","limit":10,"remaining":0,"reset_at":1776764144.699484,"bfiu_ref":"BFIU Circular No. 29 - Section 7.1"}}}
+E   assert 429 == 200
+E    +  where 429 = <Response [429 Too Many Requests]>.status_code
+------------------------------ Captured log call ------------------------------
+WARNING  ekyc.errors:error_boundary.py:79 [89cd4156-ef04-4e5e-9be5-b66fe990efab] HTTP 429 RATE_LIMIT_EXCEEDED: Too many requests. Limit: 10 per 60s.
+============================== warnings summary ===============================
+app\models\schemas.py:30
+  E:\Projects\eKYC\backend\app\models\schemas.py:30: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    class LivenessCheck(BaseModel):
+
+venv\Lib\site-packages\reportlab\lib\rl_safe_eval.py:12
+  E:\Projects\eKYC\backend\venv\Lib\site-packages\reportlab\lib\rl_safe_eval.py:12: DeprecationWarning: ast.NameConstant is deprecated and will be removed in Python 3.14; use ast.Constant instead
+    haveNameConstant = hasattr(ast,'NameConstant')
+
+app\main.py:54
+  E:\Projects\eKYC\backend\app\main.py:54: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    @app.on_event("startup")
+
+venv\Lib\site-packages\fastapi\applications.py:4495
+  E:\Projects\eKYC\backend\venv\Lib\site-packages\fastapi\applications.py:4495: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    return self.router.on_event(event_type)
+
+tests/test_m45_rbac.py::TestTokenSecurity::test_expired_token_rejected
+  E:\Projects\eKYC\backend\venv\Lib\site-packages\jose\jwt.py:311: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now = timegm(datetime.utcnow().utctimetuple())
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_m45_rbac.py::TestRBACLogin::test_admin_login_succeeds - ass...
+FAILED tests/test_m45_rbac.py::TestRBACLogin::test_checker_login_requires_totp
+FAILED tests/test_m45_rbac.py::TestRBACLogin::test_checker_login_with_totp_succeeds
+FAILED tests/test_m45_rbac.py::TestRBACLogin::test_maker_login_no_totp_required
+FAILED tests/test_m45_rbac.py::TestRBACLogin::test_agent_login_succeeds - ass...
+FAILED tests/test_m45_rbac.py::TestRBACLogin::test_auditor_login_succeeds - a...
+FAILED tests/test_m45_rbac.py::TestRBACLogin::test_jwt_payload_contains_role
+FAILED tests/test_m45_rbac.py::TestAdminRole::test_admin_can_list_institutions
+FAILED tests/test_m45_rbac.py::TestAdminRole::test_admin_can_list_users - Ass...
+FAILED tests/test_m45_rbac.py::TestAdminRole::test_admin_can_view_health - As...
+FAILED tests/test_m45_rbac.py::TestAdminRole::test_admin_can_view_audit_logs
+FAILED tests/test_m45_rbac.py::TestAdminRole::test_admin_can_view_thresholds
+FAILED tests/test_m45_rbac.py::TestAdminRole::test_admin_can_view_webhooks - ...
+FAILED tests/test_m45_rbac.py::TestAdminRole::test_admin_can_access_me - Asse...
+FAILED tests/test_m45_rbac.py::TestCheckerRole::test_checker_can_access_me - ...
+FAILED tests/test_m45_rbac.py::TestCheckerRole::test_checker_can_view_audit_logs
+FAILED tests/test_m45_rbac.py::TestCheckerRole::test_checker_can_view_institutions
+FAILED tests/test_m45_rbac.py::TestCheckerRole::test_checker_cannot_create_institution
+FAILED tests/test_m45_rbac.py::TestCheckerRole::test_checker_cannot_delete_institution
+FAILED tests/test_m45_rbac.py::TestCheckerRole::test_checker_cannot_create_user
+FAILED tests/test_m45_rbac.py::TestCheckerRole::test_checker_cannot_update_thresholds
+FAILED tests/test_m45_rbac.py::TestMakerRole::test_maker_can_access_me - Asse...
+FAILED tests/test_m45_rbac.py::TestMakerRole::test_maker_cannot_access_admin_stats
+FAILED tests/test_m45_rbac.py::TestMakerRole::test_maker_cannot_list_institutions
+FAILED tests/test_m45_rbac.py::TestMakerRole::test_maker_cannot_list_users - ...
+FAILED tests/test_m45_rbac.py::TestMakerRole::test_maker_cannot_view_audit_logs
+FAILED tests/test_m45_rbac.py::TestMakerRole::test_maker_cannot_create_institution
+FAILED tests/test_m45_rbac.py::TestAgentRole::test_agent_can_access_me - Asse...
+FAILED tests/test_m45_rbac.py::TestAgentRole::test_agent_cannot_access_admin
+FAILED tests/test_m45_rbac.py::TestAgentRole::test_agent_cannot_view_users - ...
+FAILED tests/test_m45_rbac.py::TestAgentRole::test_agent_cannot_view_audit_logs
+FAILED tests/test_m45_rbac.py::TestAgentRole::test_agent_cannot_view_thresholds
+FAILED tests/test_m45_rbac.py::TestAgentRole::test_agent_cannot_create_user
+FAILED tests/test_m45_rbac.py::TestAuditorRole::test_auditor_can_access_me - ...
+FAILED tests/test_m45_rbac.py::TestAuditorRole::test_auditor_can_view_audit_logs
+FAILED tests/test_m45_rbac.py::TestAuditorRole::test_auditor_can_view_institutions
+FAILED tests/test_m45_rbac.py::TestAuditorRole::test_auditor_can_view_health
+FAILED tests/test_m45_rbac.py::TestAuditorRole::test_auditor_cannot_create_institution
+FAILED tests/test_m45_rbac.py::TestAuditorRole::test_auditor_cannot_create_user
+FAILED tests/test_m45_rbac.py::TestAuditorRole::test_auditor_cannot_update_thresholds
+FAILED tests/test_m45_rbac.py::TestAuditorRole::test_auditor_cannot_delete_webhook
+FAILED tests/test_m45_rbac.py::TestTokenSecurity::test_tampered_token_blocked
+FAILED tests/test_m45_rbac.py::TestTokenSecurity::test_alg_none_attack_blocked
+FAILED tests/test_m45_rbac.py::TestTwoFactorEnforcement::test_admin_without_totp_blocked
+FAILED tests/test_m45_rbac.py::TestTwoFactorEnforcement::test_checker_without_totp_blocked
+FAILED tests/test_m45_rbac.py::TestTwoFactorEnforcement::test_admin_wrong_totp_blocked
+FAILED tests/test_m45_rbac.py::TestTwoFactorEnforcement::test_maker_no_totp_required
+FAILED tests/test_m45_rbac.py::TestTwoFactorEnforcement::test_agent_no_totp_required
+FAILED tests/test_m45_rbac.py::TestPrivilegeEscalation::test_agent_cannot_promote_self
+FAILED tests/test_m45_rbac.py::TestPrivilegeEscalation::test_maker_cannot_reset_thresholds
+FAILED tests/test_m45_rbac.py::TestPrivilegeEscalation::test_auditor_cannot_delete_audit_logs
+FAILED tests/test_m45_rbac.py::TestPrivilegeEscalation::test_checker_cannot_access_admin_only_endpoints
+FAILED tests/test_m45_rbac.py::TestPrivilegeEscalation::test_agent_cannot_view_admin_stats
+================== 53 failed, 5 passed, 5 warnings in 7.46s ===================
