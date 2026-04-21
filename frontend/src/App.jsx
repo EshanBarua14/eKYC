@@ -228,7 +228,7 @@ export default function App() {
         )}
         {step === STEPS.SIGNATURE && (
           <SignatureCapture
-            riskGrade="LOW"
+            riskGrade={profileData?.riskResult?.grade || "LOW"}
             onSubmit={(data) => { setSignatureData(data); setStep(STEPS.COMPLETE) }}
             onBack={() => setStep(STEPS.PROFILE)}
           />

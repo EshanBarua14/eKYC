@@ -76,7 +76,7 @@ export default function CompletionScreen({ profileData, matchResult, signatureDa
           mobile:       mobile,
           email:        profileData.email || null,
           kyc_type:     "SIMPLIFIED",
-          risk_grade:   "LOW",
+          risk_grade: profileData?.riskResult?.grade || "LOW",
           confidence:   matchResult?.confidence || 0,
         })
       })
@@ -98,7 +98,7 @@ export default function CompletionScreen({ profileData, matchResult, signatureDa
           date_of_birth: profileData.date_of_birth,
           mobile:        profileData.mobile,
           kyc_type:      "SIMPLIFIED",
-          risk_grade:    "LOW",
+          risk_grade: profileData?.riskResult?.grade || "LOW",
           status:        "APPROVED",
           liveness_passed: matchResult?.liveness?.overall_pass || true,
           liveness_score:  matchResult?.liveness?.score        || 5,
@@ -190,7 +190,7 @@ export default function CompletionScreen({ profileData, matchResult, signatureDa
         <StatGrid items={[
           ["Full Name",    profileData.full_name || "—",       "var(--text)"],
           ["KYC Type",     "SIMPLIFIED",                       "var(--accent)"],
-          ["Risk Grade",   "LOW",                              "var(--green)"],
+          ["Risk Grade", profileData?.riskResult?.grade || "LOW", profileData?.riskResult?.grade === "HIGH" ? "var(--red)" : profileData?.riskResult?.grade === "MEDIUM" ? "var(--yellow)" : "var(--green)"],
           ["Match Score",  `${matchResult?.confidence || 0}%`, "var(--green)"],
           ["Mobile",       profileData.mobile     || "—",      "var(--text)"],
           ["Profession",   profileData.profession || "—",      "var(--text)"],
