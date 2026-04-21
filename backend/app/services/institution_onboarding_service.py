@@ -16,7 +16,7 @@ ONBOARDING_STATES = [
     "ACTIVE", "SUSPENDED", "DEACTIVATED"
 ]
 
-INSTITUTION_TYPES = ["insurance", "cmi"]
+INSTITUTION_TYPES = ["insurance", "cmi", "bank", "ngo", "mfi", "nbfi", "cooperative", "leasing"]
 
 def _now(): return datetime.now(timezone.utc)
 def _nows(): return _now().isoformat()

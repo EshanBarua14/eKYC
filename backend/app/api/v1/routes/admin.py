@@ -148,7 +148,27 @@ async def patch_institution_status(iid: str, req: InstitutionUpdateReq, cu: dict
 @router.get("/users", operation_id="admin_list_users")
 async def list_users(role: Optional[str] = None, institution_id: Optional[str] = None,
                      limit: int = Query(50, le=200), cu: dict = Depends(require_admin_or_auditor)):
-    return {"users": _db_list_users(institution_id, role, limit)}
+    db_users = _db_list_users(institution_id, role, limit)
+    # Also include in-memory demo users
+    try:
+        from app.api.v1.routes.auth import _demo_users
+        demo = []
+        for u in _demo_users:
+            if role and u.role.upper() != role.upper(): continue
+            if institution_id and u.institution_id != institution_id: continue
+            demo.append({
+                "id": u.id, "email": u.email, "full_name": u.full_name,
+                "role": u.role, "phone": u.phone,
+                "institution_id": u.institution_id,
+                "is_active": u.is_active, "totp_enabled": u.totp_enabled,
+                "created_at": str(u.created_at) if hasattr(u, "created_at") and u.created_at else "",
+            })
+        # Merge — avoid duplicates by email
+        existing_emails = {u["email"] for u in db_users}
+        merged = db_users + [u for u in demo if u["email"] not in existing_emails]
+        return {"users": merged[:limit], "total": len(merged)}
+    except Exception:
+        return {"users": db_users, "total": len(db_users)}
 
 @router.post("/users", status_code=201, operation_id="admin_create_user")
 async def create_user(req: UserCreateReq, cu: dict = Depends(require_admin)):
