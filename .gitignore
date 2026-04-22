@@ -82,3 +82,9 @@ backend/app/platform_settings.json
 
 # Test-generated upload files
 backend/uploads/
+test_results*.txt
+ekyc_gap_analysis_dashboard*.html
+ekyc_p0_implementation_plan.md
+~$*.docx
+*.png
+*.jpg
