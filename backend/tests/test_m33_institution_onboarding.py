@@ -62,7 +62,7 @@ class TestApplication:
     def test_apply_invalid_type_409(self):
         r = client.post(f"{BASE}/apply", json={
             "name":"Bad Type","short_code":"BAD01",
-            "institution_type":"bank",
+            "institution_type":"invalid_xyz",
             "contact_email":"bad@test.com","contact_phone":"017"
         })
         assert r.status_code == 409

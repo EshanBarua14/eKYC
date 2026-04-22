@@ -1,3 +1,4 @@
+import pytest
 """
 M44 — VAPT Test Suite
 OWASP Top 10 Automated Security Tests
@@ -25,6 +26,8 @@ ADMIN_PASSWORD = "AdminDemo@2026"
 TOTP_SECRET    = "JBSWY3DPEHPK3PXP"
 CHECKER_EMAIL    = "checker@demo.ekyc"
 CHECKER_PASSWORD = "DemoChecker@2026"
+
+pytestmark = pytest.mark.integration
 
 def get_totp_code():
     return pyotp.TOTP(TOTP_SECRET).now()

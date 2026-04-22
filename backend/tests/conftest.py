@@ -121,3 +121,19 @@ def clean_redis_counters():
     except Exception as e:
         print(f"[conftest] Redis cleanup warning: {e}")
     yield
+
+
+# ── Per-test rate limit reset — prevents 429 KeyError across test suite ──────
+@pytest.fixture(autouse=True, scope="function")
+def reset_rate_limits_per_test():
+    """Flush Redis rate limit keys before every test function."""
+    try:
+        from app.services.redis_client import get_redis
+        r = get_redis()
+        if r is not None:
+            keys = r.keys("rl:*")
+            if keys:
+                r.delete(*keys)
+    except Exception:
+        pass
+    yield

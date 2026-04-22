@@ -163,7 +163,7 @@ class TestInstitutionCRUD:
         headers = admin_headers()
         if not headers: pytest.skip("Login failed")
         r = client.post(f"{BASE}/institutions", headers=headers, json={
-            "name": "Bad Type", "short_code": "BADTP", "institution_type": "bank"})
+            "name": "Bad Type", "short_code": "BADTP", "institution_type": "invalid_xyz"})
         assert r.status_code == 400
 
     def test_get_institution_by_id(self):

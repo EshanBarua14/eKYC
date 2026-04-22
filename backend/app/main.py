@@ -71,7 +71,7 @@ def _seed_demo_users():
             {"id":"user-0002","email":"admin@demo.ekyc",  "phone":"01700000002","full_name":"Demo Admin",  "role":"ADMIN",  "password":"AdminDemo@2026",  "totp":True},
             {"id":"user-0003","email":"maker@demo.ekyc",  "phone":"01700000003","full_name":"Demo Maker",  "role":"MAKER",  "password":"DemoMaker@2026",  "totp":False},
             {"id":"user-0004","email":"checker@demo.ekyc","phone":"01700000004","full_name":"Demo Checker","role":"CHECKER","password":"DemoChecker@2026","totp":True},
-            {"id":"user-0005","email":"auditor@demo.ekyc","phone":"01700000005","full_name":"Demo Auditor","role":"AUDITOR","password":"DemoAudit@2026", "totp":True},
+            {"id":"user-0005","email":"auditor@demo.ekyc","phone":"01700000005","full_name":"Demo Auditor","role":"AUDITOR","password":"DemoAudit@2026", "totp":False},
         ]
 
         existing_emails = {u.email for u in _demo_users}
