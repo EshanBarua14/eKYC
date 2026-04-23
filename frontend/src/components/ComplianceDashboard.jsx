@@ -228,9 +228,18 @@ function QueuesTab() {
 }
 
 // ── EDD Cases Tab ───────────────────────────────────────────────────────────
+const EDD_ACTIONS = {
+  OPEN:      [{ action:"START_REVIEW", label:"Start Review", color:"var(--accent)" }, { action:"CLOSE_OPEN", label:"Close", color:"var(--green)" }],
+  IN_REVIEW: [{ action:"ESCALATE",     label:"Escalate",     color:"var(--red)"    }, { action:"CLOSE",      label:"Close", color:"var(--green)" }],
+  ESCALATED: [],
+  CLOSED:    [],
+}
+
 function EDDTab() {
-  const [data, setData]           = useState(null)
+  const [data, setData]     = useState(null)
   const [statusFilter, setStatus] = useState("")
+  const [acting, setActing] = useState(null)
+  const [note,   setNote]   = useState("")
 
   const load = useCallback(async () => {
     try {
@@ -242,12 +251,22 @@ function EDDTab() {
 
   useEffect(() => { load() }, [load])
 
+  const doAction = async (caseId, action) => {
+    try {
+      const r = await fetch(`${API}/api/v1/compliance/edd-cases/${caseId}/action`, {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ action, note, actor:"checker_01" })
+      })
+      if (r.ok) { setActing(null); setNote(""); load() }
+    } catch(_) {}
+  }
+
   return (
     <Card>
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14,flexWrap:"wrap",gap:8}}>
         <SectionTitle sub={data ? `${data.total} EDD cases` : "Loading..."}>Enhanced Due Diligence Cases</SectionTitle>
         <div style={{display:"flex",gap:6}}>
-          {["","OPEN","IN_REVIEW","ESCALATED"].map(s=>(
+          {["","OPEN","IN_REVIEW","ESCALATED","CLOSED"].map(s=>(
             <button key={s} onClick={()=>setStatus(s)} style={{
               padding:"4px 12px", fontSize:11, fontWeight:700, borderRadius:99,
               border:"1px solid var(--border)", cursor:"pointer", fontFamily:"var(--font)",
@@ -260,30 +279,56 @@ function EDDTab() {
       </div>
       {(data?.cases||[]).map(e=>(
         <div key={e.id} style={{ padding:"12px 14px", borderRadius:"var(--radius-sm)", marginBottom:8,
-          background:"var(--bg3)", border:"1px solid var(--border)" }}>
+          background: e.status==="ESCALATED"?"var(--red-bg)":e.status==="CLOSED"?"var(--green-bg)":"var(--bg3)",
+          border:`1px solid ${e.status==="ESCALATED"?"var(--red-border)":e.status==="CLOSED"?"var(--green-border)":"var(--border)"}` }}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6}}>
             <div style={{fontSize:13,fontWeight:700,color:"var(--text)"}}>{e.customer_name}</div>
-            <div style={{display:"flex",gap:6}}>
-              {e.pep          && <Badge color="red">PEP</Badge>}
+            <div style={{display:"flex",gap:6,alignItems:"center"}}>
+              {e.pep           && <Badge color="red">PEP</Badge>}
               {e.adverse_media && <Badge color="yellow">Adverse Media</Badge>}
               <Badge color={EDD_COLOR[e.status]||"accent"}>{e.status?.replace("_"," ")}</Badge>
             </div>
           </div>
-          <div style={{display:"flex",gap:16,flexWrap:"wrap"}}>
-            {[
-              ["Trigger",    e.trigger?.replace(/_/g," ")],
-              ["Risk Score", e.risk_score],
-              ["Assigned",   e.assigned_to],
-              ["Opened",     e.opened?.slice(0,10)],
-            ].map(([l,v])=>(
+          <div style={{display:"flex",gap:16,flexWrap:"wrap",marginBottom:8}}>
+            {[["Trigger",e.trigger?.replace(/_/g," ")],["Risk Score",e.risk_score],["Assigned",e.assigned_to],["Opened",e.opened?.slice(0,10)]].map(([l,v])=>(
               <div key={l}>
                 <div style={{fontSize:10,color:"var(--text3)",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.05em"}}>{l}</div>
                 <div style={{fontSize:12,color:"var(--text)",fontWeight:600,fontFamily:"var(--font-mono)"}}>{v}</div>
               </div>
             ))}
           </div>
+          {e.last_action && (
+            <div style={{fontSize:11,color:"var(--text3)",marginBottom:8,fontStyle:"italic"}}>
+              Last: {e.last_action.action} by {e.last_action.actor} — {e.last_action.at?.slice(0,19).replace("T"," ")}
+              {e.last_action.note && ` — "${e.last_action.note}"`}
+            </div>
+          )}
+          {(EDD_ACTIONS[e.status]||[]).length > 0 && (
+            acting === e.id ? (
+              <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
+                <input value={note} onChange={ev=>setNote(ev.target.value)} placeholder="Note (optional)"
+                  style={{flex:1,minWidth:160,padding:"6px 10px",borderRadius:"var(--radius-xs)",background:"var(--bg2)",border:"1px solid var(--border)",color:"var(--text)",fontFamily:"var(--font)",fontSize:12,outline:"none"}}/>
+                {(EDD_ACTIONS[e.status]||[]).map(({action,label,color})=>(
+                  <button key={action} onClick={()=>doAction(e.id,action)} style={{
+                    padding:"5px 12px",borderRadius:"var(--radius-xs)",fontSize:11,fontWeight:700,
+                    background:color+"22",border:`1px solid ${color}`,color,cursor:"pointer",fontFamily:"var(--font)"}}>
+                    {label}
+                  </button>
+                ))}
+                <button onClick={()=>setActing(null)} style={{padding:"5px 10px",borderRadius:"var(--radius-xs)",fontSize:11,background:"var(--bg3)",border:"1px solid var(--border)",color:"var(--text3)",cursor:"pointer",fontFamily:"var(--font)",fontWeight:600}}>Cancel</button>
+              </div>
+            ) : (
+              <button onClick={()=>{setActing(e.id);setNote("")}} style={{
+                padding:"5px 14px",borderRadius:"var(--radius-xs)",fontSize:11,fontWeight:700,
+                background:"var(--accent-bg)",border:"1px solid rgba(99,88,255,0.3)",color:"var(--accent)",
+                cursor:"pointer",fontFamily:"var(--font)"}}>
+                Take Action
+              </button>
+            )
+          )}
         </div>
       ))}
+      {(data?.cases||[]).length===0 && <div style={{textAlign:"center",padding:32,color:"var(--text3)",fontSize:13}}>No EDD cases match filter</div>}
     </Card>
   )
 }
