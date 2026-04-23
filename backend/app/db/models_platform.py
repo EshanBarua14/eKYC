@@ -10,6 +10,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 from app.db.database import Base
+from app.db.encrypted_type import EncryptedString
 
 
 def _now():
@@ -52,7 +53,7 @@ class KYCProfile(Base):
     nominee_relation         = Column(String(64),   nullable=True)
     nominee_dob              = Column(String(20),   nullable=True)
     signature_type           = Column(String(20),   nullable=True)
-    signature_data           = Column(Text,         nullable=True)
+    signature_data           = Column(EncryptedString, nullable=True)
     nid_front_url            = Column(String(512),  nullable=True)
     nid_back_url             = Column(String(512),  nullable=True)
     photo_url                = Column(String(512),  nullable=True)
@@ -85,7 +86,7 @@ class ConsentRecord(Base):
     __tablename__ = "consent_records"
     consent_id     = Column(String(36),  primary_key=True, index=True)
     session_id     = Column(String(128), unique=True, index=True, nullable=False)
-    nid_hash       = Column(String(64),  nullable=True)
+    nid_hash       = Column(EncryptedString, nullable=True)
     institution_id = Column(String(16),  nullable=True)
     agent_id       = Column(String(64),  nullable=True)
     channel        = Column(String(20),  nullable=False, default="SELF_SERVICE")
@@ -352,7 +353,7 @@ class BeneficialOwner(Base):
     session_id          = Column(String(128), ForeignKey("kyc_profiles.session_id"),
                                  nullable=False, index=True)
     full_name           = Column(String(255), nullable=False)
-    nid_number          = Column(String(32),  nullable=True)
+    nid_number          = Column(EncryptedString, nullable=True)
     date_of_birth       = Column(String(20),  nullable=True)
     nationality         = Column(String(64),  default="Bangladeshi")
     ownership_type      = Column(String(30),  nullable=False, default="direct")
