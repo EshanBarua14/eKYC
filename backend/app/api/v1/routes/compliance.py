@@ -165,3 +165,48 @@ async def metrics():
             "edd_triggered":   random.randint(0,2),
         })
     return {"days": days, "period": "last_30_days"}
+
+# In-memory EDD state mutations
+_EDD_ACTIONS = {}  # action_id -> action record
+
+@router.post("/edd-cases/{case_id}/action")
+async def edd_case_action(case_id: str, body: dict):
+    """
+    Update EDD case status.
+    action: ASSIGN | START_REVIEW | ESCALATE | CLOSE
+    """
+    from pydantic import BaseModel
+    case = next((e for e in _EDD_CASES if e["id"]==case_id), None)
+    if not case:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="EDD case not found")
+
+    action    = body.get("action","").upper()
+    note      = body.get("note","")
+    actor     = body.get("actor","checker")
+
+    TRANSITIONS = {
+        "ASSIGN":       ("OPEN",      "IN_REVIEW"),
+        "START_REVIEW": ("OPEN",      "IN_REVIEW"),
+        "ESCALATE":     ("IN_REVIEW", "ESCALATED"),
+        "CLOSE":        ("IN_REVIEW", "CLOSED"),
+        "CLOSE_OPEN":   ("OPEN",      "CLOSED"),
+    }
+
+    if action not in TRANSITIONS:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=422, detail=f"Unknown action: {action}. Valid: {list(TRANSITIONS)}")
+
+    expected_from, new_status = TRANSITIONS[action]
+    # Allow CLOSE from either OPEN or IN_REVIEW
+    if action == "CLOSE" and case["status"] == "OPEN":
+        new_status = "CLOSED"
+    elif case["status"] != expected_from and not (action=="CLOSE" and case["status"] in ("OPEN","IN_REVIEW")):
+        from fastapi import HTTPException
+        raise HTTPException(status_code=422, detail=f"Cannot {action} case in status {case['status']}")
+
+    case["status"]      = new_status
+    case["assigned_to"] = actor
+    case["last_action"] = {"action":action, "note":note, "actor":actor, "at":_iso(_now())}
+
+    return {"success": True, "case_id": case_id, "new_status": new_status, "bfiu_ref": "BFIU Circular No. 29 - Section 6.3"}

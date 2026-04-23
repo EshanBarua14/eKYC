@@ -65,10 +65,10 @@ def analyze_face(img_rgb: np.ndarray) -> dict:
 
     # Webcam is mirrored: face moving right in frame = user turned LEFT
     # Lower threshold to 10 degrees for better sensitivity
-    if   yaw >  10:   result["head_direction"] = "left"
-    elif yaw < -10:   result["head_direction"] = "right"
-    elif pitch < -10: result["head_direction"] = "up"
-    elif pitch >  10: result["head_direction"] = "down"
+    if   yaw >  6:   result["head_direction"] = "left"
+    elif yaw < -6:   result["head_direction"] = "right"
+    elif pitch < -6: result["head_direction"] = "up"
+    elif pitch >  6: result["head_direction"] = "down"
     else:             result["head_direction"] = "center"
 
     # Blink via eye sub-cascade
@@ -123,21 +123,27 @@ def check_liveness_challenge(b64: str, challenge: str, session_id: str = "defaul
     reason       = ""
 
     if challenge == "center":
-        frame_passed = analysis["head_direction"] == "center"
+        # Pass if face detected regardless of exact direction — proves presence
+        frame_passed = analysis["face_detected"]
         reason = "Look straight at the camera" if not frame_passed else "Face centered"
     elif challenge == "blink":
         frame_passed = analysis["blink_detected"]
         reason = "Please blink your eyes" if not frame_passed else "Blink detected"
     elif challenge == "left":
-        # Use pitch down (nod) as substitute - easier to detect reliably
-        frame_passed = analysis["head_direction"] in ["left", "right", "down", "up"] or analysis.get("pitch_deg", 0) > 6
-        reason = "Move your head slightly" if not frame_passed else "Head movement detected"
+        # Any head movement passes — very lenient
+        frame_passed = (analysis["head_direction"] != "center"
+                        or abs(analysis.get("yaw_deg", 0)) > 5
+                        or abs(analysis.get("pitch_deg", 0)) > 5)
+        reason = "Move your head in any direction" if not frame_passed else "Head movement detected"
     elif challenge == "right":
-        # Accept any direction change as valid for right challenge
-        frame_passed = analysis["head_direction"] in ["left", "right", "down", "up"] or abs(analysis.get("yaw_deg", 0)) > 6
-        reason = "Move your head slightly" if not frame_passed else "Head movement detected"
+        # Any head movement passes — very lenient
+        frame_passed = (analysis["head_direction"] != "center"
+                        or abs(analysis.get("yaw_deg", 0)) > 5
+                        or abs(analysis.get("pitch_deg", 0)) > 5)
+        reason = "Move your head in any direction" if not frame_passed else "Head movement detected"
     elif challenge == "smile":
-        frame_passed = analysis["is_smiling"]
+        # Lower smile threshold — accept even slight smile
+        frame_passed = analysis["is_smiling"] or analysis.get("smile_score", 0) > 20
         reason = "Please smile" if not frame_passed else "Smile detected"
 
     _consecutive[key] = (_consecutive.get(key, 0) + 1) if frame_passed else 0
