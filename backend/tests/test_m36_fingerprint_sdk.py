@@ -273,7 +273,7 @@ class TestVerifyFingerprint:
     def test_timeout_returns_provider_timeout_verdict(self):
         from app.services.fingerprint_service import verify_fingerprint, set_demo_scenario
         set_demo_scenario("TIMEOUT")
-        result = verify_fingerprint("test_sess_fp_007", "1234567890123", "1990-01-15", "")
+        result = verify_fingerprint("test_sess_fp_timeout_unique", "1234567890123", "1990-01-15", "")
         assert result["verdict"] == "PROVIDER_TIMEOUT"
 
 
