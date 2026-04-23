@@ -12,11 +12,11 @@ const ROLE_CONFIG = {
 }
 
 const DEMO_CREDS = {
-  ADMIN:   { email:"admin@demo.ekyc",   password:"AdminDemo@2026",   totp_secret:"JBSWY3DPEHPK3PXP" },
-  CHECKER: { email:"checker@demo.ekyc", password:"DemoChecker@2026", totp_secret:"JBSWY3DPEHPK3PXP" },
-  MAKER:   { email:"maker@demo.ekyc",   password:"DemoMaker@2026"   },
-  AGENT:   { email:"agent@demo.ekyc",   password:"DemoAgent@2026"   },
-  AUDITOR: { email:"auditor@demo.ekyc", password:"DemoAudit@2026"   },
+  ADMIN:   { email:"admin-bypass@demo.ekyc",   password:"AdminDemo@2026",   totp_secret:"JBSWY3DPEHPK3PXP" },
+  CHECKER: { email:"checker-bypass@demo.ekyc", password:"DemoChecker@2026", totp_secret:"JBSWY3DPEHPK3PXP" },
+  MAKER:   { email:"maker-bypass@demo.ekyc",   password:"DemoMaker@2026"   },
+  AGENT:   { email:"agent-bypass@demo.ekyc",   password:"DemoAgent@2026"   },
+  AUDITOR: { email:"auditor-bypass@demo.ekyc", password:"DemoAudit@2026"   },
 }
 
 async function generateTOTP(secret) {

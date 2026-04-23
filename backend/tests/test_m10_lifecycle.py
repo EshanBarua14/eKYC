@@ -236,6 +236,22 @@ class TestLifecycleAPI:
         import pyotp as _p10; _SS10 = "JBSWY3DPEHPK3PXP"
         from app.api.v1.routes.auth import _demo_users
         _uu10 = next((x for x in _demo_users if x.email == "admin_lc@demo.com"), None)
+        if _uu10 is None:
+            try:
+                from app.db.database import SessionLocal
+                from app.db.models import User as UserModel
+                _db = SessionLocal()
+                _uu10 = _db.query(UserModel).filter_by(email="admin_lc@demo.com").first()
+                _db.close()
+                if _uu10:
+                    _db2 = SessionLocal()
+                    _db2.query(UserModel).filter_by(email="admin_lc@demo.com").update(
+                        {"totp_secret": _SS10, "totp_enabled": True})
+                    _db2.commit(); _db2.close()
+                    _uu10.totp_secret = _SS10; _uu10.totp_enabled = True
+                    _demo_users.append(_uu10)
+            except Exception as e:
+                print(f"[m10 setup] DB fallback: {e}")
         if _uu10 and not _uu10.totp_enabled: _uu10.totp_secret = _SS10; _uu10.totp_enabled = True
         r = self.client.post("/api/v1/auth/token", json={
             "email": "admin_lc@demo.com", "password": "admin1234",

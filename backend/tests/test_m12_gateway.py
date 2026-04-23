@@ -194,6 +194,22 @@ class TestGatewayAPI:
         import pyotp as _p12; _SS12 = "JBSWY3DPEHPK3PXP"
         from app.api.v1.routes.auth import _demo_users
         _uu12 = next((x for x in _demo_users if x.email == "admin_gw@demo.com"), None)
+        if _uu12 is None:
+            try:
+                from app.db.database import SessionLocal
+                from app.db.models import User as UserModel
+                _db = SessionLocal()
+                _uu12 = _db.query(UserModel).filter_by(email="admin_gw@demo.com").first()
+                _db.close()
+                if _uu12:
+                    _db2 = SessionLocal()
+                    _db2.query(UserModel).filter_by(email="admin_gw@demo.com").update(
+                        {"totp_secret": _SS12, "totp_enabled": True})
+                    _db2.commit(); _db2.close()
+                    _uu12.totp_secret = _SS12; _uu12.totp_enabled = True
+                    _demo_users.append(_uu12)
+            except Exception as e:
+                print(f"[m12 setup] DB fallback: {e}")
         if _uu12 and not _uu12.totp_enabled: _uu12.totp_secret = _SS12; _uu12.totp_enabled = True
         r = self.client.post("/api/v1/auth/token", json={
             "email": "admin_gw@demo.com", "password": "admin1234",

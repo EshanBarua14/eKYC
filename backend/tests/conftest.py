@@ -137,3 +137,40 @@ def reset_rate_limits_per_test():
     except Exception:
         pass
     yield
+
+@pytest.fixture(autouse=True, scope="module")
+def flush_redis_per_module():
+    """Flush rate limit keys before each test module."""
+    try:
+        from app.services.redis_client import get_redis
+        r = get_redis()
+        if r:
+            keys = r.keys("rl:*")
+            if keys: r.delete(*keys)
+    except: pass
+    yield
+
+@pytest.fixture(autouse=True, scope="session")
+def clean_hardcoded_user_ids():
+    try:
+        from app.db.database import db_session
+        from app.db.models.auth import User
+        with db_session() as db:
+            db.query(User).filter(User.id.like("user-%")).delete(synchronize_session=False)
+    except Exception as e:
+        print(f"[conftest] hardcoded user cleanup: {e}")
+    yield
+
+@pytest.fixture(autouse=True, scope="session")
+def clean_m2_data():
+    try:
+        from app.db.database import db_session
+        from app.db.models.auth import User
+        emails = ["maker@demo.com", "admin@demo.com", "adm2@demo.com", "dup@demo.com",
+                  "checker@demo.com", "agent@demo.com", "auditor@demo.com"]
+        with db_session() as db:
+            for e in emails:
+                db.query(User).filter_by(email=e).delete()
+    except Exception as ex:
+        print(f"[conftest] m2 cleanup: {ex}")
+    yield

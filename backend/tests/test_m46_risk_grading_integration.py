@@ -28,6 +28,22 @@ def token(client):
     })
     from app.api.v1.routes.auth import _demo_users
     u = next((x for x in _demo_users if x.email == "checker_m46@demo.ekyc"), None)
+    if u is None:
+        try:
+            from app.db.database import SessionLocal
+            from app.db.models import User as UserModel
+            _db = SessionLocal()
+            u = _db.query(UserModel).filter_by(email="checker_m46@demo.ekyc").first()
+            _db.close()
+            if u:
+                _db2 = SessionLocal()
+                _db2.query(UserModel).filter_by(email="checker_m46@demo.ekyc").update(
+                    {"totp_secret": SECRET, "totp_enabled": True})
+                _db2.commit(); _db2.close()
+                u.totp_secret = SECRET; u.totp_enabled = True
+                _demo_users.append(u)
+        except Exception as e:
+            print(f"[m46 setup] DB fallback: {e}")
     if u:
         u.totp_secret = SECRET
         u.totp_enabled = True

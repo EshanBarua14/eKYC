@@ -15,7 +15,7 @@
   "match_threshold": 40,
   "review_threshold": 30,
   "bfiu_max_attempts": 10,
-  "bfiu_max_sessions": 2,
+  "bfiu_max_sessions": 3,
   "institution_name": "Xpert Fintech Ltd.",
   "institution_type": "INSURANCE_LIFE",
   "institution_code": "XFL",

@@ -266,6 +266,22 @@ class TestRiskAPI:
         import pyotp as _p8; _SS8 = "JBSWY3DPEHPK3PXP"
         from app.api.v1.routes.auth import _demo_users
         _uu8 = next((x for x in _demo_users if x.email == "checker_risk@demo.com"), None)
+        if _uu8 is None:
+            try:
+                from app.db.database import SessionLocal
+                from app.db.models import User as UserModel
+                _db = SessionLocal()
+                _uu8 = _db.query(UserModel).filter_by(email="checker_risk@demo.com").first()
+                _db.close()
+                if _uu8:
+                    _db2 = SessionLocal()
+                    _db2.query(UserModel).filter_by(email="checker_risk@demo.com").update(
+                        {"totp_secret": _SS8, "totp_enabled": True})
+                    _db2.commit(); _db2.close()
+                    _uu8.totp_secret = _SS8; _uu8.totp_enabled = True
+                    _demo_users.append(_uu8)
+            except Exception as e:
+                print(f"[m8 setup] DB fallback: {e}")
         if _uu8 and not _uu8.totp_enabled: _uu8.totp_secret = _SS8; _uu8.totp_enabled = True
         r = self.client.post("/api/v1/auth/token", json={
             "email": "checker_risk@demo.com",

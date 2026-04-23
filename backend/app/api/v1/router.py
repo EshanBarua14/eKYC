@@ -27,6 +27,7 @@ from app.api.v1.routes.audit_pdf      import router as audit_pdf_router
 from app.api.v1.routes.twofa          import router as twofa_router
 from app.api.v1.routes.institution_onboarding import router as inst_onboard_router
 from app.api.v1.routes.rate_limits   import router as rate_limits_router
+from app.api.v1.routes.beneficial_owner import router as bo_router
 
 v1_router = APIRouter()
 v1_router.include_router(auth_router)
@@ -56,3 +57,4 @@ v1_router.include_router(audit_pdf_router)
 v1_router.include_router(twofa_router)
 v1_router.include_router(inst_onboard_router)
 v1_router.include_router(rate_limits_router)
+v1_router.include_router(bo_router)

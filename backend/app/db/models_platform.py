@@ -10,8 +10,6 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 from app.db.database import Base
-# Institution and User defined in auth.py (authoritative)
-from app.db.models.auth import Institution, User  # noqa: F401
 
 
 def _now():
@@ -339,3 +337,46 @@ class UNSCRListMeta(Base):
     error_message   = Column(Text,        nullable=True)
     pulled_at       = Column(DateTime(timezone=True), default=_now, nullable=False)
     pulled_by       = Column(String(64),  nullable=False, default="celery_beat")
+
+
+# ======================================================================
+# M38 - Beneficial Ownership (BFIU Circular No. 29 s4.2)
+# ======================================================================
+class BeneficialOwner(Base):
+    __tablename__ = "beneficial_owners"
+    id                  = Column(String(36),  primary_key=True, index=True)
+    session_id          = Column(String(128), ForeignKey("kyc_profiles.session_id"),
+                                 nullable=False, index=True)
+    full_name           = Column(String(255), nullable=False)
+    nid_number          = Column(String(32),  nullable=True)
+    date_of_birth       = Column(String(20),  nullable=True)
+    nationality         = Column(String(64),  default="Bangladeshi")
+    ownership_type      = Column(String(30),  nullable=False, default="direct")
+    ownership_pct       = Column(Float,       nullable=True)
+    control_mechanism   = Column(Text,        nullable=True)
+    relationship        = Column(String(200), nullable=True)
+    source_of_funds     = Column(Text,        nullable=True)
+    is_pep              = Column(Boolean,     default=False)
+    is_sanctioned       = Column(Boolean,     default=False)
+    unscr_checked       = Column(Boolean,     default=False)
+    unscr_checked_at    = Column(DateTime,    nullable=True)
+    edd_required        = Column(Boolean,     default=False)
+    verification_status = Column(String(20),  default="PENDING")
+    identified_by       = Column(String(128), nullable=True)
+    bfiu_ref            = Column(String(64),  default="BFIU Circular No. 29 s4.2")
+    created_at          = Column(DateTime,    default=_now)
+    updated_at          = Column(DateTime,    default=_now, onupdate=_now)
+
+
+class BODeclaration(Base):
+    __tablename__ = "bo_declarations"
+    id                   = Column(String(36),  primary_key=True, index=True)
+    session_id           = Column(String(128), ForeignKey("kyc_profiles.session_id"),
+                                  unique=True, nullable=False, index=True)
+    has_beneficial_owner = Column(Boolean,     nullable=False)
+    declaration_text     = Column(Text,        nullable=True)
+    declared_by          = Column(String(128), nullable=True)
+    declaration_ip       = Column(String(45),  nullable=True)
+    checker_reviewed     = Column(Boolean,     default=False)
+    bfiu_ref             = Column(String(64),  default="BFIU Circular No. 29 s4.2")
+    created_at           = Column(DateTime,    default=_now)

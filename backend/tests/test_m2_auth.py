@@ -253,6 +253,13 @@ class TestAuthAPI:
         from app.api.v1.routes.auth import _demo_users
         u = next((x for x in _demo_users if x.email == "admin@demo.com"), None)
         if u and not u.totp_enabled: u.totp_secret = _S; u.totp_enabled = True
+        from app.db.database import SessionLocal
+        from app.db.models.auth import User as _User
+        _db = SessionLocal()
+        try:
+            _dbu = _db.query(_User).filter_by(email="admin@demo.com").first()
+            if _dbu: _dbu.totp_secret = _S; _dbu.totp_enabled = True; _db.commit()
+        finally: _db.close()
         r = self.client.post("/api/v1/auth/token", json={
             "email": "admin@demo.com", "password": "adminpass1",
             "totp_code": pyotp.TOTP(_S).now(),
@@ -337,6 +344,13 @@ class TestAuthAPI:
         from app.api.v1.routes.auth import _demo_users
         u3 = next((x for x in _demo_users if x.email == "adm2@demo.com"), None)
         if u3 and not u3.totp_enabled: u3.totp_secret = _S3; u3.totp_enabled = True
+        from app.db.database import SessionLocal
+        from app.db.models.auth import User as _User
+        _db = SessionLocal()
+        try:
+            _dbu = _db.query(_User).filter_by(email="adm2@demo.com").first()
+            if _dbu: _dbu.totp_secret = _S3; _dbu.totp_enabled = True; _db.commit()
+        finally: _db.close()
         login = self.client.post("/api/v1/auth/token", json={
             "email": "adm2@demo.com", "password": "adminpass2",
             "totp_code": pyotp.TOTP(_S3).now(),

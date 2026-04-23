@@ -257,6 +257,22 @@ class TestScreeningAPI:
         import pyotp; _S = "JBSWY3DPEHPK3PXP"
         from app.api.v1.routes.auth import _demo_users
         u = next((x for x in _demo_users if x.email == "checker_scr@demo.com"), None)
+        if u is None:
+            try:
+                from app.db.database import SessionLocal
+                from app.db.models import User as UserModel
+                _db = SessionLocal()
+                u = _db.query(UserModel).filter_by(email="checker_scr@demo.com").first()
+                _db.close()
+                if u:
+                    _db2 = SessionLocal()
+                    _db2.query(UserModel).filter_by(email="checker_scr@demo.com").update(
+                        {"totp_secret": _S, "totp_enabled": True})
+                    _db2.commit(); _db2.close()
+                    u.totp_secret = _S; u.totp_enabled = True
+                    _demo_users.append(u)
+            except Exception as e:
+                print(f"[m9 setup] DB fallback: {e}")
         if u and not u.totp_enabled: u.totp_secret = _S; u.totp_enabled = True
         r = self.client.post("/api/v1/auth/token", json={
             "email": "checker_scr@demo.com",

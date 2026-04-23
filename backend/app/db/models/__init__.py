@@ -5,6 +5,7 @@ from .auth import Base, Institution, User, UserSession, AgentProfile
 
 # All platform models (M26 — full schema)
 from app.db.models_platform import (
+    BeneficialOwner, BODeclaration,
     KYCProfile, ConsentRecord, OnboardingOutcome, FallbackCase,
     BOAccount, NotificationLog, AuditLog, Webhook, WebhookDelivery,
     BFIUReport,
@@ -16,5 +17,5 @@ __all__ = [
     "Base", "Institution", "User", "UserSession", "AgentProfile",
     "KYCProfile", "ConsentRecord", "OnboardingOutcome", "FallbackCase",
     "BOAccount", "NotificationLog", "AuditLog", "Webhook", "WebhookDelivery",
-    "BFIUReport", "UNSCREntry", "UNSCRListMeta",
+    "BFIUReport", "UNSCREntry", "BeneficialOwner", "BODeclaration", "UNSCRListMeta",
 ]

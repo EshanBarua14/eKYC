@@ -25,6 +25,22 @@ def get_admin_token():
     # Set TOTP directly on in-memory user (auth route uses _demo_users list)
     from app.api.v1.routes.auth import _demo_users
     user = next((u for u in _demo_users if u.email == "admin_m13@test.com"), None)
+    if user is None:
+        try:
+            from app.db.database import SessionLocal
+            from app.db.models import User as UserModel
+            _db = SessionLocal()
+            user = _db.query(UserModel).filter_by(email="admin_m13@test.com").first()
+            _db.close()
+            if user:
+                _db2 = SessionLocal()
+                _db2.query(UserModel).filter_by(email="admin_m13@test.com").update(
+                    {"totp_secret": _TEST_TOTP_SECRET, "totp_enabled": True})
+                _db2.commit(); _db2.close()
+                user.totp_secret = _TEST_TOTP_SECRET; user.totp_enabled = True
+                _demo_users.append(user)
+        except Exception as e:
+            print(f"[test_admin] DB fallback: {e}")
     if user and not user.totp_enabled:
         user.totp_secret = _TEST_TOTP_SECRET
         user.totp_enabled = True
