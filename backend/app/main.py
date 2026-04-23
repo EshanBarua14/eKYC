@@ -72,6 +72,11 @@ def _seed_demo_users():
             {"id":"user-0003","email":"maker@demo.ekyc",  "phone":"01700000003","full_name":"Demo Maker",  "role":"MAKER",  "password":"DemoMaker@2026",  "totp":False},
             {"id":"user-0004","email":"checker@demo.ekyc","phone":"01700000004","full_name":"Demo Checker","role":"CHECKER","password":"DemoChecker@2026","totp":True},
             {"id":"user-0005","email":"auditor@demo.ekyc","phone":"01700000005","full_name":"Demo Auditor","role":"AUDITOR","password":"DemoAudit@2026", "totp":False},
+            {"id":"user-0006","email":"admin-bypass@demo.ekyc",   "phone":"01700000006","full_name":"Bypass Admin",   "role":"ADMIN",  "password":"AdminDemo@2026",   "totp":True},
+            {"id":"user-0007","email":"checker-bypass@demo.ekyc", "phone":"01700000007","full_name":"Bypass Checker", "role":"CHECKER","password":"DemoChecker@2026", "totp":True},
+            {"id":"user-0008","email":"maker-bypass@demo.ekyc",   "phone":"01700000008","full_name":"Bypass Maker",   "role":"MAKER",  "password":"DemoMaker@2026",   "totp":False},
+            {"id":"user-0009","email":"agent-bypass@demo.ekyc",   "phone":"01700000009","full_name":"Bypass Agent",   "role":"AGENT",  "password":"DemoAgent@2026",   "totp":False},
+            {"id":"user-0010","email":"auditor-bypass@demo.ekyc", "phone":"01700000010","full_name":"Bypass Auditor", "role":"AUDITOR","password":"DemoAudit@2026",   "totp":False},
         ]
 
         existing_emails = {u.email for u in _demo_users}
