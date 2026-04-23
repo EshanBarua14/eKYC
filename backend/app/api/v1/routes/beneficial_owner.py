@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, validator
 from sqlalchemy.orm import Session
 from app.db.database import get_db
+from app.middleware.tenant_db import get_tenant_db
 from app.db.models import KYCProfile, AuditLog
 from app.core.security import decode_token
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -55,7 +56,7 @@ class BODeclarationRequest(BaseModel):
 
 @router.post("/beneficial-owner", status_code=201, operation_id="bo_create")
 def create_beneficial_owner(req: BOCreateRequest, request: Request,
-    db: Session = Depends(get_db), actor: dict = Depends(get_current_user)):
+    db: Session = Depends(get_tenant_db), actor: dict = Depends(get_current_user)):
     from app.db.models import BeneficialOwner
     profile = db.query(KYCProfile).filter_by(session_id=req.session_id).first()
     if not profile: raise HTTPException(404, f"KYC profile not found: {req.session_id!r}")
@@ -96,7 +97,7 @@ def create_beneficial_owner(req: BOCreateRequest, request: Request,
         "bfiu_ref": "BFIU Circular No. 29 s4.2"}
 
 @router.get("/beneficial-owner/{session_id}", operation_id="bo_list")
-def list_beneficial_owners(session_id: str, db: Session = Depends(get_db),
+def list_beneficial_owners(session_id: str, db: Session = Depends(get_tenant_db),
     actor: dict = Depends(get_current_user)):
     from app.db.models import BeneficialOwner
     bos = db.query(BeneficialOwner).filter_by(session_id=session_id).all()
@@ -109,7 +110,7 @@ def list_beneficial_owners(session_id: str, db: Session = Depends(get_db),
         "bfiu_ref": "BFIU Circular No. 29 s4.2"}
 
 @router.delete("/beneficial-owner/record/{bo_id}", operation_id="bo_delete")
-def delete_beneficial_owner(bo_id: str, db: Session = Depends(get_db),
+def delete_beneficial_owner(bo_id: str, db: Session = Depends(get_tenant_db),
     actor: dict = Depends(get_current_user)):
     from app.db.models import BeneficialOwner
     bo = db.query(BeneficialOwner).filter_by(id=bo_id).first()
@@ -120,7 +121,7 @@ def delete_beneficial_owner(bo_id: str, db: Session = Depends(get_db),
 
 @router.post("/beneficial-owner/declaration", status_code=201, operation_id="bo_declaration")
 def submit_bo_declaration(req: BODeclarationRequest, request: Request,
-    db: Session = Depends(get_db), actor: dict = Depends(get_current_user)):
+    db: Session = Depends(get_tenant_db), actor: dict = Depends(get_current_user)):
     from app.db.models import BeneficialOwner, BODeclaration
     profile = db.query(KYCProfile).filter_by(session_id=req.session_id).first()
     if not profile: raise HTTPException(404, f"KYC profile not found: {req.session_id!r}")
@@ -153,7 +154,7 @@ def submit_bo_declaration(req: BODeclarationRequest, request: Request,
         "bfiu_ref": "BFIU Circular No. 29 s4.2"}
 
 @router.get("/beneficial-owner/compliance-status/{session_id}", operation_id="bo_compliance_status")
-def bo_compliance_status(session_id: str, db: Session = Depends(get_db),
+def bo_compliance_status(session_id: str, db: Session = Depends(get_tenant_db),
     actor: dict = Depends(get_current_user)):
     from app.db.models import BeneficialOwner, BODeclaration
     profile = db.query(KYCProfile).filter_by(session_id=session_id).first()

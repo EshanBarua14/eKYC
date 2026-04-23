@@ -13,6 +13,7 @@ from typing import Optional
 from datetime import datetime, timezone
 
 from app.db.database import get_db
+from app.middleware.tenant_db import get_tenant_db
 from app.db.models import KYCProfile
 from app.services import file_storage
 from app.services.kyc_threshold import assign_kyc_type, calculate_risk_score
@@ -65,7 +66,7 @@ class KYCProfileRequest(BaseModel):
 # ── Endpoints ──────────────────────────────────────────────────────────────
 
 @router.post("/profile", summary="Create KYC profile from verified session")
-def create_profile(req: KYCProfileRequest, db: Session = Depends(get_db)):
+def create_profile(req: KYCProfileRequest, db: Session = Depends(get_tenant_db)):
 
     # Only allow MATCHED or REVIEW verdicts
     if req.verdict not in ("MATCHED", "REVIEW"):
@@ -150,7 +151,7 @@ def create_profile(req: KYCProfileRequest, db: Session = Depends(get_db)):
 
 
 @router.get("/profile/{session_id}", summary="Get KYC profile by session ID")
-def get_profile(session_id: str, db: Session = Depends(get_db)):
+def get_profile(session_id: str, db: Session = Depends(get_tenant_db)):
     profile = db.query(KYCProfile).filter_by(session_id=session_id).first()
     if not profile:
         raise HTTPException(status_code=404, detail=f"No profile found for session '{session_id}'")
@@ -158,7 +159,7 @@ def get_profile(session_id: str, db: Session = Depends(get_db)):
 
 
 @router.get("/profiles", summary="List all KYC profiles (admin)")
-def list_profiles(skip: int = 0, limit: int = 50, db: Session = Depends(get_db)):
+def list_profiles(skip: int = 0, limit: int = 50, db: Session = Depends(get_tenant_db)):
     profiles = db.query(KYCProfile).offset(skip).limit(limit).all()
     return {
         "total":    db.query(KYCProfile).count(),
@@ -167,7 +168,7 @@ def list_profiles(skip: int = 0, limit: int = 50, db: Session = Depends(get_db))
 
 
 @router.patch("/profile/{session_id}/approve", summary="Approve KYC profile (checker)")
-def approve_profile(session_id: str, db: Session = Depends(get_db)):
+def approve_profile(session_id: str, db: Session = Depends(get_tenant_db)):
     profile = db.query(KYCProfile).filter_by(session_id=session_id).first()
     if not profile:
         raise HTTPException(status_code=404, detail="Profile not found")
@@ -180,7 +181,7 @@ def approve_profile(session_id: str, db: Session = Depends(get_db)):
 
 
 @router.patch("/profile/{session_id}/reject", summary="Reject KYC profile")
-def reject_profile(session_id: str, db: Session = Depends(get_db)):
+def reject_profile(session_id: str, db: Session = Depends(get_tenant_db)):
     profile = db.query(KYCProfile).filter_by(session_id=session_id).first()
     if not profile:
         raise HTTPException(status_code=404, detail="Profile not found")
