@@ -22,6 +22,7 @@ celery_app = Celery(
         "app.worker.tasks.bfiu_report",
         "app.worker.tasks.periodic_review",
         "app.worker.tasks.unscr_pull",
+        "app.worker.tasks.adverse_media_rescan",
     ],
 )
 
@@ -63,5 +64,10 @@ celery_app.conf.beat_schedule = {
     "unscr-daily-pull": {
         "task":     "app.worker.tasks.unscr_pull.pull_unscr_list_daily",
         "schedule": crontab(hour=0, minute=30),
+    },
+    # M53 Adverse media daily re-screening — BFIU §5.3 — 03:00 UTC
+    "adverse-media-rescan": {
+        "task":     "app.worker.tasks.adverse_media_rescan.run_adverse_media_rescan",
+        "schedule": crontab(hour=3, minute=0),
     },
 }
