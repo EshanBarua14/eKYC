@@ -13,6 +13,7 @@ import re
 import uuid
 from datetime import datetime, timezone
 from typing import Optional
+from app.services.bangla_phonetic import enhanced_match_score as _phonetic_score
 
 # ---------------------------------------------------------------------------
 # Configurable thresholds
@@ -93,8 +94,9 @@ def edit_distance_score(s1: str, s2: str) -> float:
     return 1.0 - (dp[m][n] / max_len) if max_len > 0 else 1.0
 
 def fuzzy_match_score(name1: str, name2: str) -> float:
-    """Combined score: max of token overlap and edit distance."""
-    return max(token_overlap_score(name1, name2), edit_distance_score(name1, name2))
+    """Combined score: phonetic (BD-aware) + token overlap + edit distance."""
+    base = max(token_overlap_score(name1, name2), edit_distance_score(name1, name2))
+    return _phonetic_score(name1, name2, base_scorer=lambda a,b: base)
 
 # ---------------------------------------------------------------------------
 # UNSCR screening
