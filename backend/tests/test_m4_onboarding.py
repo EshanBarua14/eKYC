@@ -44,14 +44,16 @@ class TestWizardSession:
         assert self.get("nonexistent-id") is None
 
     def test_total_steps_is_5(self):
-        assert len(self.STEPS) == 5
+        assert len(self.STEPS) == 7  # BFIU Circular No. 29 7-step flow
 
     def test_step_names_correct(self):
         assert self.STEPS[1] == "NID_VERIFICATION"
-        assert self.STEPS[2] == "PERSONAL_INFO"
-        assert self.STEPS[3] == "PHOTOGRAPH"
-        assert self.STEPS[4] == "SIGNATURE"
-        assert self.STEPS[5] == "NOTIFICATION"
+        assert self.STEPS[2] == "BIOMETRIC"
+        assert self.STEPS[3] == "PERSONAL_INFO"
+        assert self.STEPS[4] == "PHOTOGRAPH"
+        assert self.STEPS[5] == "SIGNATURE"
+        assert self.STEPS[6] == "SCREENING"
+        assert self.STEPS[7] == "NOTIFICATION"
 
 
 # ---------------------------------------------------------------------------
@@ -79,7 +81,7 @@ class TestStepProcessing:
             "fingerprint_b64": "dummyb64",
         })
         assert r["success"] is True
-        assert r["next_step"] == "PERSONAL_INFO"
+        assert r["next_step"] == "BIOMETRIC"
 
     def test_step1_missing_nid_fails(self):
         s = self._new_session()
@@ -105,11 +107,11 @@ class TestStepProcessing:
             "fingerprint_b64": "dummyb64",
         })
         r = self.process(s["session_id"], {
-            "full_name": "RAHMAN HOSSAIN CHOWDHURY",
-            "mobile": "+8801712345678",
+            "biometric_passed": True,
+            "biometric_mode": "FINGERPRINT",
         })
         assert r["success"] is True
-        assert r["next_step"] == "PHOTOGRAPH"
+        assert r["next_step"] == "PERSONAL_INFO"
 
     def test_step3_advances_to_step4(self):
         s = self._new_session()
@@ -118,17 +120,22 @@ class TestStepProcessing:
             "fingerprint_b64": "dummyb64",
         })
         self.process(s["session_id"], {
+            "biometric_passed": True, "biometric_mode": "FINGERPRINT",
+        })
+        r = self.process(s["session_id"], {
             "full_name": "RAHMAN HOSSAIN", "mobile": "+8801712345678",
         })
-        r = self.process(s["session_id"], {"photo_b64": "photodummyb64"})
         assert r["success"] is True
-        assert r["next_step"] == "SIGNATURE"
+        assert r["next_step"] == "PHOTOGRAPH"
 
     def test_step4_pin_allowed_for_low_risk(self):
         s = self._new_session()
         self.process(s["session_id"], {
             "nid_number": "1234567890123", "dob": "1990-01-15",
             "fingerprint_b64": "dummyb64",
+        })
+        self.process(s["session_id"], {
+            "biometric_passed": True, "biometric_mode": "FINGERPRINT",
         })
         self.process(s["session_id"], {
             "full_name": "RAHMAN HOSSAIN", "mobile": "+8801712345678",
@@ -146,6 +153,9 @@ class TestStepProcessing:
             "fingerprint_b64": "dummyb64",
         })
         self.process(s["session_id"], {
+            "biometric_passed": True, "biometric_mode": "FINGERPRINT",
+        })
+        self.process(s["session_id"], {
             "full_name": "RAHMAN HOSSAIN", "mobile": "+8801712345678",
         })
         self.process(s["session_id"], {"photo_b64": "photodummyb64"})
@@ -154,7 +164,7 @@ class TestStepProcessing:
         })
         assert r["success"] is False
 
-    def test_full_5_step_flow_completes(self):
+    def test_full_7_step_flow_completes(self):
         s = self._new_session()
         sid = s["session_id"]
         self.process(sid, {
@@ -162,10 +172,14 @@ class TestStepProcessing:
             "fingerprint_b64": "dummyb64",
         })
         self.process(sid, {
+            "biometric_passed": True, "biometric_mode": "FINGERPRINT",
+        })
+        self.process(sid, {
             "full_name": "RAHMAN HOSSAIN", "mobile": "+8801712345678",
         })
         self.process(sid, {"photo_b64": "photodummyb64"})
         self.process(sid, {"signature_type": "WET", "risk_grade": "LOW"})
+        self.process(sid, {"screening_result": "CLEAR"})
         r = self.process(sid, {
             "mobile": "+8801712345678", "email": "test@demo.com"
         })
@@ -180,11 +194,15 @@ class TestStepProcessing:
             "fingerprint_b64": "dummyb64",
         })
         self.process(sid, {
+            "biometric_passed": True, "biometric_mode": "FINGERPRINT",
+        })
+        self.process(sid, {
             "full_name": "RAHMAN HOSSAIN", "mobile": "+8801712345678",
         })
         self.process(sid, {"photo_b64": "photodummyb64"})
         self.process(sid, {"signature_type": "WET", "risk_grade": "LOW"})
-        self.process(sid, {"mobile": "+8801712345678"})
+        self.process(sid, {"screening_result": "CLEAR"})
+        self.process(sid, {"mobile": "+8801712345678", "email": "test@demo.com"})
         r = self.process(sid, {"mobile": "+8801712345678"})
         assert r["success"] is False
 
@@ -334,7 +352,7 @@ class TestOnboardingAPI:
             },
         }, headers=self.headers)
         assert r.status_code == 200
-        assert r.json()["next_step"] == "PERSONAL_INFO"
+        assert r.json()["next_step"] == "BIOMETRIC"
 
     def test_fail_session_endpoint(self):
         start = self.client.post("/api/v1/onboarding/start", json={
@@ -382,7 +400,7 @@ class TestOnboardingAPI:
         r = self.client.get("/api/v1/onboarding/steps", headers=self.headers)
         assert r.status_code == 200
         data = r.json()
-        assert data["total_steps"] == 5
+        assert data["total_steps"] == 7
         assert data["fallback_threshold"] == 3
 
     def test_unauthenticated_start_fails(self):

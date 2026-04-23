@@ -86,7 +86,7 @@ class TestAgentDashboardAPIIntegration:
         data = r.json()
         assert data['success'] is True
         assert data['current_step'] == 1
-        assert data['total_steps'] == 5
+        assert data['total_steps'] == 7
 
     def test_onboarding_step1_nid_verification(self):
         start = self.client.post('/api/v1/onboarding/start', json={
@@ -103,13 +103,13 @@ class TestAgentDashboardAPIIntegration:
             },
         }, headers=self.headers)
         assert r.status_code == 200
-        assert r.json()['next_step'] == 'PERSONAL_INFO'
+        assert r.json()['next_step'] == 'BIOMETRIC'
 
     def test_onboarding_wizard_steps_list(self):
         r = self.client.get('/api/v1/onboarding/steps', headers=self.headers)
         assert r.status_code == 200
         data = r.json()
-        assert data['total_steps'] == 5
+        assert data['total_steps'] == 7
         assert data['fallback_threshold'] == 3
 
     def test_onboarding_invalid_nid_rejected(self):
