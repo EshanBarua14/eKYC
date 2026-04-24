@@ -8,7 +8,7 @@ import uuid
 from datetime import datetime, timezone, timedelta
 from typing import Optional
 from sqlalchemy.orm import Session
-from app.core.timezone import bst_now
+from app.core.timezone import now_bst as bst_now
 from app.db.models_edd import EDDCase, EDDAction, EDDActionType, EDDStatus, EDDTrigger
 
 ALLOWED_EDD_ROLES = {"COMPLIANCE_OFFICER", "ADMIN"}

@@ -72,10 +72,9 @@ celery_app.conf.beat_schedule = {
     },
 }
 
-# M60: EDD SLA enforcement (BFIU ยง4.3)
+# M60: EDD SLA enforcement (BFIU ง4.3)
 from app.worker.tasks_edd import task_edd_auto_close, task_edd_sla_warnings  # noqa
-from celery.schedules import crontab
-app.conf.beat_schedule.update({
+celery_app.conf.beat_schedule.update({
     "edd-auto-close-daily": {"task": "edd.auto_close_expired", "schedule": crontab(hour=0, minute=5)},
     "edd-sla-warnings-daily": {"task": "edd.sla_warnings", "schedule": crontab(hour=8, minute=0)},
 })

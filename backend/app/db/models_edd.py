@@ -8,7 +8,7 @@ from datetime import datetime, timezone, timedelta
 from sqlalchemy import Boolean, CheckConstraint, ForeignKey, Index, String, Text, TIMESTAMP as TIMESTAMPTZ
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from app.db.base import Base
+from app.db.database import Base
 
 BST = timezone(timedelta(hours=6))
 def _bst_now() -> datetime: return datetime.now(BST)

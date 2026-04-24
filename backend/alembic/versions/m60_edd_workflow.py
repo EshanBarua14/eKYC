@@ -30,8 +30,8 @@ def upgrade():
         sa.Column("decision_role", sa.String(32), nullable=True),
         sa.Column("decision_at", sa.TIMESTAMP(timezone=True), nullable=True),
         sa.Column("decision_notes", sa.Text, nullable=True),
-        sa.Column("created_at", sa.TIMESTAMP(timezone=True), nullable=False, server_default=sa.text("NOW() AT TIME ZONE 'Asia/Dhaka'")),
-        sa.Column("updated_at", sa.TIMESTAMP(timezone=True), nullable=False, server_default=sa.text("NOW() AT TIME ZONE 'Asia/Dhaka'")),
+        sa.Column("created_at", sa.TIMESTAMP(timezone=True), nullable=False, server_default=sa.text('NOW()')),
+        sa.Column("updated_at", sa.TIMESTAMP(timezone=True), nullable=False, server_default=sa.text('NOW()')),
         sa.CheckConstraint("trigger IN ('HIGH_RISK_SCORE','PEP_FLAG','ADVERSE_MEDIA','RISK_REGRADE','IRREGULAR_ACTIVITY','MANUAL_TRIGGER')", name="ck_edd_cases_trigger"),
         sa.CheckConstraint("status IN ('OPEN','INFO_REQUESTED','UNDER_REVIEW','APPROVED','REJECTED','AUTO_CLOSED','ESCALATED')", name="ck_edd_cases_status"),
     )
@@ -52,7 +52,7 @@ def upgrade():
         sa.Column("to_status", sa.String(20), nullable=True),
         sa.Column("notes", sa.Text, nullable=True),
         sa.Column("metadata", postgresql.JSONB, nullable=False, server_default="{}"),
-        sa.Column("created_at", sa.TIMESTAMP(timezone=True), nullable=False, server_default=sa.text("NOW() AT TIME ZONE 'Asia/Dhaka'")),
+        sa.Column("created_at", sa.TIMESTAMP(timezone=True), nullable=False, server_default=sa.text('NOW()')),
         sa.ForeignKeyConstraint(["case_id"], ["edd_cases.id"], ondelete="RESTRICT"),
     )
     op.create_index("ix_edd_actions_case_id", "edd_actions", ["case_id"])

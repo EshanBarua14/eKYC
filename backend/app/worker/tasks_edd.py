@@ -1,8 +1,8 @@
 """M60: Celery tasks — EDD SLA enforcement. BFIU §4.3."""
 from celery import shared_task
-from app.db.session import SessionLocal
+from app.db.database import SessionLocal
 from app.services.edd_service import auto_close_expired_cases, send_sla_warnings
-from app.core.timezone import bst_now
+from app.core.timezone import now_bst as bst_now
 import logging
 logger = logging.getLogger(__name__)
 
