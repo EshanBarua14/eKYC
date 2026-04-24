@@ -670,7 +670,7 @@ export default function AdminConsole({ onExit, theme, toggleTheme }) {
             </div>
             <div>
               <div style={{fontSize:13,fontWeight:800,color:"var(--text)",lineHeight:1.1}}>Admin Console</div>
-              <div style={{fontSize:9,color:"var(--text3)",fontWeight:600,letterSpacing:"0.1em",textTransform:"uppercase"}}>Xpert eKYC · M13</div>
+              <img src="/logo.jpg" alt="Xpert eKYC" style={{ height:"28px", objectFit:"contain" }} />
             </div>
           </div>
           <div style={{display:"flex",alignItems:"center",gap:8}}>

@@ -42,7 +42,7 @@ function Sidebar({ active, setActive, agent, onExit }) {
       <div style={{ padding:"20px 20px 16px", borderBottom:"1px solid var(--border)" }}>
         <div style={{ display:"flex", alignItems:"center", gap:10 }}>
           <div style={{ width:34, height:34, borderRadius:10, background:"linear-gradient(135deg,var(--accent),var(--blue))", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 4px 12px rgba(99,88,255,0.3)" }}><Shield size={16} color="#fff" strokeWidth={2.5}/></div>
-          <div><div style={{ fontSize:13, fontWeight:800, color:"var(--text)" }}>Xpert eKYC</div><div style={{ fontSize:10, color:"var(--text3)" }}>Agent Portal</div></div>
+          <img src="/logo.jpg" alt="Xpert eKYC" style={{ height:"36px", objectFit:"contain" }} />
         </div>
       </div>
       <nav style={{ flex:1, padding:"12px 10px", overflowY:"auto" }}>

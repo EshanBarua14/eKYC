@@ -153,13 +153,7 @@ export default function App() {
       <header className="app-header">
         <div className="header-inner">
           <div style={{ display:"flex", alignItems:"center", gap:11 }}>
-            <div className="logo-mark">
-              <Shield size={17} color="#fff" strokeWidth={2.5} style={{ position:"relative", zIndex:1 }}/>
-            </div>
-            <div>
-              <div className="logo-text-primary">Xpert eKYC</div>
-              <div className="logo-text-sub">BFIU Circular No. 29</div>
-            </div>
+            <img src="/logo.jpg" alt="Xpert eKYC" style={{ height:"42px", objectFit:"contain" }} />
           </div>
           <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap" }}>
             <div className="api-live">

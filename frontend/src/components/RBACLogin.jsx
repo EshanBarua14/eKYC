@@ -123,13 +123,7 @@ export default function RBACLogin({ onLogin, onCancel }) {
 
         {/* Header */}
         <div style={{ textAlign:"center", marginBottom:32 }}>
-          <div style={{ width:56, height:56, borderRadius:16,
-            background:"linear-gradient(135deg,var(--accent),var(--accent2))",
-            display:"flex", alignItems:"center", justifyContent:"center",
-            margin:"0 auto 16px", boxShadow:"0 8px 24px rgba(99,102,241,0.3)" }}>
-            <Shield size={24} color="#fff" strokeWidth={2.5}/>
-          </div>
-          <h1 style={{ fontSize:24, fontWeight:800, color:"var(--text)", margin:0 }}>Xpert eKYC</h1>
+          <img src="/logo.jpg" alt="Xpert eKYC" style={{ height:"64px", objectFit:"contain", margin:"0 auto", display:"block" }} />
           <p style={{ fontSize:13, color:"var(--text3)", marginTop:4 }}>BFIU Circular No. 29 — Staff Portal</p>
         </div>
 
