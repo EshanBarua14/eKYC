@@ -536,7 +536,6 @@ export default function ComplianceDashboard({ onExit, theme, toggleTheme }) {
             </button>
             <div style={{ width:1, height:20, background:"var(--border)" }}/>
             <img src="/logo.jpg" alt="Xpert eKYC" style={{ height:"32px", objectFit:"contain" }} />
-            </div>
           </div>
           <div style={{display:"flex",alignItems:"center",gap:8}}>
             <Badge color="green">● Live</Badge>
