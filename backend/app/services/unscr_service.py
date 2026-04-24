@@ -9,6 +9,7 @@ import re
 import logging
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
+from app.core.timezone import bst_isoformat
 from typing import Optional
 from app.db.database import db_session
 
@@ -308,4 +309,4 @@ def _token_overlap(a, b):
 
 
 def _now_iso():
-    return datetime.now(timezone.utc).isoformat()
+    return bst_isoformat()

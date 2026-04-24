@@ -17,6 +17,7 @@ Decision Logic:
 """
 import uuid
 from datetime import datetime, timezone
+from app.core.timezone import bst_isoformat
 from typing import Optional
 
 # ── Step definitions ──────────────────────────────────────────────────────
@@ -73,8 +74,8 @@ def create_kyc_session(
         "risk_result":    None,
         "decision":       None,
         "audit_trail":    [],
-        "created_at":     datetime.now(timezone.utc).isoformat(),
-        "updated_at":     datetime.now(timezone.utc).isoformat(),
+        "created_at":     bst_isoformat(),
+        "updated_at":     bst_isoformat(),
         "bfiu_ref":       "BFIU Circular No. 29",
     }
     _append_audit(session, "SESSION_CREATED", {
@@ -344,13 +345,13 @@ def make_decision(session_id: str) -> dict:
         "risk_score": score,
         "edd_required": edd_required,
         "kyc_type": kyc_type,
-        "decided_at": datetime.now(timezone.utc).isoformat(),
+        "decided_at": bst_isoformat(),
         "bfiu_ref": "BFIU Circular No. 29 §4.2, §6.3",
     }
     session["status"] = decision
     session["current_step"] = "COMPLETE"
     session["completed_steps"].append("decision")
-    session["updated_at"] = datetime.now(timezone.utc).isoformat()
+    session["updated_at"] = bst_isoformat()
 
     _append_audit(session, "DECISION_MADE", session["decision"])
     return {
@@ -411,7 +412,7 @@ def _advance_step(session: dict, completed: str, detail: dict) -> dict:
     else:
         session["current_step"] = "COMPLETE"
 
-    session["updated_at"] = datetime.now(timezone.utc).isoformat()
+    session["updated_at"] = bst_isoformat()
     return {
         "session_id":   session["session_id"],
         "step_completed": completed,
@@ -423,7 +424,7 @@ def _advance_step(session: dict, completed: str, detail: dict) -> dict:
 
 
 def _error(session: dict, message: str, code: str) -> dict:
-    session["updated_at"] = datetime.now(timezone.utc).isoformat()
+    session["updated_at"] = bst_isoformat()
     _append_audit(session, f"STEP_ERROR:{code}", {"message": message})
     return {
         "session_id": session["session_id"],
@@ -439,7 +440,7 @@ def _append_audit(session: dict, event: str, detail: dict = None):
     session.setdefault("audit_trail", []).append({
         "event":     event,
         "detail":    detail or {},
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": bst_isoformat(),
         "bfiu_ref":  "BFIU Circular No. 29",
     })
 

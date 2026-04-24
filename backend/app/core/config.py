@@ -24,6 +24,7 @@ class Settings(BaseSettings):
 
     # ── App ───────────────────────────────────────────────────────────────
     APP_NAME: str    = "Xpert Fintech Ltd. - Electronic KYC (eKYC) Compliance API"
+    TIMEZONE: str    = "Asia/Dhaka"   # Bangladesh Standard Time UTC+6
     APP_VERSION: str = "1.0.0"
     API_V1_PREFIX: str = "/api/v1"
     DEBUG: bool      = True

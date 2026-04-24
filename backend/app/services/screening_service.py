@@ -12,6 +12,7 @@ Screening tiers:
 import re
 import uuid
 from datetime import datetime, timezone
+from app.core.timezone import bst_isoformat
 from typing import Optional
 from app.services.bangla_phonetic import enhanced_match_score as _phonetic_score
 
@@ -136,7 +137,7 @@ def screen_unscr(name: str) -> dict:
             "name":       name,
             "matches":    [],
             "list_version": _get_list_version(),
-            "screened_at": datetime.now(timezone.utc).isoformat(),
+            "screened_at": bst_isoformat(),
             "bfiu_ref":   "BFIU Circular No. 29 - Section 3.2.2",
         }
 
@@ -150,7 +151,7 @@ def screen_unscr(name: str) -> dict:
         "matches":      matches,
         "best_score":   best_match["score"],
         "list_version": _get_list_version(),
-        "screened_at":  datetime.now(timezone.utc).isoformat(),
+        "screened_at":  bst_isoformat(),
         "blocking":     verdict == "MATCH",
         "bfiu_ref":     "BFIU Circular No. 29 - Section 3.2.2",
     }
@@ -176,7 +177,7 @@ def screen_pep(name: str) -> dict:
             "verdict":    "CLEAR",
             "name":       name,
             "matches":    [],
-            "screened_at": datetime.now(timezone.utc).isoformat(),
+            "screened_at": bst_isoformat(),
             "bfiu_ref":   "BFIU Circular No. 29 - Section 4.2",
         }
 
@@ -187,7 +188,7 @@ def screen_pep(name: str) -> dict:
         "matches":    matches,
         "best_score": best["score"],
         "role":       best["entry"]["role"],
-        "screened_at": datetime.now(timezone.utc).isoformat(),
+        "screened_at": bst_isoformat(),
         "edd_required": True,
         "bfiu_ref":   "BFIU Circular No. 29 - Section 4.2",
     }
@@ -229,7 +230,7 @@ def screen_adverse_media(name: str, kyc_type: str = "REGULAR") -> dict:
         "hits":         hits,
         "hit_count":    len(hits),
         "edd_required": verdict == "FLAGGED",
-        "screened_at":  datetime.now(timezone.utc).isoformat(),
+        "screened_at":  bst_isoformat(),
         "bfiu_ref":     "BFIU Circular No. 29 - Section 5.3",
     }
 
@@ -244,7 +245,7 @@ def add_to_exit_list(institution_id: str, name: str, reason: str) -> dict:
         "id":         str(uuid.uuid4()),
         "name":       name,
         "reason":     reason,
-        "added_at":   datetime.now(timezone.utc).isoformat(),
+        "added_at":   bst_isoformat(),
         "added_by":   "system",
     }
     _EXIT_LISTS[institution_id].append(entry)
@@ -265,7 +266,7 @@ def screen_exit_list(name: str, institution_id: str) -> dict:
         "verdict":    verdict,
         "name":       name,
         "matches":    matches,
-        "screened_at": datetime.now(timezone.utc).isoformat(),
+        "screened_at": bst_isoformat(),
         "blocking":   verdict == "MATCH",
         "bfiu_ref":   "BFIU Circular No. 29 - Section 5.1",
     }
@@ -318,7 +319,7 @@ def run_full_screening(
         "edd_required":     edd_required,
         "blocking":         blocked,
         "results":          results,
-        "screened_at":      datetime.now(timezone.utc).isoformat(),
+        "screened_at":      bst_isoformat(),
         "bfiu_ref":         "BFIU Circular No. 29 - Section 5",
     }
 

@@ -1,3 +1,12 @@
+
+# ── Bangladesh Standard Time (UTC+6) ─────────────────────────────────────
+import os as _os
+_os.environ.setdefault("TZ", "Asia/Dhaka")
+try:
+    import time as _time
+    _time.tzset()
+except AttributeError:
+    pass  # Windows does not support tzset() — use zoneinfo instead
 """
 Xpert Fintech eKYC Platform — API Entry Point
 BFIU Circular No. 29 Compliant
