@@ -2,10 +2,22 @@
 Platform Settings API — runtime configuration via Admin UI
 Overrides .env defaults without server restart
 """
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Optional
 import json, os
+
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from jose import JWTError
+from app.core.security import decode_token
+
+_security = HTTPBearer()
+
+def get_current_user(creds: HTTPAuthorizationCredentials = Depends(_security)) -> dict:
+    try:
+        return decode_token(creds.credentials)
+    except JWTError as e:
+        raise HTTPException(status_code=401, detail=str(e))
 
 router = APIRouter(prefix="/settings", tags=["Settings"])
 
@@ -105,3 +117,31 @@ async def platform_status():
         "bfiu_max_attempts":  s.get("bfiu_max_attempts", 10),
         "bfiu_max_sessions":  s.get("bfiu_max_sessions", 2),
     }
+
+# ── UNSCR Manual Pull (Admin only) ───────────────────────────────────────
+@router.post("/unscr/pull", tags=["Admin"])
+def trigger_unscr_pull(current_user: dict = Depends(get_current_user)):
+    """
+    Manually trigger UN consolidated list pull.
+    Admin only. BFIU §5.1 — list must be current.
+    """
+    role = current_user.get("role", "")
+    if role not in ("ADMIN", "AUDITOR"):
+        raise HTTPException(status_code=403, detail="Admin or Auditor role required")
+    try:
+        from app.services.unscr_service import pull_un_list
+        result = pull_un_list(pulled_by=f"manual:{current_user.get('user_id','unknown')}")
+        return {
+            "triggered_by": current_user.get("user_id"),
+            "result": result,
+            "bfiu_ref": "BFIU Circular No. 29 §5.1",
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.get("/unscr/status", tags=["Admin"])
+def unscr_list_status(current_user: dict = Depends(get_current_user)):
+    """Get current UNSCR list status — version, entry count, last pull."""
+    from app.services.unscr_service import get_list_status
+    return get_list_status()

@@ -105,15 +105,25 @@ def fuzzy_match_score(name1: str, name2: str) -> float:
 def screen_unscr(name: str) -> dict:
     """
     Screen name against UNSCR consolidated list.
-    Returns verdict: CLEAR | MATCH | REVIEW
-    MATCH -> blocks account opening immediately (BFIU mandatory)
-    REVIEW -> flagged for manual checker review
+    PRIMARY: PostgreSQL DB via unscr_service.search_unscr() (daily-refreshed from UN XML).
+    FALLBACK: in-memory demo list if DB empty or unavailable.
+    MATCH -> blocks account opening immediately (BFIU mandatory).
+    REVIEW -> flagged for manual checker review.
+    BFIU Circular No. 29 - Section 3.2.2
     """
-    name_normalized = normalize_name(name)
-    matches = []
+    # Try DB-backed search first (production path)
+    try:
+        from app.services.unscr_service import search_unscr as _db_search
+        result = _db_search(name, threshold=UNSCR_FUZZY_MATCH_THRESHOLD)
+        result["bfiu_ref"] = "BFIU Circular No. 29 - Section 3.2.2"
+        result["source"] = "DB"
+        return result
+    except Exception:
+        pass
 
+    # Fallback: in-memory demo list
+    matches = []
     for entry in _UNSCR_LIST:
-        # Check primary name
         score = fuzzy_match_score(name, entry["name"])
         if score >= UNSCR_EXACT_MATCH_THRESHOLD:
             matches.append({"entry": entry, "score": score, "match_type": "EXACT"})
@@ -121,24 +131,21 @@ def screen_unscr(name: str) -> dict:
         if score >= UNSCR_FUZZY_MATCH_THRESHOLD:
             matches.append({"entry": entry, "score": score, "match_type": "FUZZY"})
             continue
-        # Check aliases
         for alias in entry.get("aliases", []):
             alias_score = fuzzy_match_score(name, alias)
             if alias_score >= UNSCR_FUZZY_MATCH_THRESHOLD:
-                matches.append({
-                    "entry": entry, "score": alias_score,
-                    "match_type": "ALIAS", "matched_alias": alias
-                })
+                matches.append({"entry": entry, "score": alias_score, "match_type": "ALIAS", "matched_alias": alias})
                 break
 
     if not matches:
         return {
-            "verdict":    "CLEAR",
-            "name":       name,
-            "matches":    [],
+            "verdict":      "CLEAR",
+            "name":         name,
+            "matches":      [],
             "list_version": _get_list_version(),
-            "screened_at": bst_isoformat(),
-            "bfiu_ref":   "BFIU Circular No. 29 - Section 3.2.2",
+            "screened_at":  bst_isoformat(),
+            "source":       "FALLBACK_DEMO",
+            "bfiu_ref":     "BFIU Circular No. 29 - Section 3.2.2",
         }
 
     best_match   = max(matches, key=lambda x: x["score"])
@@ -153,12 +160,10 @@ def screen_unscr(name: str) -> dict:
         "list_version": _get_list_version(),
         "screened_at":  bst_isoformat(),
         "blocking":     verdict == "MATCH",
+        "source":       "FALLBACK_DEMO",
         "bfiu_ref":     "BFIU Circular No. 29 - Section 3.2.2",
     }
 
-# ---------------------------------------------------------------------------
-# PEP screening
-# ---------------------------------------------------------------------------
 def screen_pep(name: str) -> dict:
     """
     Screen name against PEP list.
@@ -314,6 +319,7 @@ def run_full_screening(
 
     return {
         "combined_verdict": combined,
+        "overall_verdict":  combined,
         "name":             name,
         "kyc_type":         kyc_type,
         "edd_required":     edd_required,

@@ -47,8 +47,8 @@ def pull_un_list(url=UN_LIST_XML_URL, pulled_by="celery_beat"):
 def _fetch_and_parse(url):
     import urllib.request, ssl
     ctx = ssl.create_default_context()
-    ctx.check_hostname = False
-    ctx.verify_mode = ssl.CERT_NONE
+    ctx.check_hostname = True
+    ctx.verify_mode = ssl.CERT_REQUIRED
     with urllib.request.urlopen(url, timeout=REQUEST_TIMEOUT, context=ctx) as resp:
         xml_data = resp.read()
     return _parse_xml(xml_data)
@@ -204,7 +204,8 @@ def search_unscr(name, threshold=FUZZY_MATCH_THRESHOLD):
     from app.db.models_platform import UNSCREntry
     name_norm = _normalize(name)
     if not name_norm:
-        return {"verdict": "CLEAR", "name": name, "matches": [], "screened_at": _now_iso(),
+        return {"verdict": "CLEAR", "name": name, "matches": [],
+                "list_version": _get_current_list_version(), "screened_at": _now_iso(),
                 "bfiu_ref": "BFIU Circular No. 29 — Section 5.1"}
     matches = []
     with db_session() as db:
@@ -219,11 +220,14 @@ def search_unscr(name, threshold=FUZZY_MATCH_THRESHOLD):
                                  "committee": entry.committee, "listed_on": entry.listed_on})
     if not matches:
         return {"verdict": "CLEAR", "name": name, "matches": [],
+                "list_version": _get_current_list_version(),
                 "screened_at": _now_iso(), "bfiu_ref": "BFIU Circular No. 29 — Section 5.1"}
     best_score = max(m["score"] for m in matches)
     verdict = "MATCH" if best_score >= EXACT_MATCH_THRESHOLD else "REVIEW"
     return {"verdict": verdict, "name": name, "matches": matches, "best_score": best_score,
-            "blocking": verdict == "MATCH", "screened_at": _now_iso(),
+            "blocking": verdict == "MATCH",
+            "list_version": _get_current_list_version(),
+            "screened_at": _now_iso(),
             "bfiu_ref": "BFIU Circular No. 29 — Section 5.1"}
 
 
@@ -285,8 +289,56 @@ def _record_pull_failure(list_version, url, error, pulled_by):
         log.error("[M37] _record_pull_failure error: %s", exc)
 
 
-def _send_alert(message):
-    log.error("[M37] ALERT: %s", message)
+def _send_alert(message: str, alert_type: str = "UNSCR_PULL_FAILURE"):
+    """
+    Send alert on UNSCR pull failure.
+    1. Log error (always)
+    2. Increment Prometheus counter
+    3. Email compliance officer if SMTP configured
+    """
+    log.error("[M37] ALERT [%s]: %s", alert_type, message)
+
+    # Prometheus counter
+    try:
+        from app.services.metrics import EC_API_ERRORS
+        EC_API_ERRORS.labels(error_type=alert_type).inc()
+    except Exception:
+        pass
+
+    # Email alert to compliance officer
+    try:
+        import json, os
+        sf = os.path.join(os.path.dirname(__file__), "../../platform_settings.json")
+        with open(sf, "r", encoding="utf-8") as f:
+            settings = json.load(f)
+
+        smtp_host = settings.get("smtp_host", "")
+        smtp_user = settings.get("smtp_user", "")
+        smtp_pass = settings.get("smtp_password", "")
+        smtp_from = settings.get("smtp_from", "")
+        helpdesk  = settings.get("helpdesk_email", "")
+
+        if smtp_host and smtp_user and smtp_pass and helpdesk:
+            import smtplib
+            from email.mime.text import MIMEText
+            from app.core.timezone import bst_display
+            msg = MIMEText(
+                f"ALERT: {alert_type}\n\n"
+                f"Message: {message}\n\n"
+                f"Time: {bst_display()}\n\n"
+                f"Action required: Manually trigger UN list pull from Admin UI.\n"
+                f"BFIU Circular No. 29 §5.1 — UNSCR screening must be current."
+            )
+            msg["Subject"] = f"[eKYC ALERT] {alert_type} — UNSCR list pull failed"
+            msg["From"]    = smtp_from
+            msg["To"]      = helpdesk
+            with smtplib.SMTP(smtp_host, settings.get("smtp_port", 587)) as server:
+                server.starttls()
+                server.login(smtp_user, smtp_pass)
+                server.send_message(msg)
+            log.info("[M37] Alert email sent to %s", helpdesk)
+    except Exception as exc:
+        log.warning("[M37] Alert email failed: %s", exc)
 
 
 def _normalize(name):
@@ -296,8 +348,19 @@ def _normalize(name):
 
 
 def _score(query, primary, aliases):
+    """Score using Bangla phonetic + token overlap + edit distance."""
     candidates = [primary] + (aliases or [])
-    scores = [_token_overlap(_normalize(query), _normalize(c)) for c in candidates]
+    scores = []
+    for c in candidates:
+        # Token overlap
+        tok = _token_overlap(_normalize(query), _normalize(c))
+        # Bangla phonetic score
+        try:
+            from app.services.bangla_phonetic import enhanced_match_score
+            phonetic = enhanced_match_score(query, c, base_scorer=lambda a, b: tok)
+        except Exception:
+            phonetic = tok
+        scores.append(max(tok, phonetic))
     return max(scores) if scores else 0.0
 
 
@@ -310,3 +373,19 @@ def _token_overlap(a, b):
 
 def _now_iso():
     return bst_isoformat()
+
+
+def _get_current_list_version() -> str:
+    """Get current active list version from DB or return date-stamped demo."""
+    try:
+        from app.db.models_platform import UNSCRListMeta
+        with db_session() as db:
+            latest = db.query(UNSCRListMeta).filter_by(
+                status="SUCCESS").order_by(
+                UNSCRListMeta.id.desc()).first()
+            if latest:
+                return latest.list_version
+    except Exception:
+        pass
+    from datetime import datetime, timezone
+    return datetime.now(timezone.utc).strftime("%Y-%m-%d") + "-DEMO"
