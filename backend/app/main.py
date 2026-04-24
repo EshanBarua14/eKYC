@@ -141,6 +141,19 @@ app.include_router(v1_router, prefix=settings.API_V1_PREFIX)
 # ── Error Boundary (M30) ─────────────────────────────────────────────────
 register_error_handlers(app)
 
+# ── Prometheus Metrics (M57) ─────────────────────────────────────────────
+try:
+    from prometheus_fastapi_instrumentator import Instrumentator
+    Instrumentator(
+        should_group_status_codes=True,
+        should_ignore_untemplated=True,
+        excluded_handlers=["/health", "/docs", "/redoc", "/openapi.json"],
+    ).instrument(app).expose(app, endpoint="/metrics", include_in_schema=False)
+    print("[M57] Prometheus /metrics endpoint enabled")
+except ImportError:
+    print("[M57] prometheus-fastapi-instrumentator not installed — metrics disabled")
+
+
 @app.get("/health", tags=["System"])
 async def health():
     from datetime import datetime, timezone
