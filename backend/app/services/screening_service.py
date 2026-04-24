@@ -164,28 +164,43 @@ def screen_unscr(name: str) -> dict:
         "bfiu_ref":     "BFIU Circular No. 29 - Section 3.2.2",
     }
 
-def screen_pep(name: str) -> dict:
+def screen_pep(name: str, db=None, national_id: str = None) -> dict:
     """
-    Screen name against PEP list.
-    Mandatory for Regular eKYC only.
-    Returns verdict: CLEAR | MATCH | REVIEW
+    Screen name against PEP/IP list.
+    Mandatory for Regular eKYC only (BFIU §4.2).
+    Uses DB-backed list (M62) when db session provided.
+    Falls back to demo list when db=None.
     """
+    if db is not None:
+        try:
+            from app.services.pep_service import screen_pep_db
+            result = screen_pep_db(db, name, national_id)
+            return {
+                "verdict":     "MATCH" if result["verdict"] == "MATCH" else "CLEAR",
+                "name":        name,
+                "matches":     [result["matched_entry"]] if result["matched_entry"] else [],
+                "best_score":  result["score"],
+                "screened_at": bst_isoformat(),
+                "edd_required": result["edd_required"],
+                "source":      "DB",
+                "bfiu_ref":    "BFIU Circular No. 29 - Section 4.2",
+            }
+        except Exception:
+            pass
     matches = []
-
     for entry in _PEP_LIST:
         score = fuzzy_match_score(name, entry["name"])
         if score >= PEP_MATCH_THRESHOLD:
             matches.append({"entry": entry, "score": score})
-
     if not matches:
         return {
             "verdict":    "CLEAR",
             "name":       name,
             "matches":    [],
             "screened_at": bst_isoformat(),
+            "source":     "DEMO",
             "bfiu_ref":   "BFIU Circular No. 29 - Section 4.2",
         }
-
     best = max(matches, key=lambda x: x["score"])
     return {
         "verdict":    "MATCH",
@@ -195,6 +210,7 @@ def screen_pep(name: str) -> dict:
         "role":       best["entry"]["role"],
         "screened_at": bst_isoformat(),
         "edd_required": True,
+        "source":     "DEMO",
         "bfiu_ref":   "BFIU Circular No. 29 - Section 4.2",
     }
 
