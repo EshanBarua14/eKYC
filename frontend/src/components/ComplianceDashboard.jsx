@@ -535,14 +535,7 @@ export default function ComplianceDashboard({ onExit, theme, toggleTheme }) {
               <ChevronLeft size={13}/> Exit
             </button>
             <div style={{ width:1, height:20, background:"var(--border)" }}/>
-            <div style={{ width:32, height:32, borderRadius:9,
-              background:"linear-gradient(135deg,var(--green),var(--blue))",
-              display:"flex", alignItems:"center", justifyContent:"center" }}>
-              <Shield size={15} color="#fff" strokeWidth={2.5}/>
-            </div>
-            <div>
-              <div style={{fontSize:13,fontWeight:800,color:"var(--text)",lineHeight:1.1}}>Compliance Dashboard</div>
-              <div style={{fontSize:9,color:"var(--text3)",fontWeight:600,letterSpacing:"0.1em",textTransform:"uppercase"}}>BFIU Circular No. 29 · M14</div>
+            <img src="/logo.jpg" alt="Xpert eKYC" style={{ height:"32px", objectFit:"contain" }} />
             </div>
           </div>
           <div style={{display:"flex",alignItems:"center",gap:8}}>
