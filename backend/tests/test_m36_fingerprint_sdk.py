@@ -271,9 +271,13 @@ class TestVerifyFingerprint:
         assert "BFIU" in result["bfiu_ref"]
 
     def test_timeout_returns_provider_timeout_verdict(self):
-        from app.services.fingerprint_service import verify_fingerprint, set_demo_scenario
+        import uuid
+        from app.services.fingerprint_service import verify_fingerprint, set_demo_scenario, _session_attempts
         set_demo_scenario("TIMEOUT")
-        result = verify_fingerprint("test_sess_fp_timeout_unique", "1234567890123", "1990-01-15", "")
+        fresh = "to_" + uuid.uuid4().hex[:8]
+        _session_attempts.pop(fresh, None)
+        result = verify_fingerprint(fresh, "1234567890123", "1990-01-15", "")
+        set_demo_scenario("MATCH")
         assert result["verdict"] == "PROVIDER_TIMEOUT"
 
 

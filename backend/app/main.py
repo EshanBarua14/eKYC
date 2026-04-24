@@ -20,8 +20,6 @@ from app.api.v1.router import v1_router
 from app.db.database import engine, init_db
 from app.db import models
 
-# Create all tables on startup (dev) — use Alembic in production
-models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title=settings.APP_NAME,

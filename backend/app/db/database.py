@@ -1,6 +1,6 @@
 """
-Database connection — PostgreSQL (production) with SQLite fallback (dev/CI)
-BFIU Circular No. 29 — data residency on local server
+Database connection â PostgreSQL (production) with SQLite fallback (dev/CI)
+BFIU Circular No. 29 â data residency on local server
 M40: PostgreSQL migration
 """
 import os
@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# PostgreSQL required — no SQLite in production
+# PostgreSQL required â no SQLite in production
 DATABASE_URL: str = os.getenv(
     "DATABASE_URL",
     "postgresql://ekyc_user:ekyc_pass@localhost:5432/ekyc_db"
@@ -60,7 +60,7 @@ class Base(DeclarativeBase):
 
 
 def get_db():
-    """FastAPI dependency — yields DB session."""
+    """FastAPI dependency â yields DB session."""
     db = SessionLocal()
     try:
         yield db
@@ -102,7 +102,9 @@ def tenant_session(schema: str = "public"):
 
 
 def init_db():
-    """Create all tables. Use Alembic for production migrations."""
-    from app.db import models       # noqa — registers all models
-    import app.db.models_platform   # noqa
-    Base.metadata.create_all(bind=engine)
+    """
+    M63: Tables managed by Alembic migrations only.
+    Run: alembic upgrade head
+    create_all() removed - BFIU compliance requires versioned schema.
+    """
+    pass  # Alembic manages all schema changes
