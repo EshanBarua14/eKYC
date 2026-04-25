@@ -1,2 +1,4 @@
 .env
 test_results*.txt
+celerybeat-schedule*
+*.bak
