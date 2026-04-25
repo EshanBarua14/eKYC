@@ -129,7 +129,8 @@ async def update_institution(iid: str, req: InstitutionUpdateReq, cu: dict = Dep
 
 @router.delete("/institutions/{iid}", operation_id="admin_delete_institution")
 async def delete_institution(iid: str, cu: dict = Depends(require_admin)):
-    from app.db.database import db_session
+    from app.services.tenant_provisioning import provision_tenant_schema, add_schema_to_allowlist
+from app.db.database import db_session
     from app.db.models.auth import Institution
     with db_session() as db:
         r = db.query(Institution).filter_by(id=iid).first()
@@ -193,7 +194,8 @@ async def get_user(uid: str, cu: dict = Depends(require_admin_or_auditor)):
 
 @router.put("/users/{uid}/activate", operation_id="admin_activate_user")
 async def activate_user(uid: str, active: bool = True, cu: dict = Depends(require_admin)):
-    from app.db.database import db_session
+    from app.services.tenant_provisioning import provision_tenant_schema, add_schema_to_allowlist
+from app.db.database import db_session
     from app.db.models.auth import User
     with db_session() as db:
         r = db.query(User).filter_by(id=uid).first()
@@ -206,7 +208,8 @@ async def activate_user(uid: str, active: bool = True, cu: dict = Depends(requir
 
 @router.delete("/users/{uid}", operation_id="admin_delete_user")
 async def delete_user(uid: str, cu: dict = Depends(require_admin)):
-    from app.db.database import db_session
+    from app.services.tenant_provisioning import provision_tenant_schema, add_schema_to_allowlist
+from app.db.database import db_session
     from app.db.models.auth import User
     with db_session() as db:
         r = db.query(User).filter_by(id=uid).first()
@@ -278,7 +281,8 @@ async def webhook_logs(cu: dict = Depends(require_admin_or_auditor)):
 # ══════════════════════════════════════════════════════════════════════════
 @router.get("/health", operation_id="admin_health")
 async def admin_health(cu: dict = Depends(require_admin_or_auditor)):
-    from app.db.database import engine
+    from app.services.tenant_provisioning import provision_tenant_schema, add_schema_to_allowlist
+from app.db.database import engine
     from sqlalchemy import text
     db_ok = False
     try:

@@ -16,6 +16,7 @@ from app.db.database import get_db
 from app.middleware.tenant_db import get_tenant_db
 from app.db.models import KYCProfile
 from app.services import file_storage
+from app.worker.tasks.notify_account_opening import send_account_opening_success, send_account_opening_failure
 from app.services.kyc_threshold import assign_kyc_type, calculate_risk_score
 
 router = APIRouter(prefix="/kyc", tags=["KYC Profile"])
@@ -129,6 +130,25 @@ def create_profile(req: KYCProfileRequest, db: Session = Depends(get_tenant_db))
     db.add(profile)
     db.commit()
     db.refresh(profile)
+
+    # M77: BFIU §3.2 Step 5 — dispatch account opening notification async
+    try:
+        send_account_opening_success.delay(
+            session_id=profile.session_id,
+            full_name=profile.full_name,
+            mobile=profile.mobile,
+            email=profile.email,
+            account_number=profile.account_number or "PENDING",
+            kyc_type=profile.kyc_type,
+            risk_grade=profile.risk_grade or "LOW",
+            confidence=profile.confidence,
+        )
+    except Exception as _notify_err:
+        # Non-blocking — log but never fail profile creation
+        import logging
+        logging.getLogger(__name__).warning(
+            "[M77] Notification dispatch failed (non-blocking): %s", _notify_err
+        )
 
     return {
         "profile_id":    profile.id,
