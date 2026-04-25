@@ -109,7 +109,26 @@ def submit_data_capture(session_id: str, customer_data: dict) -> dict:
         return _error(session, f"Missing required fields: {', '.join(missing)}", "MISSING_FIELDS")
 
     session["data"].update(customer_data)
-    return _advance_step(session, "data_capture", {"fields_captured": list(customer_data.keys())})
+
+    # M68: Validate nominee details (BFIU §6.1 — nominee mandatory)
+    nominee_result = None
+    try:
+        from app.services.nominee_validator import validate_nominee_from_data
+        nominee_result = validate_nominee_from_data(customer_data, session["kyc_type"])
+        if nominee_result and nominee_result.get("validated"):
+            session["data"]["nominee_validated"] = True
+            _append_audit(session, "NOMINEE_VALIDATED", nominee_result)
+        elif nominee_result and not nominee_result.get("validated"):
+            session["data"]["nominee_validated"] = False
+            _append_audit(session, "NOMINEE_WARNING", nominee_result)
+    except Exception as e:
+        session["data"]["nominee_validation_error"] = str(e)
+        _append_audit(session, "NOMINEE_VALIDATION_FAILED", {"error": str(e)})
+
+    return _advance_step(session, "data_capture", {
+        "fields_captured": list(customer_data.keys()),
+        "nominee_validated": session["data"].get("nominee_validated", False),
+    })
 
 
 def submit_nid_verification(session_id: str, nid_number: str, ocr_fields: dict = None) -> dict:
