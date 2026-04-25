@@ -15,6 +15,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
+from app.middleware.data_residency import DataResidencyMiddleware
 from app.middleware.error_boundary import register_error_handlers
 from app.core.logging_config import configure_logging
 from app.middleware.logging_middleware import RequestLoggingMiddleware
@@ -158,6 +159,7 @@ app.include_router(v1_router, prefix=settings.API_V1_PREFIX)
 # ── Error Boundary (M30) ─────────────────────────────────────────────────
 app.add_middleware(AdminIPWhitelistMiddleware)  # M66: admin IP whitelist
 app.add_middleware(RequestLoggingMiddleware)  # M65: runs after error_boundary sets request_id
+app.add_middleware(DataResidencyMiddleware)
 register_error_handlers(app)
 
 # ── Prometheus Metrics (M57) ─────────────────────────────────────────────
