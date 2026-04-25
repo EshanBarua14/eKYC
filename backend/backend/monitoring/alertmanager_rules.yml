@@ -1,0 +1,82 @@
+# Xpert eKYC Platform — Prometheus Alert Rules
+# BFIU Circular No. 29 — operational monitoring
+
+groups:
+  - name: ekyc_bfiu_compliance
+    interval: 60s
+    rules:
+
+      - alert: UNSCRFeedStale
+        expr: (time() - ekyc_unscr_last_pull_timestamp) > 86400
+        for: 1h
+        labels:
+          severity: critical
+          bfiu_ref: "§3.2.2"
+        annotations:
+          summary: "UNSCR feed not updated in 24 hours"
+          description: "Sanctions list may be stale. BFIU §3.2.2 requires current list."
+
+      - alert: EDDCasesOverdue
+        expr: ekyc_edd_overdue_cases > 0
+        for: 0m
+        labels:
+          severity: warning
+          bfiu_ref: "§4.3"
+        annotations:
+          summary: "EDD cases past 1-month SLA deadline"
+          description: "{{ $value }} EDD cases have breached the BFIU §4.3 1-month window."
+
+      - alert: HighRejectionRate
+        expr: rate(ekyc_kyc_decisions_total{outcome="REJECTED"}[1h]) > 0.3
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High KYC rejection rate"
+          description: "Rejection rate above 30% for 15 minutes."
+
+      - alert: APIHighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "API error rate above 5%"
+          description: "Backend returning >5% 5xx responses."
+
+      - alert: APIDown
+        expr: up{job="ekyc-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "eKYC API is down"
+          description: "Backend health check failing."
+
+      - alert: CeleryWorkerDown
+        expr: celery_workers_active == 0
+        for: 2m
+        labels:
+          severity: critical
+          bfiu_ref: "§5.3"
+        annotations:
+          summary: "Celery worker offline"
+          description: "Adverse media re-screening (BFIU §5.3) and EDD SLA tasks not running."
+
+      - alert: DatabaseConnectionsHigh
+        expr: pg_stat_activity_count > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "PostgreSQL connections near limit"
+          description: "{{ $value }}/100 connections in use."
+
+      - alert: RedisMemoryHigh
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Redis memory above 85%"
+          description: "Celery broker may start dropping tasks."

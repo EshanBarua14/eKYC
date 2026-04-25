@@ -18,6 +18,7 @@ from app.core.config import settings
 from app.middleware.error_boundary import register_error_handlers
 from app.core.logging_config import configure_logging
 from app.middleware.logging_middleware import RequestLoggingMiddleware
+from app.middleware.admin_ip_whitelist import AdminIPWhitelistMiddleware
 from app.api.v1.router import v1_router
 from app.db.database import engine, init_db
 from app.db import models
@@ -155,6 +156,7 @@ app.add_middleware(SecurityHeadersMiddleware)
 app.include_router(v1_router, prefix=settings.API_V1_PREFIX)
 
 # ── Error Boundary (M30) ─────────────────────────────────────────────────
+app.add_middleware(AdminIPWhitelistMiddleware)  # M66: admin IP whitelist
 app.add_middleware(RequestLoggingMiddleware)  # M65: runs after error_boundary sets request_id
 register_error_handlers(app)
 

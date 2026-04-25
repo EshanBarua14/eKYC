@@ -57,7 +57,18 @@ class Settings(BaseSettings):
     @computed_field
     @property
     def ALLOWED_ORIGINS_LIST(self) -> List[str]:
-        return [o.strip() for o in self.ALLOWED_ORIGINS.split(",")]
+        origins = [o.strip() for o in self.ALLOWED_ORIGINS.split(",")]
+        import os
+        is_prod = os.getenv("DEBUG", "true").lower() == "false"
+        if is_prod:
+            unsafe = [o for o in origins if "localhost" in o or "127.0.0.1" in o]
+            if unsafe:
+                import logging
+                logging.getLogger(__name__).warning(
+                    "[M66] CORS allows localhost in production: %s — set ALLOWED_ORIGINS to production domain.",
+                    unsafe
+                )
+        return origins
 
     # ── Multi-tenant ──────────────────────────────────────────────────────
     DEFAULT_TENANT_SCHEMA: str = "public"
