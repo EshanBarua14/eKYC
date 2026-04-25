@@ -4,3 +4,5 @@ celerybeat-schedule*
 *.bak
 reports/*.json
 reports/*.csv
+test_ekyc.db*
+keys/rotation_log.txt
