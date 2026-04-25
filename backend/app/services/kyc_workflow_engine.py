@@ -259,7 +259,13 @@ def submit_screening(session_id: str, name: str = None) -> dict:
         session["data"]["screening_flag"] = True
         _append_audit(session, "SCREENING_REVIEW_FLAG", screening)
 
-    return _advance_step(session, "screening", {"verdict": screening.get("overall_verdict"), "edd_required": screening.get("edd_required", False)})
+    list_version = (screening.get("results", {}).get("unscr", {}) or {}).get("list_version", "UNKNOWN")
+    return _advance_step(session, "screening", {
+        "verdict": screening.get("overall_verdict") or screening.get("combined_verdict"),
+        "edd_required": screening.get("edd_required", False),
+        "unscr_list_version": list_version,
+        "bfiu_ref": "BFIU Circular No. 29 §5.1 — list version recorded for audit",
+    })
 
 
 def submit_risk_assessment(session_id: str, risk_data: dict) -> dict:
@@ -289,10 +295,24 @@ def submit_risk_assessment(session_id: str, risk_data: dict) -> dict:
     )
     session["risk_result"] = risk_result
 
+    # M64-H: BFIU §4.2 — BO check mandatory for Regular eKYC
+    bo_pep_flag = False
+    bo_entries = session["data"].get("beneficial_owners", [])
+    for bo in bo_entries:
+        if bo.get("is_pep", False):
+            bo_pep_flag = True
+            break
+    if bo_pep_flag:
+        session["data"]["bo_pep_flag"] = True
+        risk_result["edd_required"] = True
+        _append_audit(session, "BO_PEP_FLAG", {"bo_count": len(bo_entries), "bfiu_ref": "BFIU §4.2"})
+
     return _advance_step(session, "risk_assessment", {
         "score": risk_result.get("total_score"),
         "grade": risk_result.get("risk_grade"),
         "edd_required": risk_result.get("edd_required", False),
+        "bo_pep_flag": bo_pep_flag,
+        "bo_count": len(bo_entries),
     })
 
 
@@ -318,7 +338,12 @@ def make_decision(session_id: str) -> dict:
     if kyc_type == "REGULAR":
         grade = risk.get("risk_grade", "MEDIUM")
         score = risk.get("total_score", 0)
-        edd_required = risk.get("edd_required", False) or screening.get("edd_required", False)
+        bo_pep_flag = session.get("data", {}).get("bo_pep_flag", False)
+        edd_required = (
+            risk.get("edd_required", False) or
+            screening.get("edd_required", False) or
+            bo_pep_flag  # BFIU §4.2: BO is PEP -> EDD mandatory
+        )
     else:
         # Simplified: no risk scoring — derive from screening
         grade = "LOW"
@@ -327,16 +352,56 @@ def make_decision(session_id: str) -> dict:
         if screening.get("overall_verdict") == "REVIEW":
             grade = "MEDIUM"
 
+    # M64-J: BFIU §3.3 Step 4 — wet/electronic signature required for HIGH risk
+    sig_type = session.get("data", {}).get("signature_type", "DIGITAL")
+    if grade == "HIGH" and sig_type not in ("WET", "ELECTRONIC"):
+        session["data"]["signature_compliance_warning"] = True
+        _append_audit(session, "SIGNATURE_COMPLIANCE_WARNING", {
+            "risk_grade": grade,
+            "signature_type": sig_type,
+            "required": "WET or ELECTRONIC for HIGH risk",
+            "bfiu_ref": "BFIU Circular No. 29 §3.3 Step 4",
+        })
+
     # Apply decision logic
     if edd_required or grade == "HIGH":
         decision = "EDD_REQUIRED"
         decision_reason = f"High risk / EDD triggered — score={score}, grade={grade}"
+        # BFIU §3.3 Step 4: wet/electronic signature required for high-risk
+        sig_type = session.get("data", {}).get("signature_type", "DIGITAL")
+        if sig_type == "DIGITAL" and kyc_type == "REGULAR":
+            session["data"]["signature_warning"] = (
+                "High-risk account requires wet or electronic signature (BFIU §3.3 Step 4). "
+                "Digital PIN signature is only permitted for low-risk accounts."
+            )
+        # BFIU §3.3 Step 4: wet/electronic signature required for high-risk
+        sig_type = session.get("data", {}).get("signature_type", "DIGITAL")
+        if sig_type == "DIGITAL" and kyc_type == "REGULAR":
+            session["data"]["signature_warning"] = (
+                "High-risk account requires wet or electronic signature (BFIU §3.3 Step 4). "
+                "Digital PIN signature is only permitted for low-risk accounts."
+            )
     elif grade == "MEDIUM" or screening.get("overall_verdict") == "REVIEW":
         decision = "CONDITIONAL"
         decision_reason = "Medium risk — conditional approval pending manual review"
     else:
         decision = "APPROVED"
         decision_reason = "Low risk — auto approved"
+
+    # ── M64-H: Beneficial ownership check — BFIU §4.2 Regular only ──────
+    bo_flag = False
+    if kyc_type == "REGULAR":
+        bo_data = session.get("data", {})
+        bo_flag = bool(bo_data.get("has_beneficial_owner", False))
+        if bo_flag and not bo_data.get("beneficial_owner_cdd_done", False):
+            # BO identified but CDD not completed — block decision
+            decision = "EDD_REQUIRED"
+            decision_reason = "Beneficial owner identified — CDD required (BFIU §4.2)"
+            edd_required = True
+
+    # ── M64-I: Generate §6.1/§6.2 KYC profile form ───────────────────────
+    from app.services.kyc_form_generator import generate_kyc_profile_form as generate_kyc_form
+    kyc_form = generate_kyc_form(session)
 
     session["decision"] = {
         "outcome": decision,
@@ -345,6 +410,8 @@ def make_decision(session_id: str) -> dict:
         "risk_score": score,
         "edd_required": edd_required,
         "kyc_type": kyc_type,
+        "bo_flag": bo_flag,
+        "kyc_form_ref": kyc_form.get("form_ref"),
         "decided_at": bst_isoformat(),
         "bfiu_ref": "BFIU Circular No. 29 §4.2, §6.3",
     }
@@ -354,6 +421,17 @@ def make_decision(session_id: str) -> dict:
     session["updated_at"] = bst_isoformat()
 
     _append_audit(session, "DECISION_MADE", session["decision"])
+
+    # M64-I: Generate §6.1/§6.2 KYC profile form at workflow completion
+    try:
+        from app.services.kyc_form_generator import generate_kyc_profile_form
+        session["kyc_profile_form"] = generate_kyc_profile_form(session)
+        _append_audit(session, "KYC_FORM_GENERATED", {
+            "form_version": session["kyc_profile_form"].get("form_version"),
+            "bfiu_ref": session["kyc_profile_form"].get("bfiu_ref"),
+        })
+    except Exception as e:
+        _append_audit(session, "KYC_FORM_ERROR", {"error": str(e)})
     return {
         "session_id": session_id,
         "decision": decision,

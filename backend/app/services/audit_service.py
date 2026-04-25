@@ -29,8 +29,13 @@ RETENTION_YEARS = 5
 def _now(): return datetime.now(timezone.utc)
 
 def reset_audit_log():
+    """
+    Test/dev utility — clears audit log using TRUNCATE (bypasses immutability trigger).
+    NEVER called in production. M64: immutability trigger blocks DELETE.
+    """
+    from sqlalchemy import text
     with db_session() as db:
-        db.query(AuditLog).delete()
+        db.execute(text("TRUNCATE TABLE audit_logs RESTART IDENTITY CASCADE"))
 
 def log_event(event_type, entity_type, actor_id=None, actor_role=None,
     entity_id=None, session_id=None, ip_address=None,

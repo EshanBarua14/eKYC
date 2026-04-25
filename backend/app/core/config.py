@@ -89,11 +89,18 @@ class Settings(BaseSettings):
     @field_validator("SECRET_KEY")
     @classmethod
     def secret_key_must_not_be_default_in_prod(cls, v: str) -> str:
-        if v == "dev-secret-change-in-production":
-            log.warning(
-                "[M43] SECRET_KEY is using the default dev value. "
-                "Set SECRET_KEY env var in production."
-            )
+        import os
+        is_prod = os.getenv("DEBUG", "true").lower() == "false"
+        defaults = {"dev-secret-change-in-production", "CHANGE_ME_REQUIRED_min_64_chars_hex", ""}
+        if v in defaults or len(v) < 32:
+            if is_prod:
+                raise ValueError(
+                    "[M64] SECRET_KEY is default/weak in production. "
+                    "Generate with: python -c 'import secrets; print(secrets.token_hex(32))' "
+                    "BFIU §4.5 — encryption keys must be properly managed."
+                )
+            else:
+                log.warning("[M43] SECRET_KEY is using the default dev value. Set SECRET_KEY env var in production.")
         return v
 
     @field_validator("POSTGRES_PASSWORD")
