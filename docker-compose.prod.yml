@@ -213,6 +213,39 @@ services:
       - ekyc_internal
     logging: *default-logging
 
+  # ── Celery Flower (task monitoring) ──────────────────────────────────────
+  flower:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ekyc_flower
+    restart: unless-stopped
+    command: celery -A app.worker.celery_app flower --port=5555 --basic_auth=${FLOWER_USER:-admin}:${FLOWER_PASSWORD:-changeme}
+    env_file: ./backend/.env.production
+    environment:
+      CELERY_BROKER_URL: redis://:@redis:6379/0
+    depends_on:
+      - redis
+      - celery_worker
+    expose:
+      - "5555"
+    networks:
+      - ekyc_internal
+    profiles: ["monitoring"]
+
+  # ── Certbot (Let's Encrypt SSL) ──────────────────────────────────────────
+  certbot:
+    image: certbot/certbot:latest
+    container_name: ekyc_certbot
+    volumes:
+      - certbot_data:/var/www/certbot
+      - ./nginx/ssl:/etc/nginx/ssl
+    entrypoint: ["/bin/sh", "-c", "trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet; sleep 12h & wait; done"]
+    depends_on:
+      - nginx
+    restart: unless-stopped
+    profiles: ["production"]
+
   # ── DB Backup (daily pg_dump) ─────────────────────────────────────────
   db_backup:
     image: postgres:16-alpine
