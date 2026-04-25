@@ -1,4 +1,23 @@
 """M55 — Tenant Schema Middleware Tests — BFIU Circular No. 29 §5.2"""
+import pytest
+import os
+if os.getenv("INTEGRATION_TESTS") != "1":
+    try:
+        import psycopg2
+        from urllib.parse import urlparse
+        db_url = os.getenv("DATABASE_URL", "")
+        if db_url.startswith("postgresql"):
+            p = urlparse(db_url)
+            conn = psycopg2.connect(host=p.hostname, port=p.port or 5432,
+                user=p.username, password=p.password,
+                dbname=p.path.lstrip("/"), connect_timeout=2)
+            conn.close()
+        else:
+            pytest.skip("PostgreSQL not configured", allow_module_level=True)
+    except Exception:
+        pytest.skip("PostgreSQL not available", allow_module_level=True)
+
+
 from unittest.mock import MagicMock, patch
 from app.middleware.tenant_db import get_tenant_schema, get_tenant_db, _safe_schema
 

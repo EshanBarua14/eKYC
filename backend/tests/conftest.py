@@ -1,176 +1,60 @@
-"""pytest conftest — test isolation for DB-backed services"""
-import pytest
-from app.db.database import engine
-from sqlalchemy import text
-
-@pytest.fixture(autouse=True, scope="session")
-def clean_test_outcomes():
-    """Clear outcome/fallback tables before test session to avoid 409 conflicts."""
-    try:
-        with engine.connect() as conn:
-            conn.execute(text("DELETE FROM onboarding_outcomes WHERE session_id LIKE 'test_%' OR session_id LIKE 'sess_%' OR session_id LIKE 'sec_%'"))
-            conn.execute(text("DELETE FROM fallback_cases WHERE session_id LIKE 'test_%' OR session_id LIKE 'sess_%'"))
-            conn.execute(text("DELETE FROM bo_accounts WHERE session_id LIKE 'test_%' OR session_id LIKE 'sess_%'"))
-            conn.execute(text("DELETE FROM kyc_profiles WHERE session_id LIKE 'test_%' OR session_id LIKE 'sess_%'"))
-            conn.execute(text("DELETE FROM notification_logs WHERE session_id LIKE 'test_%' OR session_id LIKE 'sess_%'"))
-            conn.commit()
-    except Exception as e:
-        print(f"[conftest] cleanup warning: {e}")
-    yield
-
-# ── E2E session cleanup — prevents stale-session 409 conflicts ──────────────
+"""
+Global test configuration.
+Unit tests run with SQLite. Tests requiring PostgreSQL skip when DB unavailable.
+Integration tests: INTEGRATION_TESTS=1
+"""
+import os
 import pytest
 
-E2E_SESSIONS_TO_CLEAN = [
-    "e2e_sess_003", "e2e_sess_004",
-]
+def pytest_configure(config):
+    config.addinivalue_line(
+        "markers", "integration: real DB + Redis tests (set INTEGRATION_TESTS=1)"
+    )
 
-@pytest.fixture(autouse=True, scope="session")
-def clean_e2e_sessions():
-    """Delete known fixed e2e session IDs before test suite runs."""
-    import sys, os
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+# ── DB availability check ────────────────────────────────────────────────────
+def _postgres_available() -> bool:
+    db_url = os.getenv("DATABASE_URL", "")
+    if not db_url.startswith("postgresql"):
+        return False
     try:
-        from app.db.database import db_session
-        from app.db.models import OnboardingOutcome
-        with db_session() as db:
-            for sid in E2E_SESSIONS_TO_CLEAN:
-                db.query(OnboardingOutcome).filter_by(session_id=sid).delete()
-    except Exception as e:
-        print(f"[conftest] e2e cleanup warning: {e}")
-    yield
+        import psycopg2
+        from urllib.parse import urlparse
+        p = urlparse(db_url)
+        conn = psycopg2.connect(
+            host=p.hostname, port=p.port or 5432,
+            user=p.username, password=p.password,
+            dbname=p.path.lstrip("/"),
+            connect_timeout=2,
+        )
+        conn.close()
+        return True
+    except Exception:
+        return False
 
-# ── M29 Admin test cleanup ───────────────────────────────────────────────
-M29_INSTITUTION_CODES = ["TIM29","TCMI29","DUPX9","BADTP","GETI9","AUDT9"]
-M29_USER_EMAILS = [
-    "admin_m29@test.com","maker_m29@test.com","auditor_m29@test.com",
-    "newuser_m29a@test.com","newuser_m29b@test.com",
-    "dup_m29@test.com","badrole@test.com","getuser_m29@test.com",
-]
+POSTGRES_AVAILABLE = _postgres_available()
 
-@pytest.fixture(autouse=True, scope="session")
-def clean_m29_data():
+# ── Autoskip fixture for tests that need real PostgreSQL ─────────────────────
+@pytest.fixture(autouse=True)
+def skip_if_no_postgres(request):
+    """
+    Auto-skip tests that use TestClient (which hits real DB via app startup)
+    when PostgreSQL is not available.
+    """
+    if POSTGRES_AVAILABLE:
+        return
+    if os.getenv("INTEGRATION_TESTS") == "1":
+        return
+    # Check if test uses 'client' fixture or imports from app.main
+    markers = [m.name for m in request.node.iter_markers()]
+    if "integration" in markers:
+        pytest.skip("PostgreSQL not available — set INTEGRATION_TESTS=1")
+        return
+    # Check test module for TestClient usage
+    module = request.node.fspath
     try:
-        from app.db.database import db_session
-        from app.db.models.auth import Institution, User
-        with db_session() as db:
-            for code in M29_INSTITUTION_CODES:
-                db.query(Institution).filter_by(short_code=code).delete()
-            for email in M29_USER_EMAILS:
-                db.query(User).filter_by(email=email).delete()
-    except Exception as e:
-        print(f"[conftest] M29 cleanup warning: {e}")
-    yield
-
-@pytest.fixture(autouse=True, scope="session")
-def clean_m13_data():
-    try:
-        from app.db.database import db_session
-        from app.db.models.auth import Institution, User
-        from app.db.models_platform import Base
-        stale_codes = ["FIL2","ACM2","CC2","LT2","ON2","TD2","DUPX9","TIM29",
-                       "TCMI29","BADTP","GETI9","AUDT9"]
-        stale_emails = ["admin_m13@test.com","auditor_m13@test.com",
-                        "admin_m29@test.com","maker_m29@test.com","auditor_m29@test.com",
-                        "newuser_m29a@test.com","newuser_m29b@test.com",
-                        "dup_m29@test.com","badrole@test.com","getuser_m29@test.com"]
-        with db_session() as db:
-            for code in stale_codes:
-                db.query(Institution).filter_by(short_code=code).delete()
-            for email in stale_emails:
-                db.query(User).filter_by(email=email).delete()
-    except Exception as e:
-        print(f"[conftest] M13 cleanup warning: {e}")
-    yield
-
-@pytest.fixture(autouse=True, scope="session")
-def reset_demo_users_totp():
-    """Ensure test admin users have TOTP set up in in-memory store."""
-    yield
-
-@pytest.fixture(autouse=True, scope="session")
-def clean_m33_data():
-    try:
-        from app.db.database import db_session
-        from app.db.models.auth import Institution
-        stale = ["APR001","APR002","APR003","APR004","APR005",
-                 "INS001","INS002","INS003","INS004","INS006",
-                 "LST001","LST002","LST003","GET001","REV001",
-                 "REV002","REV003","REV004","REJ001","REJ002","REJ003",
-                 "STA001","STA002"]
-        with db_session() as db:
-            for code in stale:
-                db.query(Institution).filter_by(short_code=code).delete()
-    except Exception as e:
-        print(f"[conftest] M33 cleanup warning: {e}")
-    yield
-
-
-# ── M41 Redis cleanup — flush rate limit and session keys before test suite ──
-@pytest.fixture(autouse=True, scope="session")
-def clean_redis_counters():
-    """Clear Redis rate limit and session counters before test suite."""
-    try:
-        from app.services.redis_client import get_redis
-        r = get_redis()
-        if r is not None:
-            keys = r.keys("rl:*") + r.keys("sess:*") + r.keys("att:*") + r.keys("idem:*")
-            if keys:
-                r.delete(*keys)
-            print(f"[conftest] Redis cleanup: deleted {len(keys)} keys")
-    except Exception as e:
-        print(f"[conftest] Redis cleanup warning: {e}")
-    yield
-
-
-# ── Per-test rate limit reset — prevents 429 KeyError across test suite ──────
-@pytest.fixture(autouse=True, scope="function")
-def reset_rate_limits_per_test():
-    """Flush Redis rate limit keys before every test function."""
-    try:
-        from app.services.redis_client import get_redis
-        r = get_redis()
-        if r is not None:
-            keys = r.keys("rl:*")
-            if keys:
-                r.delete(*keys)
+        with open(str(module), encoding="utf-8") as f:
+            src = f.read()
+        if "TestClient" in src and "from app.main import" in src:
+            pytest.skip("PostgreSQL not available (TestClient test)")
     except Exception:
         pass
-    yield
-
-@pytest.fixture(autouse=True, scope="module")
-def flush_redis_per_module():
-    """Flush rate limit keys before each test module."""
-    try:
-        from app.services.redis_client import get_redis
-        r = get_redis()
-        if r:
-            keys = r.keys("rl:*")
-            if keys: r.delete(*keys)
-    except: pass
-    yield
-
-@pytest.fixture(autouse=True, scope="session")
-def clean_hardcoded_user_ids():
-    try:
-        from app.db.database import db_session
-        from app.db.models.auth import User
-        with db_session() as db:
-            db.query(User).filter(User.id.like("user-%")).delete(synchronize_session=False)
-    except Exception as e:
-        print(f"[conftest] hardcoded user cleanup: {e}")
-    yield
-
-@pytest.fixture(autouse=True, scope="session")
-def clean_m2_data():
-    try:
-        from app.db.database import db_session
-        from app.db.models.auth import User
-        emails = ["maker@demo.com", "admin@demo.com", "adm2@demo.com", "dup@demo.com",
-                  "checker@demo.com", "agent@demo.com", "auditor@demo.com"]
-        with db_session() as db:
-            for e in emails:
-                db.query(User).filter_by(email=e).delete()
-    except Exception as ex:
-        print(f"[conftest] m2 cleanup: {ex}")
-    yield
