@@ -2,3 +2,5 @@
 test_results*.txt
 celerybeat-schedule*
 *.bak
+reports/*.json
+reports/*.csv
