@@ -113,3 +113,25 @@
 
 ### Combined test results
 - M80-M84: 105 passed, 20 skipped (integration), 0 failures
+
+## M85 — Composite Identity Score
+**Date:** 2026-04-26 (BST)
+**BFIU §:** Annexure-2
+**Status:** ✅ Complete
+
+### What was built
+- `app/services/composite_identity_score.py`
+- Combines face confidence (50%) + NID match (30%) + DOB match (20%)
+- Score 0–100, verdict: PASS / REVIEW / FAIL
+- Hard floors: face < 0.30 → FAIL; face < 0.45 → REVIEW (BFIU §3.2)
+- Hard floor: NID + DOB both unmatched → REVIEW
+- `score_from_verification_result()` — convenience wrapper for existing service outputs
+- Full audit trail: BST timestamp, weights, thresholds, inputs in result
+
+### Test results
+- `tests/test_m85_composite_identity_score.py` — **37/37 passed**
+
+### BFIU compliance
+- Annexure-2: face confidence thresholds enforced (min 45% for PASS)
+- §3.2: NID + DOB cross-validation as secondary identity anchors
+- Composite score surfaced in KYC profile for BFIU inspector audit
