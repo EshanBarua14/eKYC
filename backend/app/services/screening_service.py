@@ -272,16 +272,24 @@ def add_to_exit_list(institution_id: str, name: str, reason: str) -> dict:
     _EXIT_LISTS[institution_id].append(entry)
     return entry
 
-def screen_exit_list(name: str, institution_id: str) -> dict:
-    """Check name against institution exit list."""
+def screen_exit_list(name: str, institution_id: str, db=None, nid_hash: str = None) -> dict:
+    """
+    Check name against institution exit list.
+    M69: Uses DB-backed list when db session provided.
+    Falls back to in-memory demo list when db=None.
+    """
+    if db is not None:
+        try:
+            from app.services.exit_list_service import screen_exit_list_db
+            return screen_exit_list_db(db, name, institution_id, nid_hash)
+        except Exception:
+            pass
     exit_list = _EXIT_LISTS.get(institution_id, [])
     matches   = []
-
     for entry in exit_list:
         score = fuzzy_match_score(name, entry["name"])
         if score >= UNSCR_FUZZY_MATCH_THRESHOLD:
             matches.append({"entry": entry, "score": score})
-
     verdict = "MATCH" if matches else "CLEAR"
     return {
         "verdict":    verdict,
@@ -289,8 +297,10 @@ def screen_exit_list(name: str, institution_id: str) -> dict:
         "matches":    matches,
         "screened_at": bst_isoformat(),
         "blocking":   verdict == "MATCH",
+        "source":     "MEMORY",
         "bfiu_ref":   "BFIU Circular No. 29 - Section 5.1",
     }
+
 
 # ---------------------------------------------------------------------------
 # Full screening (run all applicable checks)
