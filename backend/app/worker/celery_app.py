@@ -1,5 +1,5 @@
 """
-Celery Application — M42
+Celery Application â- M42
 Broker: Redis. Backend: Redis.
 Auto-fallback warning if Redis unavailable.
 """
@@ -40,41 +40,51 @@ celery_app.conf.update(
     task_time_limit          = 600,     # 10 min hard
 )
 
-# ── Celery Beat schedule (M42) ────────────────────────────────────────────
+# ââ Celery Beat schedule (M42) ââââââââââââââââââââââââââââââââââââââââââââ
 from celery.schedules import crontab
 
 celery_app.conf.beat_schedule = {
-    # BFIU monthly report — 1st of every month at 01:00 UTC
+    # BFIU monthly report â- 1st of every month at 01:00 UTC
     "bfiu-monthly-report": {
         "task":     "app.worker.tasks.bfiu_report.generate_monthly_report_task",
         "schedule": crontab(hour=1, minute=0, day_of_month=1),
         "kwargs":   {"institution_id": "default", "submitted_by": "system"},
     },
-    # Periodic review scheduler — daily at 02:00 UTC
+    # Periodic review scheduler â- daily at 02:00 UTC
     "periodic-review-scheduler": {
         "task":     "app.worker.tasks.periodic_review.run_periodic_review_scheduler",
         "schedule": crontab(hour=2, minute=0),
     },
-    # NID retry queue sweep — every 15 minutes
+    # NID retry queue sweep â- every 15 minutes
     "nid-retry-sweep": {
         "task":     "app.worker.tasks.nid_verify.sweep_pending_nid_queue",
         "schedule": crontab(minute="*/15"),
     },
-    # UNSCR daily list pull — every day at 00:30 UTC
+    # UNSCR daily list pull â- every day at 00:30 UTC
     "unscr-daily-pull": {
         "task":     "app.worker.tasks.unscr_pull.pull_unscr_list_daily",
         "schedule": crontab(hour=0, minute=30),
     },
-    # M53 Adverse media daily re-screening — BFIU §5.3 — 03:00 UTC
+    # M53 Adverse media daily re-screening â- BFIU ÂS5.3 â- 03:00 UTC
     "adverse-media-rescan": {
         "task":     "app.worker.tasks.adverse_media_rescan.run_adverse_media_rescan",
         "schedule": crontab(hour=3, minute=0),
     },
 }
 
-# M60: EDD SLA enforcement (BFIU �4.3)
+# M60: EDD SLA enforcement (BFIU S4.3)
 from app.worker.tasks_edd import task_edd_auto_close, task_edd_sla_warnings  # noqa
 celery_app.conf.beat_schedule.update({
     "edd-auto-close-daily": {"task": "edd.auto_close_expired", "schedule": crontab(hour=0, minute=5)},
     "edd-sla-warnings-daily": {"task": "edd.sla_warnings", "schedule": crontab(hour=8, minute=0)},
+})
+
+# M67: 5-year retention check (BFIU ÂS5.1) â- monthly
+from app.worker.tasks_retention import task_flag_retention_eligible  # noqa
+from celery.schedules import crontab
+celery_app.conf.beat_schedule.update({
+    "retention-monthly-check": {
+        "task": "retention.flag_eligible_records",
+        "schedule": crontab(hour=1, minute=0, day_of_month=1),  # 1st of month 01:00 BST
+    },
 })

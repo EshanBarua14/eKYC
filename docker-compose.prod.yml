@@ -213,9 +213,31 @@ services:
       - ekyc_internal
     logging: *default-logging
 
+  # ── DB Backup (daily pg_dump) ─────────────────────────────────────────
+  db_backup:
+    image: postgres:16-alpine
+    container_name: ekyc_db_backup
+    restart: unless-stopped
+    environment:
+      POSTGRES_HOST:     postgres
+      POSTGRES_DB:       ${POSTGRES_DB:-ekyc_db}
+      POSTGRES_USER:     ${POSTGRES_USER:-ekyc_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      BACKUP_RETENTION_DAYS: "30"
+    volumes:
+      - ./backend/scripts/backup_db.sh:/app/scripts/backup_db.sh:ro
+      - backup_data:/backups
+    depends_on:
+      postgres:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "-c", "crond -f -d 8 & echo '0 2 * * * /app/scripts/backup_db.sh >> /var/log/backup.log 2>&1' | crontab - && crond -f"]
+    networks:
+      - ekyc_internal
+
 volumes:
   postgres_data:
   redis_data:
+  backup_data:
   uploads_data:
   celerybeat_data:
   certbot_data:
