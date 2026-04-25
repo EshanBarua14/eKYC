@@ -16,10 +16,19 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.middleware.error_boundary import register_error_handlers
+from app.core.logging_config import configure_logging
+from app.middleware.logging_middleware import RequestLoggingMiddleware
 from app.api.v1.router import v1_router
 from app.db.database import engine, init_db
 from app.db import models
 
+
+# M65: Configure structured JSON logging (BST timestamps, PII masking)
+import os as _os
+configure_logging(
+    level=_os.getenv("LOG_LEVEL", "INFO"),
+    json_output=_os.getenv("DEBUG", "false").lower() != "true",
+)
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -146,6 +155,7 @@ app.add_middleware(SecurityHeadersMiddleware)
 app.include_router(v1_router, prefix=settings.API_V1_PREFIX)
 
 # ── Error Boundary (M30) ─────────────────────────────────────────────────
+app.add_middleware(RequestLoggingMiddleware)  # M65: runs after error_boundary sets request_id
 register_error_handlers(app)
 
 # ── Prometheus Metrics (M57) ─────────────────────────────────────────────
