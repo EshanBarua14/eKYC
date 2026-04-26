@@ -528,8 +528,9 @@ function ReportsTab({ sessions, stats }) {
   )
 }
 
-export default function AgentDashboard({ onExit, theme, toggleTheme }) {
+export default function AgentDashboard({ onExit, theme, toggleTheme, externalTab, onTabChange }) {
   const [active, setActive] = useState("dashboard")
+  useEffect(() => { if (externalTab) setActive(externalTab) }, [externalTab])
   const agent = { name:"Eshan Barua", code:"AGT-2026-042", zone:"Chittagong Sadar" }
   const { sessions, reload: reloadSessions } = useLiveSessions()
   const { stats,    reload: reloadStats    } = useLiveStats()
@@ -547,7 +548,7 @@ export default function AgentDashboard({ onExit, theme, toggleTheme }) {
 
   return (
     <div style={{ display:"flex", minHeight:"100vh", background:"var(--bg)" }}>
-      <Sidebar active={active} setActive={setActive} agent={agent} onExit={onExit}/>
+      {!externalTab && <Sidebar active={active} setActive={setActive} agent={agent} onExit={onExit}/>}
       <div style={{ flex:1, overflow:"auto" }}>
         <div style={{ position:"sticky", top:0, zIndex:10, background:"var(--bg2)", borderBottom:"1px solid var(--border)", padding:"12px 24px", display:"flex", alignItems:"center", gap:12 }}>
           <div style={{ flex:1 }}>

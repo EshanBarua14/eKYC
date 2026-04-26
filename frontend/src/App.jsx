@@ -16,6 +16,8 @@ import AgentDashboard      from "./components/AgentDashboard"
 import AdminConsole        from "./components/AdminConsole"
 import ComplianceDashboard from "./components/ComplianceDashboard"
 import SettingsPanel       from "./components/SettingsPanel"
+import GlassShell from "./components/GlassShell"
+import { AdminShell, AgentShell, ComplianceShell, MakerShell } from "./components/shells"
 import "./App.css"
 
 const STEPS = { ENTRY:1, NID:2, LIVENESS:3, REPORT:4, PROFILE:5, SIGNATURE:6, COMPLETE:7 }
@@ -458,43 +460,19 @@ export default function App() {
 
   // ── Role routing ────────────────────────────────────────────────────────
   if (userRole === "ADMIN") {
-    return (
-      <div data-theme={theme}>
-        <Toaster position="top-right"/>
-        <AdminConsole {...sharedProps}/>
-        <AppFooter/>
-      </div>
-    )
+    return <AdminShell theme={theme} toggleTheme={toggleTheme} onExit={handleLogout}/>
   }
 
   if (userRole === "CHECKER" || userRole === "AUDITOR" || userRole === "COMPLIANCE_OFFICER") {
-    return (
-      <div data-theme={theme}>
-        <Toaster position="top-right"/>
-        <ComplianceDashboard {...sharedProps}/>
-        <AppFooter/>
-      </div>
-    )
+    return <ComplianceShell role={userRole} theme={theme} toggleTheme={toggleTheme} onExit={handleLogout}/>
   }
 
   if (userRole === "MAKER") {
-    return (
-      <div data-theme={theme}>
-        <Toaster position="top-right"/>
-        <MakerDashboard {...sharedProps}/>
-        <AppFooter/>
-      </div>
-    )
+    return <MakerShell theme={theme} toggleTheme={toggleTheme} onExit={handleLogout}/>
   }
 
   if (userRole === "AGENT") {
-    return (
-      <div data-theme={theme}>
-        <Toaster position="top-right"/>
-        <AgentDashboard {...sharedProps}/>
-        <AppFooter/>
-      </div>
-    )
+    return <AgentShell theme={theme} toggleTheme={toggleTheme} onExit={handleLogout}/>
   }
 
   // ── Staff login fullscreen ──────────────────────────────────────────────

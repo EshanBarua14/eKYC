@@ -634,7 +634,7 @@ function AuditLogsTab() {
 // ══════════════════════════════════════════════════════════════════════════
 // ROOT
 // ══════════════════════════════════════════════════════════════════════════
-export default function AdminConsole({ onExit, theme, toggleTheme }) {
+export default function AdminConsole({ onExit, theme, toggleTheme, externalTab, onTabChange }) {
   const [tab, setTab] = useState("institutions")
 
   const TAB_CONTENT = {
@@ -695,7 +695,7 @@ export default function AdminConsole({ onExit, theme, toggleTheme }) {
             Institution management · User RBAC · BFIU threshold editor · Webhooks · System health · Audit trail
           </p>
         </div>
-        <div style={{ marginBottom:20 }}><TabNav active={tab} setActive={setTab}/></div>
+        {!externalTab && <div style={{ marginBottom:20 }}><TabNav active={tab} setActive={setTab}/></div>}
         {TAB_CONTENT[tab]}
       </main>
     </div>

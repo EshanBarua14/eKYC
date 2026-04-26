@@ -509,8 +509,9 @@ function ExportTab() {
 }
 
 // ── ROOT ─────────────────────────────────────────────────────────────────────
-export default function ComplianceDashboard({ onExit, theme, toggleTheme }) {
+export default function ComplianceDashboard({ onExit, theme, toggleTheme, externalTab, onTabChange, role }) {
   const [tab, setTab] = useState("posture")
+  useEffect(() => { if (externalTab) setTab(externalTab) }, [externalTab])
 
   const TAB_CONTENT = {
     posture:   <PostureTab/>,
@@ -560,7 +561,7 @@ export default function ComplianceDashboard({ onExit, theme, toggleTheme }) {
             KYC review queues · EDD cases · Screening hits · Failed onboarding · BFIU export
           </p>
         </div>
-        <div style={{ marginBottom:20 }}><TabNav active={tab} setActive={setTab}/></div>
+        {!externalTab && <div style={{ marginBottom:20 }}><TabNav active={tab} setActive={setTab}/></div>}
         {TAB_CONTENT[tab]}
       </main>
     </div>
