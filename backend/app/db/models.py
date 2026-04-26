@@ -10,6 +10,11 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 from app.db.database import Base
+# G25 fix: AES-256 encryption for sensitive PII fields §4.5
+try:
+    from app.db.encrypted_type import EncryptedString
+except ImportError:
+    EncryptedString = Text  # fallback for SQLite in tests
 
 
 def _now():
@@ -84,7 +89,7 @@ class KYCProfile(Base):
     nominee_relation         = Column(String(64),   nullable=True)
     nominee_dob              = Column(String(20),   nullable=True)
     signature_type           = Column(String(20),   nullable=True)
-    signature_data           = Column(Text,         nullable=True)
+    signature_data           = Column(EncryptedString, nullable=True)  # G25: encrypted §4.5
     nid_front_url            = Column(String(512),  nullable=True)
     nid_back_url             = Column(String(512),  nullable=True)
     photo_url                = Column(String(512),  nullable=True)
@@ -113,7 +118,7 @@ class ConsentRecord(Base):
     __tablename__ = "consent_records"
     consent_id     = Column(String(36),  primary_key=True, index=True)
     session_id     = Column(String(128), unique=True, index=True, nullable=False)
-    nid_hash       = Column(String(64),  nullable=True)
+    nid_hash       = Column(EncryptedString, nullable=True)  # G25: encrypted §4.5
     institution_id = Column(String(16),  nullable=True)
     agent_id       = Column(String(64),  nullable=True)
     channel        = Column(String(20),  nullable=False, default="SELF_SERVICE")

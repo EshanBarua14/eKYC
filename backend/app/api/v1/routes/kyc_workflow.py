@@ -2,15 +2,16 @@
 M58 — KYC Workflow Routes
 BFIU Circular No. 29 — Full compliant workflow engine
 
-POST /kyc-workflow/session          - Start KYC session
-POST /kyc-workflow/{id}/data-capture - Step 1: customer data
-POST /kyc-workflow/{id}/nid-verify   - Step 2: NID verification
-POST /kyc-workflow/{id}/biometric    - Step 3: biometric result
-POST /kyc-workflow/{id}/screening    - Step 4: UNSCR/PEP screening
-POST /kyc-workflow/{id}/risk         - Step 5: risk assessment (Regular only)
-POST /kyc-workflow/{id}/decision     - Final: decision
-GET  /kyc-workflow/{id}              - Get session state
-GET  /kyc-workflow/{id}/summary      - Full summary for audit
+POST /kyc-workflow/session               - Start KYC session
+POST /kyc-workflow/{id}/data-capture     - Step 1: customer data
+POST /kyc-workflow/{id}/nid-verify       - Step 2: NID verification
+POST /kyc-workflow/{id}/biometric        - Step 3: biometric result
+POST /kyc-workflow/{id}/screening        - Step 4: UNSCR/PEP screening
+POST /kyc-workflow/{id}/beneficial-owner - Step 5: BO identification (Regular only) §4.2
+POST /kyc-workflow/{id}/risk             - Step 6: risk assessment (Regular only)
+POST /kyc-workflow/{id}/decision         - Final: decision
+GET  /kyc-workflow/{id}                  - Get session state
+GET  /kyc-workflow/{id}/summary          - Full summary for audit
 """
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -21,7 +22,7 @@ from app.core.security import decode_token
 from app.services.kyc_workflow_engine import (
     create_kyc_session, get_kyc_session, get_session_summary,
     submit_data_capture, submit_nid_verification, submit_biometric,
-    submit_screening, submit_risk_assessment, make_decision,
+    submit_screening, submit_beneficial_owner, submit_risk_assessment, make_decision,
 )
 
 router   = APIRouter(prefix="/kyc-workflow", tags=["KYC Workflow"])
@@ -91,6 +92,16 @@ class RiskReq(BaseModel):
     source_of_funds:    Optional[str] = None
 
 
+class BeneficialOwnerReq(BaseModel):
+    """G01 Fix: §4.2 Beneficial ownership — mandatory step for Regular eKYC."""
+    has_beneficial_owner: bool
+    bo_name:              Optional[str] = None
+    bo_nid:               Optional[str] = None
+    bo_ownership_pct:     Optional[float] = None
+    bo_is_pep:            Optional[bool] = None
+    bo_cdd_done:          Optional[bool] = None
+
+
 # ── Endpoints ─────────────────────────────────────────────────────────────
 @router.post("/session", status_code=201)
 def start_session(req: StartSessionReq, _=Depends(get_current_user)):
@@ -158,6 +169,22 @@ def screening(session_id: str, req: ScreeningReq, _=Depends(get_current_user)):
         result = submit_screening(session_id, req.name)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    return result
+
+
+@router.post("/{session_id}/beneficial-owner")
+def beneficial_owner(session_id: str, req: BeneficialOwnerReq, _=Depends(get_current_user)):
+    """
+    G01 Fix: Step 5 (Regular KYC only) — Beneficial ownership identification.
+    BFIU §4.2: Mandatory for Regular eKYC. BO is PEP → EDD auto-triggered.
+    """
+    _get_session_or_404(session_id)
+    try:
+        result = submit_beneficial_owner(session_id, req.model_dump())
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    if result.get("error"):
+        raise HTTPException(status_code=422, detail=result)
     return result
 
 

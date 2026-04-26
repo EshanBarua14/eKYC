@@ -34,6 +34,7 @@ REGULAR_STEPS = [
     "nid_verification",
     "biometric",
     "screening",
+    "beneficial_owner",   # G01 fix: §4.2 mandatory for Regular eKYC
     "risk_assessment",
     "decision",
 ]
@@ -113,14 +114,24 @@ def submit_data_capture(session_id: str, customer_data: dict) -> dict:
     # M68: Validate nominee details (BFIU §6.1 — nominee mandatory)
     nominee_result = None
     try:
-        from app.services.nominee_validator import validate_nominee_from_data
+        from app.services.nominee_validator import validate_nominee_from_data, NomineeValidationError
         nominee_result = validate_nominee_from_data(customer_data, session["kyc_type"])
         if nominee_result and nominee_result.get("validated"):
             session["data"]["nominee_validated"] = True
             _append_audit(session, "NOMINEE_VALIDATED", nominee_result)
         elif nominee_result and not nominee_result.get("validated"):
+            # G07 fix: warn but don't block if no nominee provided (recommended not mandatory)
             session["data"]["nominee_validated"] = False
             _append_audit(session, "NOMINEE_WARNING", nominee_result)
+    except NomineeValidationError as e:
+        # G07 fix: if nominee is partially filled but INVALID → BLOCK
+        session["data"]["nominee_validated"] = False
+        _append_audit(session, "NOMINEE_INVALID", {"error": str(e)})
+        return _error(
+            session,
+            f"Nominee validation failed: {e} (BFIU §6.1)",
+            "NOMINEE_INVALID"
+        )
     except Exception as e:
         session["data"]["nominee_validation_error"] = str(e)
         _append_audit(session, "NOMINEE_VALIDATION_FAILED", {"error": str(e)})
@@ -287,6 +298,73 @@ def submit_screening(session_id: str, name: str = None) -> dict:
     })
 
 
+def submit_beneficial_owner(session_id: str, bo_data: dict) -> dict:
+    """
+    G01 Fix — Step 5 (Regular KYC only): Beneficial ownership identification.
+    BFIU §4.2: Must identify and verify beneficial owner for Regular eKYC.
+    If BO is PEP → EDD mandatory regardless of risk score.
+
+    bo_data keys:
+      has_beneficial_owner (bool)  — required
+      bo_name (str)                — required if has_beneficial_owner=True
+      bo_nid (str)                 — required if has_beneficial_owner=True
+      bo_ownership_pct (float)     — required if has_beneficial_owner=True
+      bo_is_pep (bool)             — required if has_beneficial_owner=True
+      bo_cdd_done (bool)           — required if has_beneficial_owner=True
+    """
+    session = _get_or_raise(session_id)
+    _assert_step(session, "beneficial_owner")
+
+    if session["kyc_type"] != "REGULAR":
+        return _error(session, "beneficial_owner step only for REGULAR KYC", "INVALID_STEP")
+
+    has_bo = bo_data.get("has_beneficial_owner", False)
+
+    if has_bo:
+        # Validate required BO fields
+        required_bo_fields = ["bo_name", "bo_nid", "bo_ownership_pct", "bo_is_pep", "bo_cdd_done"]
+        missing = [f for f in required_bo_fields if bo_data.get(f) is None]
+        if missing:
+            return _error(
+                session,
+                f"Beneficial owner identified but missing required fields: {', '.join(missing)} (BFIU §4.2)",
+                "BO_FIELDS_MISSING"
+            )
+
+        if not bo_data.get("bo_cdd_done", False):
+            return _error(
+                session,
+                "Beneficial owner CDD must be completed before proceeding (BFIU §4.2)",
+                "BO_CDD_INCOMPLETE"
+            )
+
+        bo_is_pep = bool(bo_data.get("bo_is_pep", False))
+        session["data"]["beneficial_owners"] = [{
+            "name":          bo_data["bo_name"],
+            "nid":           bo_data["bo_nid"],
+            "ownership_pct": bo_data["bo_ownership_pct"],
+            "is_pep":        bo_is_pep,
+            "cdd_done":      True,
+        }]
+        session["data"]["has_beneficial_owner"] = True
+        session["data"]["beneficial_owner_cdd_done"] = True
+        if bo_is_pep:
+            session["data"]["bo_pep_flag"] = True
+            _append_audit(session, "BO_IS_PEP_EDD_TRIGGERED", {
+                "bo_name": bo_data["bo_name"],
+                "bfiu_ref": "BFIU §4.2 — BO is PEP → EDD mandatory",
+            })
+    else:
+        session["data"]["has_beneficial_owner"] = False
+        session["data"]["beneficial_owner_cdd_done"] = True
+
+    return _advance_step(session, "beneficial_owner", {
+        "has_beneficial_owner": has_bo,
+        "bo_pep_flag": session["data"].get("bo_pep_flag", False),
+        "bfiu_ref": "BFIU Circular No. 29 §4.2",
+    })
+
+
 def submit_risk_assessment(session_id: str, risk_data: dict) -> dict:
     """
     Step 5 (Regular KYC only): Run 7-dimension risk grading.
@@ -371,35 +449,35 @@ def make_decision(session_id: str) -> dict:
         if screening.get("overall_verdict") == "REVIEW":
             grade = "MEDIUM"
 
-    # M64-J: BFIU §3.3 Step 4 — wet/electronic signature required for HIGH risk
+    # G32 Fix: BFIU §3.3 Step 4 — wet/electronic signature REQUIRED for HIGH risk
+    # HARD BLOCK — digital PIN is only permitted for low-risk accounts
     sig_type = session.get("data", {}).get("signature_type", "DIGITAL")
     if grade == "HIGH" and sig_type not in ("WET", "ELECTRONIC"):
-        session["data"]["signature_compliance_warning"] = True
-        _append_audit(session, "SIGNATURE_COMPLIANCE_WARNING", {
+        session["status"] = "SIGNATURE_REQUIRED"
+        _append_audit(session, "SIGNATURE_BLOCKED", {
             "risk_grade": grade,
             "signature_type": sig_type,
             "required": "WET or ELECTRONIC for HIGH risk",
             "bfiu_ref": "BFIU Circular No. 29 §3.3 Step 4",
         })
+        return {
+            "session_id": session_id,
+            "error": True,
+            "error_code": "SIGNATURE_REQUIRED",
+            "decision": "BLOCKED",
+            "reason": (
+                "High-risk account requires wet or electronic signature. "
+                "Digital PIN is only permitted for low-risk accounts (BFIU §3.3 Step 4). "
+                "Please collect a wet or electronic signature before proceeding."
+            ),
+            "risk_grade": grade,
+            "bfiu_ref": "BFIU Circular No. 29 §3.3 Step 4",
+        }
 
     # Apply decision logic
     if edd_required or grade == "HIGH":
         decision = "EDD_REQUIRED"
         decision_reason = f"High risk / EDD triggered — score={score}, grade={grade}"
-        # BFIU §3.3 Step 4: wet/electronic signature required for high-risk
-        sig_type = session.get("data", {}).get("signature_type", "DIGITAL")
-        if sig_type == "DIGITAL" and kyc_type == "REGULAR":
-            session["data"]["signature_warning"] = (
-                "High-risk account requires wet or electronic signature (BFIU §3.3 Step 4). "
-                "Digital PIN signature is only permitted for low-risk accounts."
-            )
-        # BFIU §3.3 Step 4: wet/electronic signature required for high-risk
-        sig_type = session.get("data", {}).get("signature_type", "DIGITAL")
-        if sig_type == "DIGITAL" and kyc_type == "REGULAR":
-            session["data"]["signature_warning"] = (
-                "High-risk account requires wet or electronic signature (BFIU §3.3 Step 4). "
-                "Digital PIN signature is only permitted for low-risk accounts."
-            )
     elif grade == "MEDIUM" or screening.get("overall_verdict") == "REVIEW":
         decision = "CONDITIONAL"
         decision_reason = "Medium risk — conditional approval pending manual review"
@@ -459,6 +537,8 @@ def make_decision(session_id: str) -> dict:
         "risk_score": score,
         "edd_required": edd_required,
         "kyc_type": kyc_type,
+        "kyc_form_ref": session.get("kyc_profile_form", {}).get("form_ref"),
+        "kyc_form_version": session.get("kyc_profile_form", {}).get("form_version"),
         "bfiu_ref": "BFIU Circular No. 29",
     }
 

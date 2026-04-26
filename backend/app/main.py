@@ -73,6 +73,35 @@ except ImportError:
 def startup():
     init_db()
     _seed_demo_users()
+    _seed_pep_data()
+
+
+def _seed_pep_data():
+    """
+    G04 Fix: Load BFIU PEP/IP seed data on startup if table is empty.
+    BFIU §4.2 — PEP screening requires real data, not empty table.
+    Uses SQLite-compatible fallback in dev/test.
+    """
+    import logging
+    log = logging.getLogger(__name__)
+    try:
+        from app.db.database import SessionLocal
+        db = SessionLocal()
+        try:
+            from app.db.models_pep import PEPEntry
+            count = db.query(PEPEntry).count()
+            if count == 0:
+                from app.scripts.load_pep_data import load_seed
+                stats = load_seed(db)
+                log.info("[G04] PEP seed data loaded on startup: %s", stats)
+            else:
+                log.info("[G04] PEP table already populated: %d entries", count)
+        except Exception as inner:
+            log.warning("[G04] PEP seed skipped (DB not ready or PG-only feature): %s", inner)
+        finally:
+            db.close()
+    except Exception as exc:
+        log.warning("[G04] PEP seed startup hook failed: %s", exc)
 
 
 def _seed_demo_users():
