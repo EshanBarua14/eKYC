@@ -110,7 +110,7 @@ async def scan_nid(request: Request,req: NIDScanRequest):
     nid_red        = cv2.inRange(hsv, np.array([0,100,100]),  np.array([10,255,255]))
     green_pct      = float(nid_green.sum()/255)/(w*h)*100
     red_pct        = float(nid_red.sum()/255)/(w*h)*100
-    has_nid_colors = green_pct >= 3.0 and red_pct >= 0.05
+    has_nid_colors = green_pct >= 1.5 and red_pct >= 0.03
 
     nid_issues = []
     if not has_nid_colors:
