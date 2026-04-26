@@ -41,6 +41,41 @@ EC_SERVER_ERROR   = "EC_SERVER_ERROR"
 
 # ── Demo NID database ─────────────────────────────────────────────────────
 _DEMO_NID_DB = {
+    # ── Real test NIDs for demo verification ─────────────────────────────
+    "2375411929": {
+        "nid_number":      "2375411929",
+        "full_name_en":    "ESHAN BARUA",
+        "full_name_bn":    "ঈশান বড়ুয়া",
+        "date_of_birth":   "1994-08-14",
+        "fathers_name":    "PRADEEP BARUA",
+        "fathers_name_bn": "প্রদীপ বড়ুয়া",
+        "mothers_name":    "SIMA BARUA",
+        "mothers_name_bn": "সীমা বড়ুয়া",
+        "present_address": "বাসা/হোল্ডিং: ৯৭, সবুজবাগ, রাজারবাগ, ঢাকা দক্ষিণ সিটি কর্পোরেশন, ঢাকা",
+        "place_of_birth":  "DHAKA",
+        "blood_group":     "O+",
+        "gender":          "M",
+        "issue_date":      "2016-08-30",
+        "smart_card_no":   "BGD2375411929",
+        "photo_url":       None,
+    },
+    "19858524905063671": {
+        "nid_number":      "19858524905063671",
+        "full_name_en":    "MD ABUL MOSHAD CHOWDHURY",
+        "full_name_bn":    "মোঃ আবুল মোশাদ চৌধুরী",
+        "date_of_birth":   "1985-03-03",
+        "fathers_name":    "MD ABUL MASUD CHOWDHURY",
+        "fathers_name_bn": "মোঃ আবুল মাসুদ চৌধুরী",
+        "mothers_name":    "JANI CHOWDHURY",
+        "mothers_name_bn": "জানী চৌধুরী",
+        "present_address": "বাসা/হোল্ডিং: ৭৫, গোমস্তা পাড়া, ডাকঘর: রংপুর-৫৪০০, রংপুর সদর, রংপুর সিটি কর্পোরেশন, রংপুর",
+        "place_of_birth":  "RANGPUR",
+        "blood_group":     None,
+        "gender":          "M",
+        "issue_date":      "2016-05-10",
+        "smart_card_no":   None,
+        "photo_url":       None,
+    },
     "1234567890123": {
         "nid_number":      "1234567890123",
         "full_name_en":    "RAHMAN HOSSAIN CHOWDHURY",
