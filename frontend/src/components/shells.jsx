@@ -14,18 +14,36 @@ export function AdminShell({ theme, toggleTheme, onExit }) {
   const [activeTab, setActiveTab] = useState("dashboard")
   // Map GlassShell tabs to AdminConsole tabs
   const tabMap = {
-    dashboard:"health", health:"health", institutions:"institutions",
-    users:"users", thresholds:"thresholds", webhooks:"webhooks",
-    pep:"auditlogs", auditlogs:"auditlogs", settings:"settings",
+    dashboard:    "institutions",
+    health:       "health",
+    institutions: "institutions",
+    users:        "users",
+    thresholds:   "thresholds",
+    webhooks:     "webhooks",
+    pep:          "auditlogs",
+    auditlogs:    "auditlogs",
+    settings:     "settings",
   }
+  // Tabs handled by AdminConsole internally
+  const ADMIN_CONSOLE_TABS = ["dashboard","health","institutions","users","thresholds","webhooks","auditlogs","settings","pep"]
+
   const renderAdminContent = () => {
     if (activeTab === "lifecycle")        return <LifecycleManager/>
     if (activeTab === "screening_manual") return <ScreeningPanel/>
     if (activeTab === "notifications")    return <NotificationCenter/>
-    return (
+    if (activeTab === "pep")              return <AdminConsole onExit={onExit} theme={theme} toggleTheme={toggleTheme} externalTab="auditlogs" onTabChange={setActiveTab}/>
+    if (ADMIN_CONSOLE_TABS.includes(activeTab)) return (
       <AdminConsole
         onExit={onExit} theme={theme} toggleTheme={toggleTheme}
         externalTab={tabMap[activeTab] || activeTab}
+        onTabChange={setActiveTab}
+      />
+    )
+    // Default
+    return (
+      <AdminConsole
+        onExit={onExit} theme={theme} toggleTheme={toggleTheme}
+        externalTab={tabMap[activeTab] || "institutions"}
         onTabChange={setActiveTab}
       />
     )

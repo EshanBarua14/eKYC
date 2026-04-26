@@ -648,44 +648,10 @@ export default function AdminConsole({ onExit, theme, toggleTheme, externalTab, 
   }
 
   return (
-    <div style={{ minHeight:"100vh", background:"var(--bg)", fontFamily:"var(--font)" }}>
-      {/* Header */}
-      <header style={{ background:"var(--bg2)", borderBottom:"1px solid var(--border)",
-                       position:"sticky", top:0, zIndex:100, boxShadow:"var(--shadow-sm)" }}>
-        <div style={{ maxWidth:1100, margin:"0 auto", padding:"0 24px", height:60,
-                      display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-            <button onClick={onExit} style={{ display:"flex", alignItems:"center", gap:5,
-              padding:"5px 10px", borderRadius:"var(--radius-sm)", fontSize:12, fontWeight:600,
-              background:"var(--bg3)", border:"1px solid var(--border)",
-              cursor:"pointer", color:"var(--text2)", fontFamily:"var(--font)" }}>
-              <ChevronLeft size={13}/> Exit
-            </button>
-            <div style={{ width:1, height:20, background:"var(--border)" }}/>
-            <div style={{ width:32, height:32, borderRadius:9,
-              background:"linear-gradient(135deg,var(--accent),var(--accent2))",
-              display:"flex", alignItems:"center", justifyContent:"center",
-              boxShadow:"var(--shadow-accent)" }}>
-              <Shield size={15} color="#fff" strokeWidth={2.5}/>
-            </div>
-            <div>
-              <div style={{fontSize:13,fontWeight:800,color:"var(--text)",lineHeight:1.1}}>Admin Console</div>
-              <img src="/logo.jpg" alt="Xpert eKYC" style={{ height:"28px", objectFit:"contain" }} />
-            </div>
-          </div>
-          <div style={{display:"flex",alignItems:"center",gap:8}}>
-            <Badge color="green">● Live</Badge>
-            <button onClick={toggleTheme} style={{
-              padding:"6px 11px", borderRadius:"var(--radius-xs)", fontSize:12, fontWeight:600,
-              background:"var(--bg3)", border:"1px solid var(--border)",
-              cursor:"pointer", color:"var(--text2)", fontFamily:"var(--font)" }}>
-              {theme==="light"?"🌙 Dark":"☀️ Light"}
-            </button>
-          </div>
-        </div>
-      </header>
+    <div style={{ fontFamily:"var(--font)", background: externalTab ? "transparent" : "var(--bg)", minHeight: externalTab ? "auto" : "100vh" }}>
+      {!externalTab && <header style={{ background:"var(--bg2)", borderBottom:"1px solid var(--border)", position:"sticky", top:0, zIndex:100 }}><div style={{ maxWidth:1100, margin:"0 auto", padding:"0 24px", height:60, display:"flex", alignItems:"center", justifyContent:"space-between" }}><button onClick={onExit} style={{ padding:"5px 10px", borderRadius:8, fontSize:12, fontWeight:600, background:"var(--bg3)", border:"1px solid var(--border)", cursor:"pointer", color:"var(--text2)", fontFamily:"var(--font)", display:"flex", alignItems:"center", gap:5 }}><ChevronLeft size={13}/> Exit</button><button onClick={toggleTheme} style={{ padding:"6px 11px", borderRadius:8, fontSize:12, background:"var(--bg3)", border:"1px solid var(--border)", cursor:"pointer", color:"var(--text2)", fontFamily:"var(--font)" }}>{theme==="light"?"🌙 Dark":"☀️ Light"}</button></div></header>}
 
-      <main style={{ maxWidth:1100, margin:"0 auto", padding:"28px 24px" }}>
+      <main style={{ maxWidth: externalTab ? "100%" : 1100, margin:"0 auto", padding: externalTab ? "0" : "28px 24px" }}>
         <div style={{ marginBottom:20 }}>
           <h1 style={{ fontSize:26, fontWeight:800, color:"var(--text)", letterSpacing:"-0.03em", marginBottom:4 }}>
             Admin <span style={{ background:"linear-gradient(135deg,var(--accent),var(--accent2))",
