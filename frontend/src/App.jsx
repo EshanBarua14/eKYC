@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import { Shield, Sun, Moon, Fingerprint, LogOut, Menu, X, Bell, ChevronRight } from "lucide-react"
+import FingerprintVerify from "./components/FingerprintVerify"
 import { Toaster, toast } from "react-hot-toast"
 import { motion, AnimatePresence } from "framer-motion"
 
@@ -20,7 +21,7 @@ import GlassShell from "./components/GlassShell"
 import { AdminShell, AgentShell, ComplianceShell, MakerShell } from "./components/shells"
 import "./App.css"
 
-const STEPS = { ENTRY:1, NID:2, LIVENESS:3, REPORT:4, PROFILE:5, SIGNATURE:6, COMPLETE:7 }
+const STEPS = { ENTRY:1, NID:2, LIVENESS:3, FINGERPRINT:4, REPORT:5, PROFILE:6, SIGNATURE:7, COMPLETE:8 }
 const STEP_META = [
   { n:1, label:"NID Entry",  desc:"Enter NID & DOB"           },
   { n:2, label:"Scan NID",   desc:"Upload NID card"            },
@@ -411,6 +412,7 @@ export default function App() {
   const [liveB64,        setLiveB64]        = useState(null)
   const [liveness,       setLiveness]       = useState(null)
   const [matchResult,    setMatchResult]    = useState(null)
+  const [fingerprintResult, setFingerprintResult] = useState(null)
   const [profileData,    setProfileData]    = useState(null)
   const [signatureData,  setSignatureData]  = useState(null)
 
@@ -451,7 +453,7 @@ export default function App() {
     setStep(STEPS.ENTRY)
     setNidEntry(null); setNidB64(null); setNidScan(null)
     setLiveB64(null);  setLiveness(null)
-    setMatchResult(null); setProfileData(null); setSignatureData(null)
+    setMatchResult(null); setProfileData(null); setSignatureData(null); setFingerprintResult(null)
   }
 
   const toggleTheme = () => setTheme(t => t === "light" ? "dark" : "light")
@@ -557,9 +559,22 @@ export default function App() {
             {step === STEPS.LIVENESS && (
               <LivenessCapture onLivenessPassed={(b64, res) => {
                 setLiveB64(b64); setLiveness(res)
-                setStep(STEPS.REPORT)
+                setStep(STEPS.FINGERPRINT)
                 toast.success("Liveness check passed ✓")
               }}/>
+            )}
+            
+            {step === STEPS.FINGERPRINT && (
+              <FingerprintVerify
+                nidEntry={nidEntry}
+                onVerified={(data) => {
+                  setFingerprintResult(data)
+                  setStep(STEPS.REPORT)
+                  toast.success('Fingerprint verified ✓')
+                }}
+                onBack={() => setStep(STEPS.LIVENESS)}
+                onFallback={() => setStep(STEPS.REPORT)}
+              />
             )}
             {step === STEPS.REPORT && (
               <MatchReport
