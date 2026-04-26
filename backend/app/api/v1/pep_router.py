@@ -23,7 +23,7 @@ from app.services.pep_service import (
 )
 from app.db.models_pep import PEPStatus
 
-router = APIRouter(prefix="/v1/pep", tags=["PEP/IP Management §4.2"])
+router = APIRouter(prefix="/pep", tags=["PEP/IP Management §4.2"])
 
 
 class AddPEPRequest(BaseModel):
