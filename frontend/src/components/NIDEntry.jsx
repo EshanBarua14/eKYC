@@ -42,16 +42,25 @@ export default function NIDEntry({ onVerified }) {
         })
       })
       if (r.status === 403) {
-        // No auth token — use demo mode
+        // No auth token — use demo NID DB
+        const DEMO_DB = {
+          "2375411929":        { full_name_en:"ESHAN BARUA", full_name_bn:"ঈশান বড়ুয়া", date_of_birth:"1994-08-14", fathers_name:"PRODIP BARUA", mothers_name:"SHIMA BARUA", gender:"M", blood_group:"O+", present_address:"সবুজবাগ, রাজারবাগ, ঢাকা দক্ষিণ সিটি কর্পোরেশন, ঢাকা", place_of_birth:"DHAKA" },
+          "19858524905063671": { full_name_en:"MD ABUL MOSHAD CHOWDHURY", full_name_bn:"মোঃ আবুল মোশাদ চৌধুরী", date_of_birth:"1985-03-03", fathers_name:"MD ABUL MASUD CHOWDHURY", mothers_name:"JANI CHOWDHURY", gender:"M", present_address:"গোমস্তা পাড়া, রংপুর সদর, রংপুর সিটি কর্পোরেশন, রংপুর", place_of_birth:"RANGPUR" },
+          "1234567890123":     { full_name_en:"RAHMAN HOSSAIN CHOWDHURY", full_name_bn:"রহমান হোসেন চৌধুরী", date_of_birth:"1990-01-15", fathers_name:"ABDUR RAHMAN CHOWDHURY", mothers_name:"MST RASHIDA BEGUM", gender:"M", blood_group:"O+", present_address:"123 Agrabad, Chittagong" },
+          "9876543210987":     { full_name_en:"FATEMA BEGUM", full_name_bn:"ফাতেমা বেগম", date_of_birth:"1985-06-20", fathers_name:"MD IBRAHIM", mothers_name:"MST AMENA KHATUN", gender:"F", blood_group:"A+", present_address:"456 Dhanmondi, Dhaka" },
+        }
+        const demoRec = DEMO_DB[nidNumber]
+        if (!demoRec) {
+          setError("NID not found in demo database. Use: 2375411929 or 19858524905063671")
+          setLoading(false)
+          return
+        }
         setResult({
           found: true,
           demo: true,
           nid_number: nidNumber,
           dob: dob,
-          ec_data: {
-            full_name_en: "Demo User",
-            date_of_birth: dob,
-          }
+          ec_data: { ...demoRec, nid_number: nidNumber }
         })
         return
       }
@@ -62,13 +71,19 @@ export default function NIDEntry({ onVerified }) {
         setError(data.detail?.message || data.detail || "NID not found in EC database")
       }
     } catch(e) {
-      // Network error — allow demo mode
-      setResult({
-        found: true,
-        demo: true,
-        nid_number: nidNumber,
-        dob: dob,
-      })
+      // Network error — check demo DB
+      const DEMO_DB2 = {
+        "2375411929":        { full_name_en:"ESHAN BARUA", full_name_bn:"ঈশান বড়ুয়া", date_of_birth:"1994-08-14", fathers_name:"PRODIP BARUA", mothers_name:"SHIMA BARUA", gender:"M", blood_group:"O+", present_address:"সবুজবাগ, রাজারবাগ, ঢাকা দক্ষিণ সিটি কর্পোরেশন, ঢাকা", place_of_birth:"DHAKA" },
+        "19858524905063671": { full_name_en:"MD ABUL MOSHAD CHOWDHURY", full_name_bn:"মোঃ আবুল মোশাদ চৌধুরী", date_of_birth:"1985-03-03", fathers_name:"MD ABUL MASUD CHOWDHURY", mothers_name:"JANI CHOWDHURY", gender:"M", present_address:"গোমস্তা পাড়া, রংপুর সদর, রংপুর সিটি কর্পোরেশন, রংপুর", place_of_birth:"RANGPUR" },
+        "1234567890123":     { full_name_en:"RAHMAN HOSSAIN CHOWDHURY", full_name_bn:"রহমান হোসেন চৌধুরী", date_of_birth:"1990-01-15", fathers_name:"ABDUR RAHMAN CHOWDHURY", mothers_name:"MST RASHIDA BEGUM", gender:"M", blood_group:"O+", present_address:"123 Agrabad, Chittagong" },
+        "9876543210987":     { full_name_en:"FATEMA BEGUM", full_name_bn:"ফাতেমা বেগম", date_of_birth:"1985-06-20", fathers_name:"MD IBRAHIM", mothers_name:"MST AMENA KHATUN", gender:"F", blood_group:"A+", present_address:"456 Dhanmondi, Dhaka" },
+      }
+      const rec = DEMO_DB2[nidNumber]
+      if (rec) {
+        setResult({ found:true, demo:true, nid_number:nidNumber, dob, ec_data:{ ...rec, nid_number:nidNumber } })
+      } else {
+        setError("NID not found. Use: 2375411929 or 19858524905063671")
+      }
     } finally { setLoading(false) }
   }
 
