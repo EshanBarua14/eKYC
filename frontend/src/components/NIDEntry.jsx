@@ -26,9 +26,55 @@ export default function NIDEntry({ onVerified }) {
     return true
   }
 
+  // Frontend demo NID database — matches backend _DEMO_NID_DB exactly
+  const FRONTEND_DEMO_DB = {
+    "2375411929": {
+      full_name_en:"ESHAN BARUA", full_name_bn:"ঈশান বড়ুয়া",
+      date_of_birth:"1994-08-14", fathers_name:"PRODIP BARUA",
+      fathers_name_bn:"প্রদীপ বড়ুয়া", mothers_name:"SHIMA BARUA",
+      mothers_name_bn:"শিমা বড়ুয়া", gender:"M", blood_group:"O+",
+      present_address:"সবুজবাগ, রাজারবাগ, ঢাকা দক্ষিণ সিটি কর্পোরেশন, ঢাকা",
+      place_of_birth:"DHAKA", nid_number:"2375411929",
+    },
+    "19858524905063671": {
+      full_name_en:"MD ABUL MOSHAD CHOWDHURY", full_name_bn:"মোঃ আবুল মোশাদ চৌধুরী",
+      date_of_birth:"1985-03-03", fathers_name:"MD ABUL MASUD CHOWDHURY",
+      fathers_name_bn:"মোঃ আবুল মাসুদ চৌধুরী", mothers_name:"JANI CHOWDHURY",
+      mothers_name_bn:"জানী চৌধুরী", gender:"M",
+      present_address:"গোমস্তা পাড়া, রংপুর সদর, রংপুর সিটি কর্পোরেশন, রংপুর",
+      place_of_birth:"RANGPUR", nid_number:"19858524905063671",
+    },
+    "1234567890123": {
+      full_name_en:"RAHMAN HOSSAIN CHOWDHURY", full_name_bn:"রহমান হোসেন চৌধুরী",
+      date_of_birth:"1990-01-15", fathers_name:"ABDUR RAHMAN CHOWDHURY",
+      mothers_name:"MST RASHIDA BEGUM", gender:"M", blood_group:"O+",
+      present_address:"123 Agrabad, Chittagong", nid_number:"1234567890123",
+    },
+    "9876543210987": {
+      full_name_en:"FATEMA BEGUM", full_name_bn:"ফাতেমা বেগম",
+      date_of_birth:"1985-06-20", fathers_name:"MD IBRAHIM",
+      mothers_name:"MST AMENA KHATUN", gender:"F", blood_group:"A+",
+      present_address:"456 Dhanmondi, Dhaka", nid_number:"9876543210987",
+    },
+  }
+
   const verify = async () => {
     if (!validate()) return
     setLoading(true); setError(""); setResult(null)
+
+    // ── Demo DB check FIRST — no backend needed ──────────────────────────
+    const demoRec = FRONTEND_DEMO_DB[nidNumber.trim()]
+    if (demoRec) {
+      if (demoRec.date_of_birth !== dob) {
+        setError(`Date of birth does not match EC records. NID ${nidNumber} DOB should be: ${demoRec.date_of_birth}`)
+        setLoading(false)
+        return
+      }
+      setResult({ found: true, demo: true, nid_number: nidNumber, dob, ec_data: { ...demoRec } })
+      setLoading(false)
+      return
+    }
+    // Not in demo DB — try live backend
     try {
       // Call EC NID verification via our backend
       await ensureDemoToken()
@@ -42,26 +88,9 @@ export default function NIDEntry({ onVerified }) {
         })
       })
       if (r.status === 403) {
-        // No auth token — use demo NID DB
-        const DEMO_DB = {
-          "2375411929":        { full_name_en:"ESHAN BARUA", full_name_bn:"ঈশান বড়ুয়া", date_of_birth:"1994-08-14", fathers_name:"PRODIP BARUA", mothers_name:"SHIMA BARUA", gender:"M", blood_group:"O+", present_address:"সবুজবাগ, রাজারবাগ, ঢাকা দক্ষিণ সিটি কর্পোরেশন, ঢাকা", place_of_birth:"DHAKA" },
-          "19858524905063671": { full_name_en:"MD ABUL MOSHAD CHOWDHURY", full_name_bn:"মোঃ আবুল মোশাদ চৌধুরী", date_of_birth:"1985-03-03", fathers_name:"MD ABUL MASUD CHOWDHURY", mothers_name:"JANI CHOWDHURY", gender:"M", present_address:"গোমস্তা পাড়া, রংপুর সদর, রংপুর সিটি কর্পোরেশন, রংপুর", place_of_birth:"RANGPUR" },
-          "1234567890123":     { full_name_en:"RAHMAN HOSSAIN CHOWDHURY", full_name_bn:"রহমান হোসেন চৌধুরী", date_of_birth:"1990-01-15", fathers_name:"ABDUR RAHMAN CHOWDHURY", mothers_name:"MST RASHIDA BEGUM", gender:"M", blood_group:"O+", present_address:"123 Agrabad, Chittagong" },
-          "9876543210987":     { full_name_en:"FATEMA BEGUM", full_name_bn:"ফাতেমা বেগম", date_of_birth:"1985-06-20", fathers_name:"MD IBRAHIM", mothers_name:"MST AMENA KHATUN", gender:"F", blood_group:"A+", present_address:"456 Dhanmondi, Dhaka" },
-        }
-        const demoRec = DEMO_DB[nidNumber]
-        if (!demoRec) {
-          setError("NID not found in demo database. Use: 2375411929 or 19858524905063671")
-          setLoading(false)
-          return
-        }
-        setResult({
-          found: true,
-          demo: true,
-          nid_number: nidNumber,
-          dob: dob,
-          ec_data: { ...demoRec, nid_number: nidNumber }
-        })
+        // Already handled by FRONTEND_DEMO_DB check above
+        setError("NID not found in EC database. Demo NIDs: 2375411929 · 19858524905063671")
+        setLoading(false)
         return
       }
       const data = await r.json()
@@ -71,19 +100,7 @@ export default function NIDEntry({ onVerified }) {
         setError(data.detail?.message || data.detail || "NID not found in EC database")
       }
     } catch(e) {
-      // Network error — check demo DB
-      const DEMO_DB2 = {
-        "2375411929":        { full_name_en:"ESHAN BARUA", full_name_bn:"ঈশান বড়ুয়া", date_of_birth:"1994-08-14", fathers_name:"PRODIP BARUA", mothers_name:"SHIMA BARUA", gender:"M", blood_group:"O+", present_address:"সবুজবাগ, রাজারবাগ, ঢাকা দক্ষিণ সিটি কর্পোরেশন, ঢাকা", place_of_birth:"DHAKA" },
-        "19858524905063671": { full_name_en:"MD ABUL MOSHAD CHOWDHURY", full_name_bn:"মোঃ আবুল মোশাদ চৌধুরী", date_of_birth:"1985-03-03", fathers_name:"MD ABUL MASUD CHOWDHURY", mothers_name:"JANI CHOWDHURY", gender:"M", present_address:"গোমস্তা পাড়া, রংপুর সদর, রংপুর সিটি কর্পোরেশন, রংপুর", place_of_birth:"RANGPUR" },
-        "1234567890123":     { full_name_en:"RAHMAN HOSSAIN CHOWDHURY", full_name_bn:"রহমান হোসেন চৌধুরী", date_of_birth:"1990-01-15", fathers_name:"ABDUR RAHMAN CHOWDHURY", mothers_name:"MST RASHIDA BEGUM", gender:"M", blood_group:"O+", present_address:"123 Agrabad, Chittagong" },
-        "9876543210987":     { full_name_en:"FATEMA BEGUM", full_name_bn:"ফাতেমা বেগম", date_of_birth:"1985-06-20", fathers_name:"MD IBRAHIM", mothers_name:"MST AMENA KHATUN", gender:"F", blood_group:"A+", present_address:"456 Dhanmondi, Dhaka" },
-      }
-      const rec = DEMO_DB2[nidNumber]
-      if (rec) {
-        setResult({ found:true, demo:true, nid_number:nidNumber, dob, ec_data:{ ...rec, nid_number:nidNumber } })
-      } else {
-        setError("NID not found. Use: 2375411929 or 19858524905063671")
-      }
+      setError("NID not found in EC database. Demo NIDs: 2375411929 · 19858524905063671")
     } finally { setLoading(false) }
   }
 
