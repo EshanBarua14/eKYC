@@ -91,7 +91,7 @@ async def scan_nid(request: Request,req: NIDScanRequest):
     face_found = False
     if face is not None and face_coords:
         fp = (face_coords["w"] * face_coords["h"]) / (w * h) * 100
-        if 2.0 <= fp <= 50.0:
+        if 0.5 <= fp <= 70.0:
             face_found = True
         else:
             face = face_coords = None

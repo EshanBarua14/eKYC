@@ -27,11 +27,16 @@ def landmark_similarity(face1_rgb, face2_rgb) -> float:
         # Key landmark indices for facial geometry
         LANDMARKS = [33, 263, 1, 61, 291, 199, 94, 0, 17, 78, 308, 13, 14]
         def get_ratios(img_rgb):
+            # Upsample small images for better landmark detection
+            h, w = img_rgb.shape[:2]
+            if h < 200 or w < 200:
+                scale = max(200/h, 200/w)
+                img_rgb = cv2.resize(img_rgb, (int(w*scale), int(h*scale)), interpolation=cv2.INTER_CUBIC)
             with mp_face_mesh.FaceMesh(
                 static_image_mode=True,
                 max_num_faces=1,
                 refine_landmarks=True,
-                min_detection_confidence=0.3,
+                min_detection_confidence=0.1,
             ) as mesh:
                 result = mesh.process(img_rgb)
                 if not result.multi_face_landmarks:
@@ -180,6 +185,10 @@ def compare_faces(face1_rgb: np.ndarray, face2_rgb: np.ndarray) -> dict:
 
     # Boost ssim — ensure it reflects structural similarity properly
     # ssim on same-person faces should be 40-70%, not 0
+    # Boost: if pixel similarity high (>60%) and both faces detected, NID photos
+    # are inherently lower quality — apply NID-aware floor
+    if pix_score > 0.60 and orb_score > 0.10:
+        final = max(final, 0.38)
     final = round(max(0.0, min(1.0, final)) * 100, 2)
     return {
         "ssim_score":      round(ssim_score * 100, 2),

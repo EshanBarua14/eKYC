@@ -308,8 +308,8 @@ def _mock_ocr_result() -> dict:
     return {
         "full_name_en":    "RAHMAN HOSSAIN CHOWDHURY",
         "full_name_bn":    "রহমান হোসেন চৌধুরী",
-        "date_of_birth":   "1990-01-15",
-        "nid_number":      "1234567890123",
+        "date_of_birth":   "1994-08-14",
+        "nid_number":      "2375411929",
         "fathers_name_en": "ABDUR RAHMAN CHOWDHURY",
         "mothers_name_en": "MST RASHIDA BEGUM",
         "address":         "123 Agrabad, Chittagong",

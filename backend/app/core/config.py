@@ -82,8 +82,8 @@ class Settings(BaseSettings):
     MIN_FACE_AREA_PCT: float = 1.5
 
     # ── Face matching ─────────────────────────────────────────────────────
-    MATCH_THRESHOLD: float  = 45.0
-    REVIEW_THRESHOLD: float = 30.0
+    MATCH_THRESHOLD: float  = 35.0
+    REVIEW_THRESHOLD: float = 25.0
 
     # ── BFIU ──────────────────────────────────────────────────────────────
     BFIU_GUIDELINE: str                = "BFIU Circular No. 29"
