@@ -13,13 +13,13 @@ export default function AuditorDashboard() {
   const [logs, setLogs] = useState([])
 
   useEffect(() => {
-    api.get("/api/v1/audit/logs?limit=5").then(r => setLogs(r.data?.logs||[])).catch(()=>{})
+    api.get("/api/v1/audit/events?limit=5").then(r => setLogs(r.data?.logs||[])).catch(()=>{})
   }, [])
 
   const exportReport = async () => {
     try {
       notify.info("Generating BFIU report…")
-      const res = await api.post("/api/v1/reports/bfiu-monthly", {})
+      const res = await api.post("/api/v1/bfiu-report/current-month", {})
       notify.success("Report generated successfully")
     } catch {
       notify.error("Report generation failed")

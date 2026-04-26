@@ -14,7 +14,7 @@ export default function Sessions() {
   const load = async () => {
     setLoading(true)
     try {
-      const res = await api.get("/api/v1/kyc/sessions?limit=100")
+      const res = await api.get("/api/v1/onboarding/start?limit=100")
       setSessions(res.data?.sessions || res.data?.profiles || [])
     } catch { notify.error("Failed to load sessions") }
     finally { setLoading(false) }

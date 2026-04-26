@@ -67,6 +67,7 @@ const GRADE_BORDER= { HIGH:"#fecaca",    MEDIUM:"#fde68a",       LOW:"#bbf7d0"  
 
 export default function ProfileForm({ nidScan, matchResult, nidEntry, onSubmit, onBack }) {
   const ec = matchResult?.ec_data || matchResult?.ec_result?.ec_data || nidEntry?.ecResult?.ec_data || {}
+console.log("[ProfileForm] ec:", ec, "nidEntry:", nidEntry, "matchResult:", matchResult)
   const f0 = nidScan?.fields || {}
 
   const [form, setForm] = useState(() => ({

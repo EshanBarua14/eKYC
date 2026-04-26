@@ -25,7 +25,7 @@ export default function ScreeningPanel() {
     if (!name && !nid) { toast.error("Enter name or NID"); return }
     setLoading(true)
     try {
-      const d = await apiFetch("/api/v1/screening/check", {
+      const d = await apiFetch("/api/v1/screening/full", {
         method:"POST",
         body: JSON.stringify({ name, nid_number: nid, institution_id:"inst-demo-001" })
       })
@@ -39,7 +39,7 @@ export default function ScreeningPanel() {
 
   const checkUnscr = async () => {
     try {
-      const d = await apiFetch("/api/v1/screening/unscr/status")
+      const d = await apiFetch("/api/v1/settings/unscr/status")
       setUnscr(d)
     } catch { toast.error("UNSCR status check failed") }
   }
@@ -47,7 +47,7 @@ export default function ScreeningPanel() {
   const addExitList = async () => {
     if (!nid) { toast.error("NID required for exit list"); return }
     try {
-      await apiFetch("/api/v1/exit-list/add", {
+      await apiFetch("/api/v1/screening/exit-list/add", {
         method:"POST",
         body: JSON.stringify({ nid_number: nid, reason:"COMPLIANCE_BLOCK", added_by:"compliance_officer" })
       })

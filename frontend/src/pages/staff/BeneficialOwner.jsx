@@ -1,6 +1,6 @@
 /**
  * Beneficial Owner — BFIU §4.2
- * Endpoints: /api/v1/beneficial-owner/*
+ * Endpoints: /api/v1/kyc/beneficial-owner/*
  */
 import { useState, useEffect } from "react"
 import { toast } from "react-hot-toast"
@@ -26,7 +26,7 @@ export default function BeneficialOwner() {
     if (!sessionId) { toast.error("Enter session ID"); return }
     setLoading(true)
     try {
-      const d = await apiFetch(`/api/v1/beneficial-owner/${sessionId}`)
+      const d = await apiFetch(`/api/v1/kyc/beneficial-owner/${sessionId}`)
       setBoData(d)
     } catch { toast.error("No BO record found for this session") }
     finally { setLoading(false) }
@@ -35,7 +35,7 @@ export default function BeneficialOwner() {
   const addBO = async () => {
     if (!addForm.full_name || !sessionId) { toast.error("Name and session ID required"); return }
     try {
-      await apiFetch("/api/v1/beneficial-owner", {
+      await apiFetch("/api/v1/kyc/beneficial-owner", {
         method:"POST",
         body: JSON.stringify({ ...addForm, session_id: sessionId })
       })
@@ -46,7 +46,7 @@ export default function BeneficialOwner() {
 
   const complianceCheck = async () => {
     try {
-      const d = await apiFetch(`/api/v1/beneficial-owner/compliance-status/${sessionId}`)
+      const d = await apiFetch(`/api/v1/kyc/beneficial-owner/compliance-status/${sessionId}`)
       toast.success(`BO Compliance: ${d.status || "CHECKED"}`)
     } catch { toast.error("Compliance check failed") }
   }

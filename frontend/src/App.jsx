@@ -209,7 +209,7 @@ function MakerDashboard({ onExit, theme, toggleTheme }) {
   const token = localStorage.getItem("ekyc_admin_token") || localStorage.getItem("ekyc_token") || ""
 
   useEffect(() => {
-    fetch(`${API_BASE}/api/v1/maker-checker/applications`, {
+    fetch(`${API_BASE}/api/v1/maker-checker/pending`, {
       headers: { Authorization: `Bearer ${token}` }
     }).then(r => r.ok ? r.json() : null).then(d => {
       if (d?.applications) setSubmissions(d.applications)

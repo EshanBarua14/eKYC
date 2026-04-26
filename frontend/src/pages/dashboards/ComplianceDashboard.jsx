@@ -12,8 +12,8 @@ export default function ComplianceDashboard() {
   const [screening, setScreening] = useState({ pep_hits:0, unscr_hits:0, adverse_hits:0 })
 
   useEffect(() => {
-    api.get("/api/v1/edd/queue?limit=5").then(r => setEdd(r.data?.queue||[])).catch(()=>{})
-    api.get("/api/v1/screening/stats").then(r => setScreening(r.data||{})).catch(()=>{})
+    api.get("/api/v1/compliance/edd-cases?limit=5").then(r => setEdd(r.data?.queue||[])).catch(()=>{})
+    api.get("/api/v1/compliance/metrics").then(r => setScreening(r.data||{})).catch(()=>{})
   }, [])
 
   const escalate = async (id) => {

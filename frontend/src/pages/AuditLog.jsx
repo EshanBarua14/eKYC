@@ -14,7 +14,7 @@ export default function AuditLog() {
   const load = async () => {
     setLoading(true)
     try {
-      const res = await api.get("/api/v1/audit/logs?limit=100")
+      const res = await api.get("/api/v1/audit/events?limit=100")
       setLogs(res.data?.logs || res.data || [])
     } catch { notify.error("Failed to load audit logs") }
     finally { setLoading(false) }
@@ -25,7 +25,7 @@ export default function AuditLog() {
   const exportPDF = async () => {
     try {
       notify.info("Generating audit PDF…")
-      await api.post("/api/v1/audit/export-pdf", {})
+      await api.post("/api/v1/audit/export/pdf", {})
       notify.success("Audit PDF exported")
     } catch { notify.error("Export failed") }
   }

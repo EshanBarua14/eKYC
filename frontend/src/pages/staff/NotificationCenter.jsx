@@ -28,8 +28,8 @@ export default function NotificationCenter() {
     setLoading(true)
     try {
       const [l, s] = await Promise.all([
-        apiFetch("/api/v1/notification/log?limit=50"),
-        apiFetch("/api/v1/notification/stats"),
+        apiFetch("/api/v1/notify/log?limit=50"),
+        apiFetch("/api/v1/notify/stats"),
       ])
       setLogs(l.logs || l.notifications || [])
       setStats(s)
@@ -40,7 +40,7 @@ export default function NotificationCenter() {
   const sendSuccess = async () => {
     if (!form.session_id || !form.mobile) { toast.error("Session ID and mobile required"); return }
     try {
-      await apiFetch("/api/v1/notification/kyc-success", {
+      await apiFetch("/api/v1/notify/kyc-success", {
         method:"POST", body: JSON.stringify(form)
       })
       toast.success("✓ KYC success notification dispatched (BFIU §3.2 Step 5)")
@@ -51,7 +51,7 @@ export default function NotificationCenter() {
   const sendFailure = async () => {
     if (!form.session_id || !form.mobile) { toast.error("Session ID and mobile required"); return }
     try {
-      await apiFetch("/api/v1/notification/kyc-failure", {
+      await apiFetch("/api/v1/notify/kyc-failure", {
         method:"POST",
         body: JSON.stringify({ session_id: form.session_id, mobile: form.mobile, reason:"Verification failed" })
       })

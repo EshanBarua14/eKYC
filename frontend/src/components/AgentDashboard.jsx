@@ -95,13 +95,13 @@ function SessionRow({ session:s, compact }) {
   )
 }
 
-// ── Live stats from /api/v1/audit/summary ──────────────────────────────────
+// ── Live stats from /api/v1/audit/dashboard ──────────────────────────────────
 function useLiveStats() {
   const [stats, setStats] = useState(null)
   const load = useCallback(async () => {
     try {
       const token = await ensureDemoToken()
-      const r = await fetch(`${API}/api/v1/audit/summary`, { headers: { Authorization:`Bearer ${token}` } })
+      const r = await fetch(`${API}/api/v1/audit/dashboard`, { headers: { Authorization:`Bearer ${token}` } })
       if (r.ok) setStats(await r.json())
     } catch(_) {}
   }, [])
@@ -109,13 +109,13 @@ function useLiveStats() {
   return { stats, reload: load }
 }
 
-// ── Live sessions from /api/v1/outcome/list ────────────────────────────────
+// ── Live sessions from /api/v1/outcome/queue/all ────────────────────────────────
 function useLiveSessions() {
   const [sessions, setSessions] = useState([])
   const load = useCallback(async () => {
     try {
       const token = await ensureDemoToken()
-      const r = await fetch(`${API}/api/v1/outcome/list?limit=20`, { headers: { Authorization:`Bearer ${token}` } })
+      const r = await fetch(`${API}/api/v1/outcome/queue/all?limit=20`, { headers: { Authorization:`Bearer ${token}` } })
       if (r.ok) {
         const d = await r.json()
         setSessions(d.outcomes || d.items || d || [])

@@ -12,7 +12,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     api.get("/api/v1/admin/stats").then(r => setStats(r.data)).catch(()=>{})
-    api.get("/api/v1/health").then(r => setHealth(r.data)).catch(()=>{})
+    api.get("/health").then(r => setHealth(r.data)).catch(()=>{})
   }, [])
 
   return (

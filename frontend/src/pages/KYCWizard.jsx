@@ -32,7 +32,7 @@ function NIDEntryStep({ onNext }) {
     if (!dob)            return notify.error("Date of birth required")
     setLoading(true)
     try {
-      const res = await api.post("/api/v1/nid/verify-entry", { nid_number: nid, date_of_birth: dob })
+      const res = await api.post("/api/v1/nid/verify", { nid_number: nid, date_of_birth: dob })
       notify.success("NID entry verified ✓")
       onNext({ nid_number: nid, date_of_birth: dob, nid_data: res.data })
     } catch(err) {
@@ -78,7 +78,7 @@ function NIDScanStep({ onNext, onBack }) {
     try {
       const frontB64 = await toB64(front)
       const backB64  = back ? await toB64(back) : null
-      const res = await api.post("/api/v1/nid/ocr", {
+      const res = await api.post("/api/v1/nid/scan-ocr", {
         front_image: frontB64, back_image: backB64
       })
       notify.success("NID card scanned successfully ✓")
@@ -139,7 +139,7 @@ function LivenessStep({ onNext, onBack }) {
     setLoading(true)
     try {
       const b64 = await toB64(image)
-      const res = await api.post("/api/v1/liveness/check", { live_image: b64 })
+      const res = await api.post("/api/v1/ai/challenge", { live_image: b64 })
       notify.success("Liveness check passed ✓")
       onNext({ live_b64: b64, liveness_result: res.data })
     } catch {
