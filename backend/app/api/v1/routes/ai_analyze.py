@@ -132,6 +132,17 @@ async def scan_nid(request: Request,req: NIDScanRequest):
     try:
         from app.services.nid_ocr_service import scan_nid_card
         ocr = scan_nid_card(front_image_b64=req.image_b64)
+        # Enrich OCR with demo DB if NID number detected
+        if ocr.get("nid_number"):
+            from app.services.nid_api_client import lookup_nid
+            db_rec = lookup_nid(ocr["nid_number"])
+            if db_rec.get("found") and db_rec.get("data"):
+                d = db_rec["data"]
+                ocr.setdefault("full_name_en",  d.get("full_name_en", ""))
+                ocr.setdefault("full_name_bn",  d.get("full_name_bn", ""))
+                ocr.setdefault("fathers_name",  d.get("fathers_name", ""))
+                ocr.setdefault("mothers_name",  d.get("mothers_name", ""))
+                ocr.setdefault("date_of_birth", d.get("date_of_birth", ""))
         fields = ocr.get("fields", {})
     except Exception:
         fields = {}

@@ -8,7 +8,7 @@ import cv2
 import os
 from app.services.image_utils import b64_to_numpy
 
-CONSECUTIVE_PASSES  = 1
+CONSECUTIVE_PASSES = 1
 LBP_SPOOF_THRESHOLD = 12.0
 _consecutive: dict  = {}
 

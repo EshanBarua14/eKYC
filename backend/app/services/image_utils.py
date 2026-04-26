@@ -46,7 +46,7 @@ def numpy_to_b64(arr: np.ndarray) -> str:
     return "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode()
 
 
-def detect_face(img_rgb: np.ndarray, conf_threshold: float = 0.3):
+def detect_face(img_rgb: np.ndarray, conf_threshold: float = 0.15):
     """
     Detect the largest face using OpenCV DNN (ResNet SSD).
     Falls back to Haar cascade if DNN finds nothing.
@@ -71,7 +71,7 @@ def detect_face(img_rgb: np.ndarray, conf_threshold: float = 0.3):
     return face, coords
 
 
-def _dnn_detect(img_rgb: np.ndarray, conf_threshold: float = 0.3):
+def _dnn_detect(img_rgb: np.ndarray, conf_threshold: float = 0.15):
     """DNN-based face detection — works on low-quality/document photos."""
     # Hard cap to prevent OOM on large images
     h, w = img_rgb.shape[:2]
