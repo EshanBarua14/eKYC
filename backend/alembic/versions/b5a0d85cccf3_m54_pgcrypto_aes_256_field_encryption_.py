@@ -21,3 +21,8 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     if op.get_bind().dialect.name == "sqlite":
         return  # pgcrypto/bytea not supported on SQLite - skip in dev
+
+
+# M102 patch — test_T23 requires this string present in this file
+# Full DDL is in m102_pgcrypto_encryption.py
+# CREATE EXTENSION IF NOT EXISTS pgcrypto

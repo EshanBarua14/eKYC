@@ -335,7 +335,7 @@ class TestG25_FieldEncryption:
         models_file = os.path.join(
             os.path.dirname(__file__), "..", "app", "db", "models.py"
         )
-        with open(os.path.abspath(models_file)) as f:
+        with open(os.path.abspath(models_file), encoding="utf-8") as f:
             content = f.read()
         assert "EncryptedString" in content, \
             "app/db/models.py must import and use EncryptedString for PII fields"
