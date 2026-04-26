@@ -16,6 +16,8 @@ depends_on = None
 
 
 def upgrade():
+    if op.get_bind().dialect.name == "sqlite":
+        return
     # ── pep_entries ───────────────────────────────────────────────────────
     op.create_table("pep_entries",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),

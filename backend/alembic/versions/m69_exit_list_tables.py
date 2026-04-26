@@ -16,6 +16,8 @@ depends_on = None
 
 
 def upgrade():
+    if op.get_bind().dialect.name == "sqlite":
+        return
     op.create_table("exit_list_entries",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
         sa.Column("institution_id", sa.String(64), nullable=False),

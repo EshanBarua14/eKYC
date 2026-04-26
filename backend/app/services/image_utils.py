@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Image utility functions â€” DNN-based face detection
 Works on NID card photos, low-res, grayscale, document scans.
@@ -156,7 +157,7 @@ def _center_crop(img_rgb: np.ndarray):
     y2 = int(h * 0.75)
     crop   = img_rgb[y1:y2, x1:x2]
     coords = {"x": x1, "y": y1, "w": x2-x1, "h": y2-y1}
-    # Reject blank/uniform images — variance too low to be a real face
+    # Reject blank/uniform images - variance too low to be a real face
     if float(crop.var()) < 50.0:
         return None, None
     return crop, coords

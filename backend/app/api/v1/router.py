@@ -30,6 +30,7 @@ from app.api.v1.routes.rate_limits   import router as rate_limits_router
 from app.api.v1.routes.beneficial_owner import router as bo_router
 from app.api.v1.routes.maker_checker     import router as maker_checker_router
 from app.api.v1.routes.kyc_workflow      import router as kyc_workflow_router
+from app.api.v1.pep_router                import router as pep_router
 
 v1_router = APIRouter()
 v1_router.include_router(auth_router)
@@ -62,3 +63,4 @@ v1_router.include_router(rate_limits_router)
 v1_router.include_router(bo_router)
 v1_router.include_router(maker_checker_router)
 v1_router.include_router(kyc_workflow_router)
+v1_router.include_router(pep_router)

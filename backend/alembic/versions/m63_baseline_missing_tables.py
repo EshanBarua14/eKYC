@@ -17,6 +17,8 @@ depends_on = None
 
 
 def upgrade():
+    if op.get_bind().dialect.name == "sqlite":
+        return
     """
     Register all tables that were created via create_all() into Alembic.
     Uses IF NOT EXISTS — safe on both fresh and existing DBs.

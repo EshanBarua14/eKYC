@@ -30,7 +30,7 @@ export default function PEPManagementPage() {
     setLoading(true)
     try {
       const d = await apiFetch("/api/v1/pep/entries?limit=200")
-      setEntries(d.entries || d.pep_entries || d || [])
+      const raw = d.entries || d.pep_entries || d.results || d.items || d; setEntries(Array.isArray(raw) ? raw : [])
     } catch { setEntries([]) }
     finally { setLoading(false) }
   }

@@ -136,6 +136,7 @@ import ScreeningPanel from "../pages/staff/ScreeningPanel"
 import NotificationCenter from "../pages/staff/NotificationCenter"
 import RiskEngine from "../pages/staff/RiskEngine"
 import { API, getToken, authHeaders, ensureAdminToken } from "../config"
+import PEPManagementPage from "../pages/staff/PEPPage"
 
 function MakerContent({ activeTab, onExit }) {
   const [submissions, setSubmissions] = useState([])

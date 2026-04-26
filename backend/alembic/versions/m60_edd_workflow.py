@@ -13,6 +13,8 @@ branch_labels = None
 depends_on = None
 
 def upgrade():
+    if op.get_bind().dialect.name == "sqlite":
+        return
     op.create_table("edd_cases",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
         sa.Column("case_reference", sa.String(32), nullable=False, unique=True),
