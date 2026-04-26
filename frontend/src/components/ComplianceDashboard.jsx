@@ -510,7 +510,7 @@ function ExportTab() {
 
 // ── ROOT ─────────────────────────────────────────────────────────────────────
 export default function ComplianceDashboard({ onExit, theme, toggleTheme, externalTab, onTabChange, role }) {
-  const [tab, setTab] = useState("posture")
+  const [tab, setTab] = useState(() => externalTab || "posture")
   useEffect(() => { if (externalTab) setTab(externalTab) }, [externalTab])
 
   const TAB_CONTENT = {
@@ -527,16 +527,7 @@ export default function ComplianceDashboard({ onExit, theme, toggleTheme, extern
       {!externalTab && <header style={{ background:"var(--bg2)", borderBottom:"1px solid var(--border)", position:"sticky", top:0, zIndex:100 }}><div style={{ maxWidth:1100, margin:"0 auto", padding:"0 24px", height:60, display:"flex", alignItems:"center", justifyContent:"space-between" }}><button onClick={onExit} style={{ padding:"5px 10px", borderRadius:8, fontSize:12, fontWeight:600, background:"var(--bg3)", border:"1px solid var(--border)", cursor:"pointer", color:"var(--text2)", fontFamily:"var(--font)", display:"flex", alignItems:"center", gap:5 }}><ChevronLeft size={13}/> Exit</button><button onClick={toggleTheme} style={{ padding:"6px 11px", borderRadius:8, fontSize:12, background:"var(--bg3)", border:"1px solid var(--border)", cursor:"pointer", color:"var(--text2)", fontFamily:"var(--font)" }}>{theme==="light"?"🌙 Dark":"☀️ Light"}</button></div></header>}
 
       <main style={{ maxWidth: externalTab ? "100%" : 1100, margin:"0 auto", padding: externalTab ? "0" : "28px 24px" }}>
-        <div style={{ marginBottom:20 }}>
-          <h1 style={{ fontSize:26, fontWeight:800, color:"var(--text)", letterSpacing:"-0.03em", marginBottom:4 }}>
-            Compliance{" "}
-            <span style={{ background:"linear-gradient(135deg,var(--green),var(--blue))",
-              WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>Dashboard</span>
-          </h1>
-          <p style={{ fontSize:13, color:"var(--text2)" }}>
-            KYC review queues · EDD cases · Screening hits · Failed onboarding · BFIU export
-          </p>
-        </div>
+{!externalTab && <div style={{ marginBottom:20 }}><h1 style={{ fontSize:26, fontWeight:800, color:"var(--text)" }}>Compliance Dashboard</h1><p style={{ fontSize:13, color:"var(--text2)" }}>KYC review queues · EDD cases · Screening hits</p></div>}
         {!externalTab && <div style={{ marginBottom:20 }}><TabNav active={tab} setActive={setTab}/></div>}
         {TAB_CONTENT[tab]}
       </main>

@@ -20,7 +20,7 @@ export function AdminShell({ theme, toggleTheme, onExit }) {
     users:        "users",
     thresholds:   "thresholds",
     webhooks:     "webhooks",
-    pep:          "auditlogs",
+    pep:          "pep",
     auditlogs:    "auditlogs",
     settings:     "settings",
   }
@@ -31,19 +31,14 @@ export function AdminShell({ theme, toggleTheme, onExit }) {
     if (activeTab === "lifecycle")        return <LifecycleManager/>
     if (activeTab === "screening_manual") return <ScreeningPanel/>
     if (activeTab === "notifications")    return <NotificationCenter/>
-    if (activeTab === "pep")              return <AdminConsole onExit={onExit} theme={theme} toggleTheme={toggleTheme} externalTab="auditlogs" onTabChange={setActiveTab}/>
-    if (ADMIN_CONSOLE_TABS.includes(activeTab)) return (
-      <AdminConsole
-        onExit={onExit} theme={theme} toggleTheme={toggleTheme}
-        externalTab={tabMap[activeTab] || activeTab}
-        onTabChange={setActiveTab}
-      />
-    )
-    // Default
+    if (activeTab === "pep")              return <PEPManagementPage/>
+    // Pass key to force remount when tab changes so useState init picks up new externalTab
+    const mappedTab = tabMap[activeTab] || activeTab
     return (
       <AdminConsole
+        key={mappedTab}
         onExit={onExit} theme={theme} toggleTheme={toggleTheme}
-        externalTab={tabMap[activeTab] || "institutions"}
+        externalTab={mappedTab}
         onTabChange={setActiveTab}
       />
     )
@@ -68,10 +63,12 @@ export function AgentShell({ theme, toggleTheme, onExit }) {
     if (activeTab === "screening" || activeTab === "screening_manual") return <ScreeningPanel/>
     if (activeTab === "fallback") return <FallbackKYC/>
     if (activeTab === "risk")     return <RiskEngine/>
+    const mappedAgentTab = tabMap[activeTab] || activeTab
     return (
       <AgentDashboard
+        key={mappedAgentTab}
         onExit={onExit} theme={theme} toggleTheme={toggleTheme}
-        externalTab={tabMap[activeTab] || "dashboard"}
+        externalTab={mappedAgentTab}
         onTabChange={setActiveTab}
       />
     )
@@ -97,10 +94,12 @@ export function ComplianceShell({ role, theme, toggleTheme, onExit }) {
     if (activeTab === "beneficial_owner") return <BeneficialOwner/>
     if (activeTab === "lifecycle")        return <LifecycleManager/>
     if (activeTab === "notifications")    return <NotificationCenter/>
+    const mappedCompTab = tabMap[activeTab] || activeTab
     return (
       <ComplianceDashboard
+        key={mappedCompTab}
         onExit={onExit} theme={theme} toggleTheme={toggleTheme}
-        externalTab={tabMap[activeTab] || "posture"}
+        externalTab={mappedCompTab}
         onTabChange={setActiveTab}
         role={role}
       />

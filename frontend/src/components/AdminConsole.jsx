@@ -635,7 +635,7 @@ function AuditLogsTab() {
 // ROOT
 // ══════════════════════════════════════════════════════════════════════════
 export default function AdminConsole({ onExit, theme, toggleTheme, externalTab, onTabChange }) {
-  const [tab, setTab] = useState("institutions")
+  const [tab, setTab] = useState(() => externalTab || "institutions")
 
   const TAB_CONTENT = {
     institutions: <InstitutionsTab/>,
@@ -652,15 +652,7 @@ export default function AdminConsole({ onExit, theme, toggleTheme, externalTab, 
       {!externalTab && <header style={{ background:"var(--bg2)", borderBottom:"1px solid var(--border)", position:"sticky", top:0, zIndex:100 }}><div style={{ maxWidth:1100, margin:"0 auto", padding:"0 24px", height:60, display:"flex", alignItems:"center", justifyContent:"space-between" }}><button onClick={onExit} style={{ padding:"5px 10px", borderRadius:8, fontSize:12, fontWeight:600, background:"var(--bg3)", border:"1px solid var(--border)", cursor:"pointer", color:"var(--text2)", fontFamily:"var(--font)", display:"flex", alignItems:"center", gap:5 }}><ChevronLeft size={13}/> Exit</button><button onClick={toggleTheme} style={{ padding:"6px 11px", borderRadius:8, fontSize:12, background:"var(--bg3)", border:"1px solid var(--border)", cursor:"pointer", color:"var(--text2)", fontFamily:"var(--font)" }}>{theme==="light"?"🌙 Dark":"☀️ Light"}</button></div></header>}
 
       <main style={{ maxWidth: externalTab ? "100%" : 1100, margin:"0 auto", padding: externalTab ? "0" : "28px 24px" }}>
-        <div style={{ marginBottom:20 }}>
-          <h1 style={{ fontSize:26, fontWeight:800, color:"var(--text)", letterSpacing:"-0.03em", marginBottom:4 }}>
-            Admin <span style={{ background:"linear-gradient(135deg,var(--accent),var(--accent2))",
-              WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>Console</span>
-          </h1>
-          <p style={{ fontSize:13, color:"var(--text2)" }}>
-            Institution management · User RBAC · BFIU threshold editor · Webhooks · System health · Audit trail
-          </p>
-        </div>
+{!externalTab && <div style={{ marginBottom:20 }}><h1 style={{ fontSize:26, fontWeight:800, color:"var(--text)", letterSpacing:"-0.03em", marginBottom:4 }}>Admin Console</h1><p style={{ fontSize:13, color:"var(--text2)" }}>Institution management · User RBAC · BFIU threshold editor · Webhooks · System health · Audit trail</p></div>}
         {!externalTab && <div style={{ marginBottom:20 }}><TabNav active={tab} setActive={setTab}/></div>}
         {TAB_CONTENT[tab]}
       </main>

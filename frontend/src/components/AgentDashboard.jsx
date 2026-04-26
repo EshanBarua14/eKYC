@@ -529,7 +529,7 @@ function ReportsTab({ sessions, stats }) {
 }
 
 export default function AgentDashboard({ onExit, theme, toggleTheme, externalTab, onTabChange }) {
-  const [active, setActive] = useState("dashboard")
+  const [active, setActive] = useState(() => externalTab || "dashboard")
   useEffect(() => { if (externalTab) setActive(externalTab) }, [externalTab])
   const agent = { name:"Eshan Barua", code:"AGT-2026-042", zone:"Chittagong Sadar" }
   const { sessions, reload: reloadSessions } = useLiveSessions()
@@ -547,10 +547,10 @@ export default function AgentDashboard({ onExit, theme, toggleTheme, externalTab
   }
 
   return (
-    <div style={{ display:"flex", minHeight:"100vh", background:"var(--bg)" }}>
+    <div style={{ display: externalTab ? "block" : "flex", minHeight: externalTab ? "auto" : "100vh", background: externalTab ? "transparent" : "var(--bg)" }}>
       {!externalTab && <Sidebar active={active} setActive={setActive} agent={agent} onExit={onExit}/>}
-      <div style={{ flex:1, overflow:"auto" }}>
-        <div style={{ position:"sticky", top:0, zIndex:10, background:"var(--bg2)", borderBottom:"1px solid var(--border)", padding:"12px 24px", display:"flex", alignItems:"center", gap:12 }}>
+      <div style={{ flex: externalTab ? "none" : 1, overflow: externalTab ? "visible" : "auto" }}>
+        {!externalTab && <div style={{ position:"sticky", top:0, zIndex:10, background:"var(--bg2)", borderBottom:"1px solid var(--border)", padding:"12px 24px", display:"flex", alignItems:"center", gap:12 }}>
           <div style={{ flex:1 }}>
             <div style={{ fontSize:16, fontWeight:800, color:"var(--text)" }}>
               {{dashboard:"Agent Dashboard",sessions:"Sessions",new:"New eKYC Session",search:"NID Search",reports:"Reports",profile:"My Profile"}[active]}
@@ -565,8 +565,8 @@ export default function AgentDashboard({ onExit, theme, toggleTheme, externalTab
             <button onClick={reload} style={{ width:34, height:34, borderRadius:99, background:"var(--bg3)", border:"1px solid var(--border)", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer" }} title="Refresh"><RefreshCw size={14} color="var(--text3)"/></button>
             <button onClick={toggleTheme} style={{ width:34, height:34, borderRadius:99, background:"var(--bg3)", border:"1px solid var(--border)", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", fontFamily:"var(--font)", fontSize:11 }}>{theme==="dark" ? "☀" : "🌙"}</button>
           </div>
-        </div>
-        <div style={{ padding:24 }}>{tabs[active]||tabs.dashboard}</div>
+        </div>}
+        <div style={{ padding: externalTab ? '0' : '24px' }}>{tabs[active]||tabs.dashboard}</div>
       </div>
     </div>
   )
