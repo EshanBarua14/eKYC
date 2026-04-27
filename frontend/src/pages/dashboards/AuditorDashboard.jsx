@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react"
-import { useNavigate } from "react-router-dom"
 import { FileText, BarChart3, Shield, Download, ArrowRight } from "lucide-react"
 import StatCard from "../../components/ui/StatCard"
 import Card from "../../components/ui/Card"
@@ -9,7 +8,6 @@ import { api } from "../../hooks/useApi"
 import { notify } from "../../components/ui/Toast"
 
 export default function AuditorDashboard() {
-  const navigate = useNavigate()
   const [logs, setLogs] = useState([])
 
   useEffect(() => {
@@ -48,7 +46,7 @@ export default function AuditorDashboard() {
       <Card>
         <div className="flex items-center justify-between mb-4">
           <h3 className="section-title mb-0">Recent Audit Events</h3>
-          <Button variant="ghost" size="sm" onClick={() => navigate("/audit")} iconRight={<ArrowRight size={12}/>}>View all</Button>
+          <Button variant="ghost" size="sm" onClick={() => {}} iconRight={<ArrowRight size={12}/>}>View all</Button>
         </div>
         {logs.length === 0 ? (
           <p className="text-sm text-gray-400 text-center py-8">No audit events</p>

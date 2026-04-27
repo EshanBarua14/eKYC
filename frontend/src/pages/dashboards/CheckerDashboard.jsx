@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react"
-import { useNavigate } from "react-router-dom"
 import { CheckSquare, Clock, XCircle, AlertTriangle, ArrowRight } from "lucide-react"
 import StatCard from "../../components/ui/StatCard"
 import Card from "../../components/ui/Card"
@@ -8,7 +7,6 @@ import Badge from "../../components/ui/Badge"
 import { api } from "../../hooks/useApi"
 
 export default function CheckerDashboard() {
-  const navigate = useNavigate()
   const [queue, setQueue] = useState([])
 
   useEffect(() => {
@@ -24,7 +22,7 @@ export default function CheckerDashboard() {
           <h2 className="page-title">Checker Dashboard</h2>
           <p className="text-sm text-gray-400 mt-1">Review and approve KYC submissions</p>
         </div>
-        <Button onClick={() => navigate("/review")} icon={<CheckSquare size={14}/>}>
+        <Button onClick={() => {}} icon={<CheckSquare size={14}/>}>
           Open Review Queue
         </Button>
       </div>
@@ -39,7 +37,7 @@ export default function CheckerDashboard() {
       <Card>
         <div className="flex items-center justify-between mb-4">
           <h3 className="section-title mb-0">Review Queue</h3>
-          <Button variant="ghost" size="sm" onClick={() => navigate("/review")} iconRight={<ArrowRight size={12}/>}>
+          <Button variant="ghost" size="sm" onClick={() => {}} iconRight={<ArrowRight size={12}/>}>
             View all
           </Button>
         </div>
@@ -53,7 +51,7 @@ export default function CheckerDashboard() {
             </div>
             <div className="flex items-center gap-2">
               <Badge color={p.edd_required?"yellow":"blue"}>{p.status}</Badge>
-              <Button size="xs" onClick={() => navigate("/review")}>Review</Button>
+              <Button size="xs" onClick={() => {}}>Review</Button>
             </div>
           </div>
         ))}

@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react"
-import { useNavigate } from "react-router-dom"
 import { Fingerprint, Clock, CheckCircle, XCircle, Plus, ArrowRight } from "lucide-react"
 import StatCard from "../../components/ui/StatCard"
 import Card from "../../components/ui/Card"
@@ -8,7 +7,6 @@ import Badge from "../../components/ui/Badge"
 import { api } from "../../hooks/useApi"
 
 export default function AgentDashboard() {
-  const navigate = useNavigate()
   const [sessions, setSessions] = useState([])
 
   useEffect(() => {
@@ -27,7 +25,7 @@ export default function AgentDashboard() {
           <h2 className="page-title">Field Agent Dashboard</h2>
           <p className="text-sm text-gray-400 mt-1">Conduct eKYC verifications</p>
         </div>
-        <Button onClick={() => navigate("/kyc/new")} icon={<Plus size={14}/>}>
+        <Button onClick={() => (()=>{})("/kyc/new")} icon={<Plus size={14}/>}>
           New eKYC
         </Button>
       </div>
@@ -42,7 +40,7 @@ export default function AgentDashboard() {
       <Card>
         <div className="flex items-center justify-between mb-4">
           <h3 className="section-title mb-0">Recent Sessions</h3>
-          <Button variant="ghost" size="sm" onClick={() => navigate("/kyc/sessions")} iconRight={<ArrowRight size={12}/>}>
+          <Button variant="ghost" size="sm" onClick={() => (()=>{})("/kyc/sessions")} iconRight={<ArrowRight size={12}/>}>
             View all
           </Button>
         </div>
@@ -50,7 +48,7 @@ export default function AgentDashboard() {
           <div className="text-center py-8">
             <Fingerprint size={32} className="text-gray-300 mx-auto mb-2"/>
             <p className="text-sm text-gray-400">No sessions yet — start your first eKYC</p>
-            <Button className="mt-3" size="sm" onClick={() => navigate("/kyc/new")} icon={<Plus size={12}/>}>
+            <Button className="mt-3" size="sm" onClick={() => (()=>{})("/kyc/new")} icon={<Plus size={12}/>}>
               Start eKYC
             </Button>
           </div>
