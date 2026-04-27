@@ -88,3 +88,20 @@ ekyc_p0_implementation_plan.md
 ~$*.docx
 *.png
 *.jpg
+
+# M64 — Docker/SSL secrets
+nginx/ssl/server.key
+nginx/ssl/server.crt
+nginx/ssl/*.pem
+nginx/logs/
+.env.production
+*.env
+certbot/
+
+# M64 SSL secrets
+nginx/ssl/server.key
+nginx/ssl/server.crt
+nginx/ssl/openssl.cnf
+nginx/logs/
+.env.production
+*.env

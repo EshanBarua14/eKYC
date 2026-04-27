@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 
 # ── M70: SSL/Certbot ──────────────────────────────────────────────────────
 def test_T01_nginx_config_has_ssl():
-    nginx_path = "../nginx/nginx.conf"
+    nginx_path = "../nginx/conf.d/ekyc.conf"
     if not os.path.exists(nginx_path):
         pytest.skip("nginx.conf not found")
     content = open(nginx_path).read()
@@ -17,14 +17,14 @@ def test_T01_nginx_config_has_ssl():
     assert "443" in content
 
 def test_T02_nginx_has_hsts():
-    nginx_path = "../nginx/nginx.conf"
+    nginx_path = "../nginx/conf.d/ekyc.conf"
     if not os.path.exists(nginx_path):
         pytest.skip("nginx.conf not found")
     content = open(nginx_path).read()
     assert "Strict-Transport-Security" in content
 
 def test_T03_nginx_has_http_redirect():
-    nginx_path = "../nginx/nginx.conf"
+    nginx_path = "../nginx/conf.d/ekyc.conf"
     if not os.path.exists(nginx_path):
         pytest.skip("nginx.conf not found")
     content = open(nginx_path).read()
