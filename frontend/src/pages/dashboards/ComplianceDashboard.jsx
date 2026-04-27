@@ -13,7 +13,7 @@ export default function ComplianceDashboard() {
 
   useEffect(() => {
     api.get("/api/v1/compliance/edd-cases?limit=5").then(r => setEdd(r.data?.queue||[])).catch(()=>{})
-    api.get("/api/v1/compliance/metrics").then(r => setScreening(r.data||{})).catch(()=>{})
+    api.get("/api/v1/compliance/posture").then(r => setScreening(r.data||{})).catch(()=>{})
   }, [])
 
   const escalate = async (id) => {

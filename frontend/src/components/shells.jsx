@@ -7,6 +7,7 @@ import { Toaster } from "react-hot-toast"
 import GlassShell from "./GlassShell"
 import AdminConsole from "./AdminConsole"
 import AgentDashboard from "./AgentDashboard"
+import AdminDashboard from "../pages/dashboards/AdminDashboard"
 import ComplianceDashboard from "./ComplianceDashboard"
 
 // ── Admin Shell ──────────────────────────────────────────────────────────────
@@ -14,7 +15,7 @@ export function AdminShell({ theme, toggleTheme, onExit }) {
   const [activeTab, setActiveTab] = useState("dashboard")
   // Map GlassShell tabs to AdminConsole tabs
   const tabMap = {
-    dashboard:    "institutions",
+    dashboard:    "dashboard",
     health:       "health",
     institutions: "institutions",
     users:        "users",
@@ -25,9 +26,10 @@ export function AdminShell({ theme, toggleTheme, onExit }) {
     settings:     "settings",
   }
   // Tabs handled by AdminConsole internally
-  const ADMIN_CONSOLE_TABS = ["dashboard","health","institutions","users","thresholds","webhooks","auditlogs","settings","pep"]
+  const ADMIN_CONSOLE_TABS = ["health","institutions","users","thresholds","webhooks","auditlogs","settings","pep"]
 
   const renderAdminContent = () => {
+    if (activeTab === "dashboard")        return <AdminDashboard/>
     if (activeTab === "lifecycle")        return <LifecycleManager/>
     if (activeTab === "screening_manual") return <ScreeningPanel/>
     if (activeTab === "notifications")    return <NotificationCenter/>
@@ -92,6 +94,7 @@ export function ComplianceShell({ role, theme, toggleTheme, onExit }) {
   const renderCompContent = () => {
     if (activeTab === "screening_manual") return <ScreeningPanel/>
     if (activeTab === "beneficial_owner") return <BeneficialOwner/>
+    if (activeTab === "dashboard")        return <AdminDashboard/>
     if (activeTab === "lifecycle")        return <LifecycleManager/>
     if (activeTab === "notifications")    return <NotificationCenter/>
     const mappedCompTab = tabMap[activeTab] || activeTab

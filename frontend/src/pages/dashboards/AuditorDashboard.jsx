@@ -13,7 +13,7 @@ export default function AuditorDashboard() {
   const [logs, setLogs] = useState([])
 
   useEffect(() => {
-    api.get("/api/v1/audit/events?limit=5").then(r => setLogs(r.data?.logs||[])).catch(()=>{})
+    api.get("/api/v1/audit/log?limit=5").then(r => setLogs(r.data?.logs||[])).catch(()=>{})
   }, [])
 
   const exportReport = async () => {

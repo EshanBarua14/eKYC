@@ -12,7 +12,7 @@ export default function AgentDashboard() {
   const [sessions, setSessions] = useState([])
 
   useEffect(() => {
-    api.get("/api/v1/onboarding/start?limit=5").then(r => setSessions(r.data?.sessions||[])).catch(()=>{})
+    api.get("/api/v1/kyc/profiles?limit=5").then(r => setSessions(r.data?.profiles||[])).catch(()=>{})
   }, [])
 
   const statusBadge = (s) => {
