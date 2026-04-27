@@ -167,7 +167,7 @@ def screen_unscr(name: str) -> dict:
 def screen_pep(name: str, db=None, national_id: str = None) -> dict:
     """
     Screen name against PEP/IP list.
-    Mandatory for Regular eKYC only (BFIU §4.2).
+    Mandatory for Regular eKYC only (BFIU s4.2).
     Uses DB-backed list (M62) when db session provided.
     Falls back to demo list when db=None.
     """
@@ -225,24 +225,28 @@ _ADVERSE_KEYWORDS = [
 
 def screen_adverse_media(name: str, kyc_type: str = "REGULAR") -> dict:
     """
-    Screen for adverse media.
-    In prod: queries configured news/crime database APIs.
-    In dev: keyword simulation against demo adverse entries.
+    Screen for adverse media -- BFIU Circular No. 29 s5.3.
+    M104: Uses live Google News RSS + BBC World RSS.
+    Falls back to keyword demo if network unavailable.
     """
-    # Demo adverse media database
+    try:
+        from app.services.adverse_media_service import screen_adverse_media_live
+        return screen_adverse_media_live(name, kyc_type)
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning(
+            "[M104] Live adverse media failed, using fallback: %s", e
+        )
+    # Fallback -- keyword simulation
     _ADVERSE_DEMO = {
         "KARIM CORRUPT": ["Convicted of fraud in 2023", "Money laundering case pending"],
         "BAD ACTOR BD":  ["Terrorist financing investigation"],
     }
-
-    name_upper = name.upper()
     hits = []
-
     for bad_name, articles in _ADVERSE_DEMO.items():
         score = fuzzy_match_score(name, bad_name)
         if score >= ADVERSE_MEDIA_THRESHOLD:
             hits.extend([{"headline": a, "score": score} for a in articles])
-
     verdict = "CLEAR" if not hits else "FLAGGED"
     return {
         "verdict":      verdict,
@@ -251,8 +255,9 @@ def screen_adverse_media(name: str, kyc_type: str = "REGULAR") -> dict:
         "hits":         hits,
         "hit_count":    len(hits),
         "edd_required": verdict == "FLAGGED",
+        "sources":      ["fallback_demo"],
         "screened_at":  bst_isoformat(),
-        "bfiu_ref":     "BFIU Circular No. 29 - Section 5.3",
+        "bfiu_ref":     "BFIU Circular No. 29 s5.3",
     }
 
 # ---------------------------------------------------------------------------
