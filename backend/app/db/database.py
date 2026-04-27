@@ -85,6 +85,7 @@ class Base(DeclarativeBase):
 
 def get_db():
     """FastAPI dependency — yields DB session."""
+    engine.dispose()
     db = SessionLocal()
     try:
         yield db

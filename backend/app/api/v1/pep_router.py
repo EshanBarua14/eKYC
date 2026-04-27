@@ -83,19 +83,30 @@ def pep_meta(
 @router.get("/entries")
 def list_entries(
     category: Optional[str] = None,
-    status: Optional[str] = PEPStatus.ACTIVE,
+    status: Optional[str] = None,
+    country: Optional[str] = None,
     search: Optional[str] = None,
-    limit: int = 100,
+    limit: int = 50,
     offset: int = 0,
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user),
 ):
-    """List PEP entries. ADMIN/AUDITOR/COMPLIANCE_OFFICER."""
+    """List PEP entries with pagination. ADMIN/AUDITOR/COMPLIANCE_OFFICER."""
     role = (current_user.get("role") or "").upper()
     if role not in {"ADMIN", "AUDITOR", "COMPLIANCE_OFFICER"}:
         raise HTTPException(403, "Access denied")
-    entries = list_pep_entries(db, category, status, search, limit, offset)
-    return [_entry_dict(e) for e in entries]
+    from app.db.models_pep import PEPEntry as _PE
+    from sqlalchemy import func as _func, or_
+    q = db.query(_PE)
+    if category: q = q.filter(_PE.category == category)
+    if country: q = q.filter(_PE.country == country)
+    if status:   q = q.filter(_PE.status == status)
+    if search:
+        t = f"%{search.upper()}%"
+        q = q.filter(or_(_func.upper(_PE.full_name_en).like(t), _func.upper(_PE.full_name_bn).like(t)))
+    total = q.count()
+    entries = q.order_by(_PE.full_name_en).offset(offset).limit(min(limit, 200)).all()
+    return {"total": total, "offset": offset, "limit": limit, "entries": [_entry_dict(e) for e in entries]}
 
 
 def _entry_dict(e):
@@ -128,7 +139,7 @@ def add_entry(
     try:
         entry = add_pep_entry(
             db,
-            actor_user_id=uuid.UUID(current_user["user_id"]),
+            actor_user_id=None,
             actor_role=current_user["role"],
             **body.model_dump(),
         )
@@ -148,7 +159,7 @@ def update_entry(
     try:
         entry = update_pep_entry(
             db, entry_id,
-            actor_user_id=uuid.UUID(current_user["user_id"]),
+            actor_user_id=uuid.UUID(current_user["user_id"]) if _is_uuid(current_user.get("user_id","")) else None,
             actor_role=current_user["role"],
             **{k: v for k, v in body.model_dump().items() if v is not None},
         )
@@ -168,7 +179,7 @@ def deactivate_entry(
     try:
         entry = deactivate_pep_entry(
             db, entry_id,
-            actor_user_id=uuid.UUID(current_user["user_id"]),
+            actor_user_id=uuid.UUID(current_user["user_id"]) if _is_uuid(current_user.get("user_id","")) else None,
             actor_role=current_user["role"],
             reason=body.reason,
         )
