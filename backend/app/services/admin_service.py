@@ -125,10 +125,22 @@ def get_platform_stats() -> dict:
         active_institutions = db.query(Institution).filter_by(status="ACTIVE").count()
         total_users = db.query(User).count()
         active_users = db.query(User).filter_by(is_active=True).count()
+        try:
+            from app.db.models import PEPEntry
+            total_pep = db.query(PEPEntry).count()
+        except Exception:
+            total_pep = 0
+        try:
+            from app.db.models import KYCSession
+            total_sessions = db.query(KYCSession).count()
+        except Exception:
+            total_sessions = 0
     return {
         "total_institutions":  total_institutions,
         "active_institutions": active_institutions,
         "total_users":         total_users,
         "active_users":        active_users,
+        "total_pep":           total_pep,
+        "total_sessions":      total_sessions,
         "bfiu_ref":            "BFIU Circular No. 29",
     }

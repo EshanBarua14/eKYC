@@ -9,7 +9,7 @@ import cv2
 import math
 from app.services.image_utils import b64_to_numpy
 
-CONSECUTIVE_PASSES  = 2          # frames needed to confirm a challenge
+CONSECUTIVE_PASSES  = 1          # frames needed to confirm a challenge
 LBP_SPOOF_THRESHOLD = 12.0
 _consecutive: dict  = {}
 
@@ -87,7 +87,7 @@ def _analyze_mediapipe(img_rgb: np.ndarray) -> dict:
     r_ear = _ear(lm, RIGHT_EYE, w, h)
     result["left_ear"]       = round(l_ear, 3)
     result["right_ear"]      = round(r_ear, 3)
-    result["blink_detected"] = (l_ear < 0.22 and r_ear < 0.22)
+    result["blink_detected"] = (l_ear < 0.30 or r_ear < 0.30)
 
     # Head yaw from nose-tip horizontal offset
     nose_x = lm[NOSE_TIP].x   # 0-1
@@ -234,7 +234,7 @@ def check_liveness_challenge(b64: str, challenge: str, session_id: str = "defaul
         }
 
     # Anti-spoof: LBP check (skip for center — first frame may be cold)
-    if challenge != "center" and not analysis["texture_real"] and analysis["lbp_variance"] < 5.0:
+    if challenge != "center" and not analysis["texture_real"] and analysis["lbp_variance"] < 0.5:
         _consecutive[key] = 0
         return {
             "passed": False,

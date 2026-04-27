@@ -8,7 +8,10 @@ import GlassShell from "./GlassShell"
 import AdminConsole from "./AdminConsole"
 import AgentDashboard from "./AgentDashboard"
 import AdminDashboard from "../pages/dashboards/AdminDashboard"
-import ComplianceDashboard from "./ComplianceDashboard"
+import CheckerDashboard from "../pages/dashboards/CheckerDashboard"
+import AuditorDashboard from "../pages/dashboards/AuditorDashboard"
+import AgentDashboardPage from "../pages/dashboards/AgentDashboard"
+import ComplianceDashboard from "../pages/dashboards/ComplianceDashboard"
 
 // ── Admin Shell ──────────────────────────────────────────────────────────────
 export function AdminShell({ theme, toggleTheme, onExit }) {
@@ -62,18 +65,22 @@ export function AgentShell({ theme, toggleTheme, onExit }) {
     search:"search", reports:"reports", profile:"profile",
   }
   const renderAgentContent = () => {
+    if (activeTab === "dashboard")                                     return <AgentDashboardPage/>
     if (activeTab === "screening" || activeTab === "screening_manual") return <ScreeningPanel/>
-    if (activeTab === "fallback") return <FallbackKYC/>
-    if (activeTab === "risk")     return <RiskEngine/>
-    const mappedAgentTab = tabMap[activeTab] || activeTab
-    return (
-      <AgentDashboard
-        key={mappedAgentTab}
-        onExit={onExit} theme={theme} toggleTheme={toggleTheme}
-        externalTab={mappedAgentTab}
-        onTabChange={setActiveTab}
-      />
-    )
+    if (activeTab === "fallback")  return <FallbackKYC/>
+    if (activeTab === "risk")      return <RiskEngine/>
+    if (activeTab === "search" || activeTab === "reports" || activeTab === "profile" || activeTab === "sessions" || activeTab === "new") {
+      const mappedAgentTab = tabMap[activeTab] || activeTab
+      return (
+        <AgentDashboard
+          key={mappedAgentTab}
+          onExit={onExit} theme={theme} toggleTheme={toggleTheme}
+          externalTab={mappedAgentTab}
+          onTabChange={setActiveTab}
+        />
+      )
+    }
+    return <AgentDashboardPage/>
   }
   return (
     <GlassShell role="AGENT" theme={theme} toggleTheme={toggleTheme}
@@ -94,9 +101,14 @@ export function ComplianceShell({ role, theme, toggleTheme, onExit }) {
   const renderCompContent = () => {
     if (activeTab === "screening_manual") return <ScreeningPanel/>
     if (activeTab === "beneficial_owner") return <BeneficialOwner/>
-    if (activeTab === "dashboard")        return <AdminDashboard/>
     if (activeTab === "lifecycle")        return <LifecycleManager/>
     if (activeTab === "notifications")    return <NotificationCenter/>
+    // Role-specific dashboards for posture/home tab
+    if (activeTab === "posture" || activeTab === "dashboard") {
+      if (role === "CHECKER")            return <CheckerDashboard/>
+      if (role === "AUDITOR")            return <AuditorDashboard/>
+      return <ComplianceDashboard role={role} externalTab="posture"/>
+    }
     const mappedCompTab = tabMap[activeTab] || activeTab
     return (
       <ComplianceDashboard

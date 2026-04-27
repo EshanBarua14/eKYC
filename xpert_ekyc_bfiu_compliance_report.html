@@ -1,0 +1,1935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Xpert Fintech eKYC — BFIU Compliance Technical Report</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #060a12;
+  --bg2: #0c1220;
+  --bg3: #111827;
+  --surface: #131d2e;
+  --surface2: #1a2640;
+  --border: #1e2d47;
+  --accent: #00d4ff;
+  --accent2: #0088cc;
+  --green: #00e676;
+  --yellow: #ffd600;
+  --orange: #ff9100;
+  --red: #ff1744;
+  --text: #e2e8f0;
+  --text2: #94a3b8;
+  --text3: #64748b;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Outfit', sans-serif;
+  --display: 'Syne', sans-serif;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+/* ── SCANLINE OVERLAY ── */
+body::before {
+  content:'';
+  position:fixed; top:0; left:0; right:0; bottom:0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,212,255,0.012) 2px, rgba(0,212,255,0.012) 4px);
+  pointer-events:none; z-index:9999;
+}
+
+/* ── SIDEBAR NAV ── */
+#sidenav {
+  position: fixed; left:0; top:0; bottom:0; width:220px;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  z-index:100; overflow-y:auto;
+  display:flex; flex-direction:column;
+}
+#sidenav .logo {
+  padding:20px 16px 12px;
+  border-bottom:1px solid var(--border);
+}
+#sidenav .logo .co { font-family:var(--display); font-size:15px; font-weight:800; color:var(--accent); letter-spacing:.05em; }
+#sidenav .logo .sub { font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:.15em; text-transform:uppercase; margin-top:2px; }
+#sidenav nav { padding:8px 0; flex:1; }
+#sidenav nav a {
+  display:flex; align-items:center; gap:8px;
+  padding:7px 16px; font-size:11px; font-family:var(--mono);
+  color:var(--text2); text-decoration:none; letter-spacing:.05em;
+  border-left:2px solid transparent; transition:all .2s;
+}
+#sidenav nav a:hover, #sidenav nav a.active {
+  color:var(--accent); background:rgba(0,212,255,.06);
+  border-left-color:var(--accent);
+}
+#sidenav nav .section-label {
+  font-size:9px; font-family:var(--mono); color:var(--text3);
+  letter-spacing:.15em; text-transform:uppercase;
+  padding:14px 16px 4px;
+}
+#sidenav .meta {
+  padding:12px 16px; border-top:1px solid var(--border);
+  font-size:9px; font-family:var(--mono); color:var(--text3);
+}
+
+/* ── MAIN CONTENT ── */
+#main { margin-left:220px; }
+
+/* ── HERO ── */
+.hero {
+  background: linear-gradient(135deg, #060a12 0%, #0a1628 50%, #060d1a 100%);
+  border-bottom:1px solid var(--border);
+  padding:60px 48px 48px;
+  position:relative; overflow:hidden;
+}
+.hero::before {
+  content:'';
+  position:absolute; top:-80px; right:-80px;
+  width:400px; height:400px;
+  background: radial-gradient(circle, rgba(0,212,255,.12) 0%, transparent 70%);
+  pointer-events:none;
+}
+.hero::after {
+  content:'';
+  position:absolute; bottom:-60px; left:20%;
+  width:300px; height:300px;
+  background: radial-gradient(circle, rgba(0,136,204,.08) 0%, transparent 70%);
+  pointer-events:none;
+}
+.hero-label {
+  font-family:var(--mono); font-size:10px; letter-spacing:.2em;
+  text-transform:uppercase; color:var(--accent2);
+  background:rgba(0,136,204,.1); border:1px solid rgba(0,136,204,.3);
+  display:inline-block; padding:4px 10px; border-radius:3px; margin-bottom:16px;
+}
+.hero h1 {
+  font-family:var(--display); font-size:38px; font-weight:800;
+  line-height:1.15; letter-spacing:-.02em;
+  background: linear-gradient(135deg, #fff 0%, var(--accent) 100%);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.hero .sub {
+  font-size:14px; color:var(--text2); margin-top:10px; max-width:600px;
+}
+.hero-meta {
+  display:flex; gap:32px; margin-top:28px; flex-wrap:wrap;
+}
+.hero-meta .item { display:flex; flex-direction:column; gap:2px; }
+.hero-meta .item .label { font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:.15em; text-transform:uppercase; }
+.hero-meta .item .val { font-family:var(--mono); font-size:13px; color:var(--accent); font-weight:600; }
+
+/* ── OVERALL SCORE BAR ── */
+.score-bar-section {
+  background:var(--bg2); border-bottom:1px solid var(--border);
+  padding:28px 48px; display:flex; gap:24px; align-items:center; flex-wrap:wrap;
+}
+.overall-score {
+  display:flex; align-items:center; gap:16px;
+}
+.score-ring {
+  width:80px; height:80px; position:relative; flex-shrink:0;
+}
+.score-ring svg { transform:rotate(-90deg); }
+.score-ring .ring-bg { fill:none; stroke:var(--border); stroke-width:6; }
+.score-ring .ring-fill { fill:none; stroke:var(--yellow); stroke-width:6; stroke-linecap:round;
+  stroke-dasharray:220; stroke-dashoffset:99; transition:stroke-dashoffset 2s ease; }
+.score-ring .ring-text {
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  font-family:var(--display); font-size:18px; font-weight:800; color:var(--yellow);
+}
+.layer-scores { display:flex; gap:10px; flex-wrap:wrap; flex:1; }
+.layer-chip {
+  display:flex; flex-direction:column; align-items:center;
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:6px; padding:8px 12px; min-width:90px;
+}
+.layer-chip .lname { font-size:9px; font-family:var(--mono); color:var(--text3); text-align:center; letter-spacing:.05em; }
+.layer-chip .lpct { font-family:var(--display); font-size:18px; font-weight:800; }
+.layer-chip .lbar { width:100%; height:3px; background:var(--border); border-radius:2px; margin-top:4px; overflow:hidden; }
+.layer-chip .lbar-fill { height:100%; border-radius:2px; transition:width 1.5s ease; }
+.green-pct .lpct { color:var(--green); } .green-pct .lbar-fill { background:var(--green); }
+.yellow-pct .lpct { color:var(--yellow); } .yellow-pct .lbar-fill { background:var(--yellow); }
+.orange-pct .lpct { color:var(--orange); } .orange-pct .lbar-fill { background:var(--orange); }
+.red-pct .lpct { color:var(--red); } .red-pct .lbar-fill { background:var(--red); }
+
+/* ── SECTION CONTAINER ── */
+.section {
+  padding:40px 48px;
+  border-bottom:1px solid var(--border);
+  animation: fadeUp .5s ease both;
+}
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(20px); }
+  to { opacity:1; transform:translateY(0); }
+}
+.section-header {
+  display:flex; align-items:baseline; gap:12px; margin-bottom:24px;
+}
+.section-num {
+  font-family:var(--mono); font-size:11px; color:var(--accent2);
+  background:rgba(0,136,204,.1); border:1px solid rgba(0,136,204,.25);
+  padding:3px 8px; border-radius:3px; letter-spacing:.1em;
+}
+.section-title {
+  font-family:var(--display); font-size:22px; font-weight:700; color:#fff;
+}
+
+/* ── CARDS ── */
+.card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:8px; padding:20px;
+}
+.card-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:16px; }
+.card h4 { font-family:var(--display); font-size:13px; font-weight:700; color:var(--accent); margin-bottom:8px; }
+.card p { font-size:12px; color:var(--text2); }
+
+/* ── STATUS BADGES ── */
+.badge {
+  display:inline-block; font-family:var(--mono); font-size:9px;
+  font-weight:700; letter-spacing:.1em; padding:2px 7px; border-radius:3px;
+  text-transform:uppercase; white-space:nowrap;
+}
+.badge-done { background:rgba(0,230,118,.15); color:var(--green); border:1px solid rgba(0,230,118,.3); }
+.badge-partial { background:rgba(255,214,0,.12); color:var(--yellow); border:1px solid rgba(255,214,0,.3); }
+.badge-warn { background:rgba(255,145,0,.12); color:var(--orange); border:1px solid rgba(255,145,0,.3); }
+.badge-gap { background:rgba(255,23,68,.12); color:var(--red); border:1px solid rgba(255,23,68,.3); }
+.badge-demo { background:rgba(0,212,255,.1); color:var(--accent); border:1px solid rgba(0,212,255,.25); }
+.badge-legal { background:rgba(148,163,184,.1); color:var(--text2); border:1px solid rgba(148,163,184,.2); }
+
+/* ── TABLE ── */
+.tbl-wrap { overflow-x:auto; border-radius:8px; border:1px solid var(--border); }
+table { width:100%; border-collapse:collapse; }
+th {
+  background:var(--bg2); padding:10px 14px; text-align:left;
+  font-family:var(--mono); font-size:10px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--text3);
+  border-bottom:1px solid var(--border); white-space:nowrap;
+}
+td {
+  padding:9px 14px; font-size:12px; color:var(--text2);
+  border-bottom:1px solid rgba(30,45,71,.5);
+  vertical-align:top;
+}
+tr:last-child td { border-bottom:none; }
+tr:hover td { background:rgba(0,212,255,.03); }
+td.code { font-family:var(--mono); font-size:11px; color:var(--text); }
+td.section-ref { font-family:var(--mono); font-size:10px; color:var(--accent2); }
+
+/* ── DIAGRAMS SVG ── */
+.diagram-wrap {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:8px; padding:24px; overflow-x:auto;
+}
+.diagram-title {
+  font-family:var(--mono); font-size:10px; letter-spacing:.15em;
+  text-transform:uppercase; color:var(--text3); margin-bottom:16px;
+}
+
+/* ── FLOWCHART ── */
+.flow-box {
+  fill:var(--surface2); stroke:var(--border); stroke-width:1.5;
+  rx:6; ry:6;
+}
+.flow-box-accent { fill:rgba(0,212,255,.12); stroke:var(--accent); stroke-width:1.5; }
+.flow-box-green { fill:rgba(0,230,118,.1); stroke:var(--green); stroke-width:1.5; }
+.flow-box-yellow { fill:rgba(255,214,0,.1); stroke:var(--yellow); stroke-width:1.5; }
+.flow-box-red { fill:rgba(255,23,68,.1); stroke:var(--red); stroke-width:1.5; }
+.flow-text { fill:#e2e8f0; font-family:'JetBrains Mono',monospace; font-size:11px; }
+.flow-text-sm { fill:#94a3b8; font-family:'JetBrains Mono',monospace; font-size:9px; }
+.flow-text-accent { fill:#00d4ff; font-family:'JetBrains Mono',monospace; font-size:11px; }
+.arrow { stroke:var(--text3); stroke-width:1.5; fill:none; marker-end:url(#arr); }
+.arrow-green { stroke:var(--green); stroke-width:1.5; fill:none; marker-end:url(#arr-green); }
+.arrow-red { stroke:var(--red); stroke-width:1.5; fill:none; marker-end:url(#arr-red); }
+.arrow-yellow { stroke:var(--yellow); stroke-width:1.5; fill:none; marker-end:url(#arr-yellow); }
+
+/* ── PROGRESS BARS ── */
+.progress-list { display:flex; flex-direction:column; gap:10px; }
+.progress-item { }
+.progress-label { display:flex; justify-content:space-between; margin-bottom:4px; font-size:12px; color:var(--text2); }
+.progress-label .pct { font-family:var(--mono); font-size:11px; }
+.progress-track { height:6px; background:var(--border); border-radius:3px; overflow:hidden; }
+.progress-fill { height:100%; border-radius:3px; transition:width 1.8s cubic-bezier(.25,.46,.45,.94); }
+
+/* ── CODE BLOCK ── */
+.codeblock {
+  background:var(--bg); border:1px solid var(--border);
+  border-radius:6px; padding:14px 18px; overflow-x:auto;
+  font-family:var(--mono); font-size:11px; color:var(--text2);
+  line-height:1.7;
+}
+.codeblock .kw { color:#7c9eff; }
+.codeblock .str { color:#aed581; }
+.codeblock .cmt { color:var(--text3); font-style:italic; }
+.codeblock .num { color:var(--orange); }
+.codeblock .fn { color:var(--accent); }
+
+/* ── TWO COL ── */
+.two-col { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+.three-col { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; }
+
+/* ── ALERT BOX ── */
+.alert {
+  display:flex; gap:12px; align-items:flex-start;
+  padding:14px 16px; border-radius:6px; margin-top:16px;
+  font-size:12px; line-height:1.6;
+}
+.alert-red { background:rgba(255,23,68,.07); border:1px solid rgba(255,23,68,.2); }
+.alert-yellow { background:rgba(255,214,0,.07); border:1px solid rgba(255,214,0,.2); }
+.alert-green { background:rgba(0,230,118,.07); border:1px solid rgba(0,230,118,.2); }
+.alert-blue { background:rgba(0,212,255,.07); border:1px solid rgba(0,212,255,.2); }
+.alert-icon { font-size:16px; flex-shrink:0; margin-top:1px; }
+.alert p { color:var(--text2); }
+.alert strong { color:var(--text); }
+
+/* ── TIMELINE ── */
+.timeline { position:relative; padding-left:24px; }
+.timeline::before {
+  content:''; position:absolute; left:6px; top:0; bottom:0;
+  width:1px; background:var(--border);
+}
+.tl-item { position:relative; margin-bottom:20px; }
+.tl-item::before {
+  content:''; position:absolute; left:-21px; top:5px;
+  width:8px; height:8px; border-radius:50%;
+  background:var(--accent2); border:2px solid var(--bg2);
+}
+.tl-item.done::before { background:var(--green); }
+.tl-item.warn::before { background:var(--yellow); }
+.tl-item.gap::before { background:var(--red); }
+.tl-date { font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:.1em; }
+.tl-title { font-size:13px; font-weight:600; color:var(--text); margin-top:1px; }
+.tl-body { font-size:11px; color:var(--text2); margin-top:3px; }
+
+/* ── COMPLIANCE SECTION CARD ── */
+.compliance-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:8px; overflow:hidden; margin-bottom:16px;
+}
+.compliance-card .cc-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 16px; background:var(--surface2); cursor:pointer;
+  transition:background .2s;
+}
+.compliance-card .cc-header:hover { background:rgba(0,212,255,.06); }
+.compliance-card .cc-header .cc-title {
+  display:flex; align-items:center; gap:10px;
+  font-family:var(--display); font-size:13px; font-weight:700; color:#fff;
+}
+.compliance-card .cc-header .cc-ref {
+  font-family:var(--mono); font-size:9px; color:var(--accent2);
+}
+.compliance-card .cc-body { padding:16px; }
+.compliance-card .cc-mini-bar {
+  height:3px; background:var(--border); overflow:hidden;
+}
+.compliance-card .cc-mini-fill { height:100%; transition:width 1.5s ease; }
+
+/* ── DB SCHEMA ── */
+.schema-entity {
+  background:var(--surface2); border:1px solid var(--border);
+  border-radius:6px; overflow:hidden; margin-bottom:12px;
+}
+.schema-entity .se-header {
+  background:rgba(0,136,204,.15); padding:8px 12px;
+  font-family:var(--mono); font-size:11px; font-weight:700; color:var(--accent);
+  display:flex; align-items:center; gap:6px;
+}
+.schema-entity .se-col {
+  padding:5px 12px; border-top:1px solid rgba(30,45,71,.5);
+  font-family:var(--mono); font-size:10px; color:var(--text2);
+  display:flex; gap:8px; align-items:center;
+}
+.schema-entity .se-col .col-type { color:var(--accent2); }
+.schema-entity .se-col .col-flag { font-size:9px; color:var(--text3); margin-left:auto; }
+.schema-entity .se-col.pk { background:rgba(0,212,255,.04); }
+.schema-entity .se-col.pk .col-name { color:#fff; }
+
+/* ── MODULE GRID ── */
+.module-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:10px; margin-top:12px; }
+.module-item {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:6px; padding:10px 12px; display:flex; gap:8px; align-items:flex-start;
+}
+.module-item .mi-badge { flex-shrink:0; margin-top:1px; }
+.module-item .mi-name { font-size:11px; font-weight:600; color:var(--text); }
+.module-item .mi-desc { font-size:10px; color:var(--text3); margin-top:2px; }
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  #sidenav { display:none; }
+  #main { margin-left:0; }
+  .hero, .section { padding:24px 20px; }
+  .two-col, .three-col { grid-template-columns:1fr; }
+  .score-bar-section { flex-direction:column; }
+}
+
+/* ── PRINT ── */
+@media print {
+  #sidenav { display:none; }
+  #main { margin-left:0; }
+}
+
+/* Tab system */
+.tabs { display:flex; gap:0; border-bottom:1px solid var(--border); margin-bottom:16px; }
+.tab {
+  padding:8px 16px; font-family:var(--mono); font-size:10px; letter-spacing:.08em;
+  cursor:pointer; color:var(--text3); border-bottom:2px solid transparent;
+  transition:all .2s; user-select:none;
+}
+.tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+.tab-pane { display:none; }
+.tab-pane.active { display:block; }
+
+/* Tooltip */
+.tooltip { position:relative; cursor:help; }
+.tooltip .tt {
+  position:absolute; bottom:calc(100% + 6px); left:50%; transform:translateX(-50%);
+  background:var(--surface2); border:1px solid var(--border);
+  border-radius:5px; padding:6px 10px; font-size:10px; color:var(--text2);
+  white-space:nowrap; z-index:200; pointer-events:none;
+  opacity:0; transition:opacity .2s;
+}
+.tooltip:hover .tt { opacity:1; }
+</style>
+</head>
+<body>
+
+<!-- SIDENAV -->
+<nav id="sidenav">
+  <div class="logo">
+    <div class="co">XPERT eKYC</div>
+    <div class="sub">BFIU Compliance Report</div>
+  </div>
+  <nav>
+    <div class="section-label">Overview</div>
+    <a href="#overview">📊 Executive Summary</a>
+    <a href="#goal">🎯 Project Goal</a>
+    <a href="#arch">🏗 System Architecture</a>
+    <a href="#db">🗄 Database Design</a>
+
+    <div class="section-label">BFIU Sections</div>
+    <a href="#s32">§3.2 Fingerprint</a>
+    <a href="#s33">§3.3 Face Match</a>
+    <a href="#s41">§4.1 Threshold Routing</a>
+    <a href="#s42">§4.2 Screening</a>
+    <a href="#s43">§4.3 EDD Workflow</a>
+    <a href="#s45">§4.5 Security</a>
+    <a href="#s51">§5.1 Audit Trail</a>
+    <a href="#s57">§5.7 Lifecycle</a>
+    <a href="#s61">§6.1/6.2 KYC Profile</a>
+    <a href="#s63">§6.3 Risk Grading</a>
+
+    <div class="section-label">Layers</div>
+    <a href="#infra">⚙ Infrastructure</a>
+    <a href="#biometric">🔬 Biometrics</a>
+    <a href="#security">🔒 Security</a>
+    <a href="#testing">🧪 Testing</a>
+    <a href="#legal">⚖ Legal/Process</a>
+
+    <div class="section-label">Closing</div>
+    <a href="#pending">🔴 Pending Items</a>
+    <a href="#roadmap">📅 Roadmap</a>
+  </nav>
+  <div class="meta">
+    Generated: Apr 27 2026<br>
+    Tests Passing: 1,404<br>
+    Deadline: Dec 31 2026
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div id="main">
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-label">CONFIDENTIAL TECHNICAL REPORT — v2.0</div>
+  <h1>Xpert Fintech eKYC<br>BFIU Compliance Status</h1>
+  <p class="sub">Bangladesh Financial Intelligence Unit Circular No. 29 · Insurance &amp; CMI Digital Onboarding Platform · Full Technical Audit as of April 27, 2026</p>
+  <div class="hero-meta">
+    <div class="item"><div class="label">Circular</div><div class="val">BFIU No. 29 · Mar 30 2026</div></div>
+    <div class="item"><div class="label">Deadline</div><div class="val">Dec 31, 2026</div></div>
+    <div class="item"><div class="label">Tests Passing</div><div class="val">1,404 / 1,404</div></div>
+    <div class="item"><div class="label">Modules Built</div><div class="val">62 of ~70</div></div>
+    <div class="item"><div class="label">Overall Readiness</div><div class="val" style="color:var(--yellow)">~55%</div></div>
+    <div class="item"><div class="label">Hard Blockers</div><div class="val" style="color:var(--red)">21 Items</div></div>
+  </div>
+</div>
+
+<!-- SCORE BAR -->
+<div class="score-bar-section">
+  <div class="overall-score">
+    <div class="score-ring">
+      <svg width="80" height="80" viewBox="0 0 80 80">
+        <circle class="ring-bg" cx="40" cy="40" r="35"/>
+        <circle class="ring-fill" cx="40" cy="40" r="35" id="scoreRing"/>
+      </svg>
+      <div class="ring-text">55%</div>
+    </div>
+    <div>
+      <div style="font-family:var(--display);font-size:13px;font-weight:700;color:#fff;">Overall Production Readiness</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:2px;">As of April 25, 2026 · BFIU Circular No. 29</div>
+    </div>
+  </div>
+  <div class="layer-scores">
+    <div class="layer-chip yellow-pct"><div class="lname">BFIU Core</div><div class="lpct">78%</div><div class="lbar"><div class="lbar-fill" style="width:78%"></div></div></div>
+    <div class="layer-chip green-pct"><div class="lname">RBAC/Auth</div><div class="lpct">95%</div><div class="lbar"><div class="lbar-fill" style="width:95%"></div></div></div>
+    <div class="layer-chip orange-pct"><div class="lname">Biometric</div><div class="lpct">45%</div><div class="lbar"><div class="lbar-fill" style="width:45%"></div></div></div>
+    <div class="layer-chip green-pct"><div class="lname">Database</div><div class="lpct">88%</div><div class="lbar"><div class="lbar-fill" style="width:88%"></div></div></div>
+    <div class="layer-chip red-pct"><div class="lname">Infra/Deploy</div><div class="lpct">30%</div><div class="lbar"><div class="lbar-fill" style="width:30%"></div></div></div>
+    <div class="layer-chip yellow-pct"><div class="lname">Security</div><div class="lpct">60%</div><div class="lbar"><div class="lbar-fill" style="width:60%"></div></div></div>
+    <div class="layer-chip orange-pct"><div class="lname">Observability</div><div class="lpct">40%</div><div class="lbar"><div class="lbar-fill" style="width:40%"></div></div></div>
+    <div class="layer-chip yellow-pct"><div class="lname">Testing</div><div class="lpct">65%</div><div class="lbar"><div class="lbar-fill" style="width:65%"></div></div></div>
+    <div class="layer-chip red-pct"><div class="lname">Legal</div><div class="lpct">0%</div><div class="lbar"><div class="lbar-fill" style="width:0%"></div></div></div>
+  </div>
+</div>
+
+<!-- ========= SECTION 1: EXECUTIVE SUMMARY ========= -->
+<div class="section" id="overview">
+  <div class="section-header">
+    <span class="section-num">01</span>
+    <span class="section-title">Executive Summary</span>
+  </div>
+
+  <div class="two-col">
+    <div>
+      <p style="font-size:13px;color:var(--text2);line-height:1.9">
+        BFIU Circular No. 29 was issued on <strong style="color:#fff">March 30, 2026</strong> mandating all Bangladesh Insurance Companies and Capital Market Intermediaries (CMIs) to implement electronic KYC (eKYC) by <strong style="color:var(--red)">December 31, 2026</strong>. Xpert Fintech Ltd. is building the first production-ready, multi-tenant eKYC SaaS platform for this segment.
+      </p>
+      <br>
+      <p style="font-size:13px;color:var(--text2);line-height:1.9">
+        As of April 27, 2026, <strong style="color:var(--green)">1,404 automated tests pass</strong> across 62 built modules. The core compliance logic — biometric session management, screening, risk grading, EDD, RBAC, audit trail — is <strong style="color:var(--yellow)">functionally complete but not yet production-deployable</strong> due to infrastructure gaps, demo-mode integrations, and missing legal agreements.
+      </p>
+    </div>
+    <div class="card">
+      <h4>Key Achievements (Done)</h4>
+      <ul style="font-size:11px;color:var(--text2);line-height:2;list-style:none;">
+        <li>✅ Fingerprint + Face biometric engine (M4, M5)</li>
+        <li>✅ 10-attempt / 2-session Redis enforcement</li>
+        <li>✅ UNSCR PostgreSQL-backed screening (M59)</li>
+        <li>✅ PEP/IP DB with admin CRUD (M62)</li>
+        <li>✅ 7-dimension Risk Grading (M8)</li>
+        <li>✅ EDD state machine + SLA 1-month (M60)</li>
+        <li>✅ 6-role RBAC enforced (M29/M61)</li>
+        <li>✅ Adverse media daily re-screen (M53)</li>
+        <li>✅ 5-year retention policy (M11)</li>
+        <li>✅ Audit export PDF (M31)</li>
+        <li>✅ Bangla phonetic name matching (M56)</li>
+        <li>✅ Prometheus + Grafana (M57)</li>
+        <li>✅ KYC Lifecycle scheduler (M10)</li>
+        <li>✅ Simplified→Regular upgrade (M10)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="alert alert-yellow" style="margin-top:20px">
+    <div class="alert-icon">⚠️</div>
+    <p><strong>Critical Gap:</strong> 21 hard blockers must be resolved before go-live. Top 5: (1) Docker+Nginx+SSL deployment stack, (2) EC/Porichoy live API integration, (3) Deep learning face model replacing SSIM/ORB, (4) Beneficial ownership wired into Regular workflow, (5) All legal agreements (MOU, DPA, privacy policy).</p>
+  </div>
+</div>
+
+<!-- ========= SECTION 2: PROJECT GOAL ========= -->
+<div class="section" id="goal">
+  <div class="section-header">
+    <span class="section-num">02</span>
+    <span class="section-title">Project Goal &amp; Scope</span>
+  </div>
+  <div class="two-col">
+    <div>
+      <div class="card">
+        <h4>The Problem</h4>
+        <p>No production-ready, BFIU-compliant eKYC platform exists for Bangladesh's Insurance/CMI sector. Paper-based KYC is slow, error-prone, and non-compliant with Circular No. 29. The 9-month window (Apr–Dec 2026) is a first-mover opportunity.</p>
+      </div>
+      <br>
+      <div class="card">
+        <h4>Target Institutions</h4>
+        <p>All Bangladesh Insurance Companies and Capital Market Intermediaries including stock dealers, stock brokers, portfolio managers, merchant bankers, securities custodians, and asset management companies.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <h4>Platform Deliverable</h4>
+        <p>Multi-tenant SaaS eKYC platform on PostgreSQL schema-per-tenant isolation. Single Xpert instance serves 100+ institutions simultaneously with full data separation.</p>
+        <br>
+        <p><strong style="color:var(--accent)">Regulation-as-Code:</strong> Every BFIU threshold, session limit, and screening trigger is an API-enforced executable rule — not a UI policy that can be bypassed.</p>
+        <br>
+        <p><strong style="color:var(--accent)">Audit-First:</strong> Every state transition generates an immutable audit entry before response is sent. System cannot complete an action without recording it.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========= SECTION 3: SYSTEM ARCHITECTURE ========= -->
+<div class="section" id="arch">
+  <div class="section-header">
+    <span class="section-num">03</span>
+    <span class="section-title">System Architecture</span>
+  </div>
+
+  <div class="diagram-wrap">
+    <div class="diagram-title">// HIGH-LEVEL SYSTEM ARCHITECTURE — XPERT eKYC PLATFORM</div>
+    <svg viewBox="0 0 900 580" xmlns="http://www.w3.org/2000/svg" width="100%" style="max-width:900px">
+      <defs>
+        <marker id="arr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#64748b"/>
+        </marker>
+        <marker id="arr-green" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#00e676"/>
+        </marker>
+        <marker id="arr-red" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#ff1744"/>
+        </marker>
+        <marker id="arr-yellow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#ffd600"/>
+        </marker>
+      </defs>
+
+      <!-- Background layers -->
+      <rect x="10" y="10" width="880" height="100" rx="6" fill="rgba(0,212,255,0.04)" stroke="rgba(0,212,255,0.15)" stroke-width="1"/>
+      <text x="20" y="28" class="flow-text-sm" fill="#00d4ff">PRESENTATION LAYER</text>
+
+      <rect x="10" y="125" width="880" height="90" rx="6" fill="rgba(0,136,204,0.04)" stroke="rgba(0,136,204,0.15)" stroke-width="1"/>
+      <text x="20" y="143" class="flow-text-sm" fill="#0088cc">API GATEWAY LAYER</text>
+
+      <rect x="10" y="230" width="880" height="130" rx="6" fill="rgba(148,163,184,0.03)" stroke="rgba(148,163,184,0.1)" stroke-width="1"/>
+      <text x="20" y="248" class="flow-text-sm">BUSINESS LOGIC LAYER</text>
+
+      <rect x="10" y="375" width="880" height="80" rx="6" fill="rgba(0,230,118,0.04)" stroke="rgba(0,230,118,0.12)" stroke-width="1"/>
+      <text x="20" y="393" class="flow-text-sm" fill="#00e676">DATA LAYER</text>
+
+      <rect x="10" y="468" width="880" height="100" rx="6" fill="rgba(255,145,0,0.04)" stroke="rgba(255,145,0,0.15)" stroke-width="1"/>
+      <text x="20" y="486" class="flow-text-sm" fill="#ff9100">INTEGRATION LAYER (EXTERNAL)</text>
+
+      <!-- Presentation boxes -->
+      <rect x="30" y="38" width="140" height="56" rx="5" class="flow-box-accent"/>
+      <text x="100" y="60" class="flow-text" text-anchor="middle">React 19</text>
+      <text x="100" y="75" class="flow-text-sm" text-anchor="middle">Agent Dashboard</text>
+      <text x="100" y="87" class="flow-text-sm" text-anchor="middle">Vite + TypeScript</text>
+
+      <rect x="190" y="38" width="140" height="56" rx="5" class="flow-box-accent"/>
+      <text x="260" y="60" class="flow-text" text-anchor="middle">Self Check-in</text>
+      <text x="260" y="75" class="flow-text-sm" text-anchor="middle">Customer Portal PWA</text>
+      <text x="260" y="87" class="flow-text-sm" text-anchor="middle">Tailwind + i18n</text>
+
+      <rect x="350" y="38" width="140" height="56" rx="5" class="flow-box-accent"/>
+      <text x="420" y="60" class="flow-text" text-anchor="middle">Admin Console</text>
+      <text x="420" y="75" class="flow-text-sm" text-anchor="middle">Threshold Editor</text>
+      <text x="420" y="87" class="flow-text-sm" text-anchor="middle">User/Role CRUD</text>
+
+      <rect x="510" y="38" width="160" height="56" rx="5" class="flow-box-accent"/>
+      <text x="590" y="60" class="flow-text" text-anchor="middle">Compliance Dashboard</text>
+      <text x="590" y="75" class="flow-text-sm" text-anchor="middle">EDD Queue · Risk Posture</text>
+      <text x="590" y="87" class="flow-text-sm" text-anchor="middle">BFIU Export (M14)</text>
+
+      <rect x="690" y="38" width="140" height="56" rx="5" class="flow-box-accent"/>
+      <text x="760" y="60" class="flow-text" text-anchor="middle">3rd Party SDK</text>
+      <text x="760" y="75" class="flow-text-sm" text-anchor="middle">White-label React</text>
+      <text x="760" y="87" class="flow-text-sm" text-anchor="middle">Webhook Engine</text>
+
+      <!-- API Gateway -->
+      <rect x="30" y="148" width="260" height="52" rx="5" fill="rgba(0,136,204,0.12)" stroke="#0088cc" stroke-width="1.5"/>
+      <text x="160" y="170" class="flow-text" text-anchor="middle">FastAPI (v1) Gateway</text>
+      <text x="160" y="185" class="flow-text-sm" text-anchor="middle">JWT RS256 · Rate Limit (slowapi) · CORS · RBAC</text>
+
+      <rect x="310" y="148" width="200" height="52" rx="5" fill="rgba(0,136,204,0.12)" stroke="#0088cc" stroke-width="1.5"/>
+      <text x="410" y="170" class="flow-text" text-anchor="middle">Nginx Reverse Proxy</text>
+      <text x="410" y="185" class="flow-text-sm" text-anchor="middle">TLS 1.3 · HSTS · HTTP→HTTPS</text>
+
+      <rect x="530" y="148" width="180" height="52" rx="5" fill="rgba(255,214,0,0.1)" stroke="#ffd600" stroke-width="1.5"/>
+      <text x="620" y="170" class="flow-text" text-anchor="middle" fill="#ffd600">Redis Cache</text>
+      <text x="620" y="185" class="flow-text-sm" text-anchor="middle">Session · Attempts · Idempotency</text>
+
+      <rect x="730" y="148" width="140" height="52" rx="5" fill="rgba(255,23,68,0.1)" stroke="#ff1744" stroke-width="1.5"/>
+      <text x="800" y="170" class="flow-text" text-anchor="middle" fill="#ff1744">⚠ MISSING</text>
+      <text x="800" y="185" class="flow-text-sm" text-anchor="middle">Nginx+SSL not deployed</text>
+
+      <!-- Business Logic -->
+      <rect x="30" y="256" width="130" height="88" rx="5" class="flow-box"/>
+      <text x="95" y="278" class="flow-text" text-anchor="middle">Onboarding</text>
+      <text x="95" y="293" class="flow-text" text-anchor="middle">Orchestrator</text>
+      <text x="95" y="308" class="flow-text-sm" text-anchor="middle">M4 Fingerprint</text>
+      <text x="95" y="320" class="flow-text-sm" text-anchor="middle">M5 Face Match</text>
+      <text x="95" y="332" class="flow-text-sm" text-anchor="middle">M7 Threshold</text>
+
+      <rect x="176" y="256" width="130" height="88" rx="5" class="flow-box"/>
+      <text x="241" y="278" class="flow-text" text-anchor="middle">Screening</text>
+      <text x="241" y="293" class="flow-text" text-anchor="middle">Engine</text>
+      <text x="241" y="308" class="flow-text-sm" text-anchor="middle">M59 UNSCR</text>
+      <text x="241" y="320" class="flow-text-sm" text-anchor="middle">M62 PEP/IP</text>
+      <text x="241" y="332" class="flow-text-sm" text-anchor="middle">M53 Adverse</text>
+
+      <rect x="322" y="256" width="130" height="88" rx="5" class="flow-box"/>
+      <text x="387" y="278" class="flow-text" text-anchor="middle">Risk Grading</text>
+      <text x="387" y="293" class="flow-text" text-anchor="middle">Engine</text>
+      <text x="387" y="308" class="flow-text-sm" text-anchor="middle">M8 §6.3.1/6.3.2</text>
+      <text x="387" y="320" class="flow-text-sm" text-anchor="middle">7 Dimensions</text>
+      <text x="387" y="332" class="flow-text-sm" text-anchor="middle">Auto-EDD Trigger</text>
+
+      <rect x="468" y="256" width="130" height="88" rx="5" class="flow-box"/>
+      <text x="533" y="278" class="flow-text" text-anchor="middle">EDD Workflow</text>
+      <text x="533" y="293" class="flow-text" text-anchor="middle">M60</text>
+      <text x="533" y="308" class="flow-text-sm" text-anchor="middle">State Machine</text>
+      <text x="533" y="320" class="flow-text-sm" text-anchor="middle">1-month SLA</text>
+      <text x="533" y="332" class="flow-text-sm" text-anchor="middle">CO Approval</text>
+
+      <rect x="614" y="256" width="130" height="88" rx="5" class="flow-box"/>
+      <text x="679" y="278" class="flow-text" text-anchor="middle">KYC Lifecycle</text>
+      <text x="679" y="293" class="flow-text" text-anchor="middle">M10/Celery</text>
+      <text x="679" y="308" class="flow-text-sm" text-anchor="middle">1yr/2yr/5yr Review</text>
+      <text x="679" y="320" class="flow-text-sm" text-anchor="middle">Self-Declaration</text>
+      <text x="679" y="332" class="flow-text-sm" text-anchor="middle">Upgrade Flow</text>
+
+      <rect x="760" y="256" width="110" height="88" rx="5" class="flow-box"/>
+      <text x="815" y="278" class="flow-text" text-anchor="middle">Audit &amp; Report</text>
+      <text x="815" y="293" class="flow-text" text-anchor="middle">M11/M31</text>
+      <text x="815" y="308" class="flow-text-sm" text-anchor="middle">Immutable Log</text>
+      <text x="815" y="320" class="flow-text-sm" text-anchor="middle">5yr Retention</text>
+      <text x="815" y="332" class="flow-text-sm" text-anchor="middle">PDF Export</text>
+
+      <!-- Data Layer -->
+      <rect x="30" y="395" width="260" height="48" rx="5" fill="rgba(0,230,118,0.1)" stroke="#00e676" stroke-width="1.5"/>
+      <text x="160" y="417" class="flow-text" text-anchor="middle" fill="#00e676">PostgreSQL 16 (Schema-per-Tenant)</text>
+      <text x="160" y="433" class="flow-text-sm" text-anchor="middle">pgcrypto AES-256 · Row-Level Security · Alembic</text>
+
+      <rect x="310" y="395" width="200" height="48" rx="5" fill="rgba(255,214,0,0.08)" stroke="#ffd600" stroke-width="1.2"/>
+      <text x="410" y="417" class="flow-text" text-anchor="middle" fill="#ffd600">Redis 7 (AOF Persist)</text>
+      <text x="410" y="433" class="flow-text-sm" text-anchor="middle">Session State · Rate Limit · Celery Broker</text>
+
+      <rect x="530" y="395" width="180" height="48" rx="5" class="flow-box"/>
+      <text x="620" y="417" class="flow-text" text-anchor="middle">Celery Workers</text>
+      <text x="620" y="433" class="flow-text-sm" text-anchor="middle">Screening · Reviews · Export Tasks</text>
+
+      <rect x="730" y="395" width="140" height="48" rx="5" class="flow-box"/>
+      <text x="800" y="417" class="flow-text" text-anchor="middle">Prometheus</text>
+      <text x="800" y="433" class="flow-text-sm" text-anchor="middle">Grafana · /metrics endpoint</text>
+
+      <!-- Integration Layer -->
+      <rect x="30" y="488" width="140" height="64" rx="5" fill="rgba(255,145,0,0.08)" stroke="#ff9100" stroke-width="1.5"/>
+      <text x="100" y="508" class="flow-text" text-anchor="middle" fill="#ff9100">EC/Porichoy</text>
+      <text x="100" y="523" class="flow-text-sm" text-anchor="middle">NID Verification API</text>
+      <text x="100" y="538" class="flow-text-sm" text-anchor="middle">⚠ DEMO MODE</text>
+
+      <rect x="188" y="488" width="140" height="64" rx="5" fill="rgba(255,145,0,0.08)" stroke="#ff9100" stroke-width="1.5"/>
+      <text x="258" y="508" class="flow-text" text-anchor="middle" fill="#ff9100">AFIS SDK</text>
+      <text x="258" y="523" class="flow-text-sm" text-anchor="middle">Fingerprint Hardware</text>
+      <text x="258" y="538" class="flow-text-sm" text-anchor="middle">⚠ STUB</text>
+
+      <rect x="346" y="488" width="140" height="64" rx="5" class="flow-box"/>
+      <text x="416" y="508" class="flow-text" text-anchor="middle">UNSCR XML Feed</text>
+      <text x="416" y="523" class="flow-text-sm" text-anchor="middle">UN Sanctions DB</text>
+      <text x="416" y="538" class="flow-text-sm" text-anchor="middle" fill="#00e676">✓ Live Feed Ready</text>
+
+      <rect x="504" y="488" width="140" height="64" rx="5" class="flow-box"/>
+      <text x="574" y="508" class="flow-text" text-anchor="middle">SMS/Email</text>
+      <text x="574" y="523" class="flow-text-sm" text-anchor="middle">Notification Engine</text>
+      <text x="574" y="538" class="flow-text-sm" text-anchor="middle">OTP · Alerts</text>
+
+      <rect x="662" y="488" width="200" height="64" rx="5" fill="rgba(255,23,68,0.08)" stroke="#ff1744" stroke-width="1.5"/>
+      <text x="762" y="508" class="flow-text" text-anchor="middle" fill="#ff1744">Face DL Model</text>
+      <text x="762" y="523" class="flow-text-sm" text-anchor="middle">FaceNet / ArcFace</text>
+      <text x="762" y="538" class="flow-text-sm" text-anchor="middle">❌ NOT INTEGRATED</text>
+
+      <!-- Arrows -->
+      <line x1="100" y1="94" x2="100" y2="148" class="arrow"/>
+      <line x1="260" y1="94" x2="260" y2="148" class="arrow"/>
+      <line x1="420" y1="94" x2="420" y2="148" class="arrow"/>
+      <line x1="590" y1="94" x2="590" y2="148" class="arrow"/>
+      <line x1="160" y1="200" x2="160" y2="256" class="arrow"/>
+      <line x1="160" y1="344" x2="160" y2="395" class="arrow"/>
+      <line x1="387" y1="344" x2="387" y2="395" class="arrow"/>
+      <line x1="100" y1="443" x2="100" y2="488" class="arrow"/>
+    </svg>
+  </div>
+
+  <div class="alert alert-blue" style="margin-top:16px">
+    <div class="alert-icon">ℹ️</div>
+    <p><strong>Multi-Tenant Isolation:</strong> Each institution gets a dedicated PostgreSQL schema. A misconfigured ORM query in Institution A can never expose Institution B data. Row-Level Security + schema separation = two independent defense layers.</p>
+  </div>
+</div>
+
+<!-- ========= SECTION 4: DATABASE DESIGN ========= -->
+<div class="section" id="db">
+  <div class="section-header">
+    <span class="section-num">04</span>
+    <span class="section-title">Database Design &amp; ORM Schema</span>
+  </div>
+
+  <div class="diagram-wrap" style="margin-bottom:20px">
+    <div class="diagram-title">// ENTITY RELATIONSHIP DIAGRAM — CORE eKYC TABLES</div>
+    <svg viewBox="0 0 900 520" xmlns="http://www.w3.org/2000/svg" width="100%" style="max-width:900px">
+      <!-- institution -->
+      <rect x="10" y="20" width="160" height="150" rx="5" fill="#111827" stroke="#1e2d47" stroke-width="1.5"/>
+      <rect x="10" y="20" width="160" height="28" rx="5" fill="rgba(0,136,204,0.2)" stroke="#0088cc" stroke-width="1.5"/>
+      <text x="90" y="39" text-anchor="middle" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#00d4ff">institutions</text>
+      <text x="20" y="64" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">🔑 id UUID PK</text>
+      <text x="20" y="79" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  name TEXT</text>
+      <text x="20" y="94" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  type ENUM(ins,cmi)</text>
+      <text x="20" y="109" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  schema_name TEXT UQ</text>
+      <text x="20" y="124" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  api_key_hash TEXT</text>
+      <text x="20" y="139" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  status ENUM</text>
+      <text x="20" y="154" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  created_at TIMESTAMPTZ</text>
+
+      <!-- customers -->
+      <rect x="210" y="20" width="180" height="200" rx="5" fill="#111827" stroke="#1e2d47" stroke-width="1.5"/>
+      <rect x="210" y="20" width="180" height="28" rx="5" fill="rgba(0,136,204,0.2)" stroke="#0088cc" stroke-width="1.5"/>
+      <text x="300" y="39" text-anchor="middle" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#00d4ff">customers</text>
+      <text x="220" y="64" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">🔑 id UUID PK</text>
+      <text x="220" y="79" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  institution_id FK</text>
+      <text x="220" y="94" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  nid_hash TEXT (HMAC)</text>
+      <text x="220" y="109" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  full_name_en TEXT</text>
+      <text x="220" y="124" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  full_name_bn TEXT</text>
+      <text x="220" y="139" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  dob DATE</text>
+      <text x="220" y="154" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  kyc_type ENUM(S,R)</text>
+      <text x="220" y="169" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  risk_grade ENUM(L,M,H)</text>
+      <text x="220" y="184" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  status ENUM</text>
+      <text x="220" y="199" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  next_review_date DATE</text>
+      <text x="220" y="214" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  created_at TIMESTAMPTZ</text>
+
+      <!-- biometric_sessions -->
+      <rect x="430" y="20" width="180" height="175" rx="5" fill="#111827" stroke="#1e2d47" stroke-width="1.5"/>
+      <rect x="430" y="20" width="180" height="28" rx="5" fill="rgba(0,136,204,0.2)" stroke="#0088cc" stroke-width="1.5"/>
+      <text x="520" y="39" text-anchor="middle" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#00d4ff">biometric_sessions</text>
+      <text x="440" y="64" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">🔑 id UUID PK</text>
+      <text x="440" y="79" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  customer_id FK</text>
+      <text x="440" y="94" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  method ENUM(fp,face)</text>
+      <text x="440" y="109" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  attempt_count INT</text>
+      <text x="440" y="124" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  session_count INT (2/day)</text>
+      <text x="440" y="139" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  match_score NUMERIC</text>
+      <text x="440" y="154" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  result ENUM(pass,fail,rev)</text>
+      <text x="440" y="169" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  face_confidence NUMERIC</text>
+      <text x="440" y="184" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  created_at TIMESTAMPTZ</text>
+
+      <!-- audit_logs -->
+      <rect x="650" y="20" width="230" height="200" rx="5" fill="#111827" stroke="#00e676" stroke-width="1.5"/>
+      <rect x="650" y="20" width="230" height="28" rx="5" fill="rgba(0,230,118,0.15)" stroke="#00e676" stroke-width="1.5"/>
+      <text x="765" y="39" text-anchor="middle" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#00e676">audit_logs [IMMUTABLE]</text>
+      <text x="660" y="64" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">🔑 id BIGSERIAL PK</text>
+      <text x="660" y="79" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  event_type TEXT</text>
+      <text x="660" y="94" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  actor_id UUID</text>
+      <text x="660" y="109" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  actor_role TEXT</text>
+      <text x="660" y="124" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  entity_type TEXT</text>
+      <text x="660" y="139" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  entity_id UUID</text>
+      <text x="660" y="154" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  payload JSONB</text>
+      <text x="660" y="169" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  ip_address INET</text>
+      <text x="660" y="184" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  institution_id FK</text>
+      <text x="660" y="199" font-family="JetBrains Mono" font-size="9" fill="#64748b">  ⚠ NO UPDATE/DELETE allowed</text>
+      <text x="660" y="214" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  created_at TIMESTAMPTZ</text>
+
+      <!-- screening_results -->
+      <rect x="10" y="260" width="200" height="160" rx="5" fill="#111827" stroke="#1e2d47" stroke-width="1.5"/>
+      <rect x="10" y="260" width="200" height="28" rx="5" fill="rgba(0,136,204,0.2)" stroke="#0088cc" stroke-width="1.5"/>
+      <text x="110" y="279" text-anchor="middle" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#00d4ff">screening_results</text>
+      <text x="20" y="304" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">🔑 id UUID PK</text>
+      <text x="20" y="319" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  customer_id FK</text>
+      <text x="20" y="334" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  screen_type ENUM(unscr,pep,adv)</text>
+      <text x="20" y="349" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  hit_found BOOL</text>
+      <text x="20" y="364" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  match_detail JSONB</text>
+      <text x="20" y="379" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  screened_at TIMESTAMPTZ</text>
+      <text x="20" y="394" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  resolution ENUM</text>
+      <text x="20" y="409" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  reviewed_by UUID</text>
+
+      <!-- risk_assessments -->
+      <rect x="230" y="260" width="200" height="160" rx="5" fill="#111827" stroke="#1e2d47" stroke-width="1.5"/>
+      <rect x="230" y="260" width="200" height="28" rx="5" fill="rgba(0,136,204,0.2)" stroke="#0088cc" stroke-width="1.5"/>
+      <text x="330" y="279" text-anchor="middle" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#00d4ff">risk_assessments</text>
+      <text x="240" y="304" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">🔑 id UUID PK</text>
+      <text x="240" y="319" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  customer_id FK</text>
+      <text x="240" y="334" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  dim_1..7 SMALLINT</text>
+      <text x="240" y="349" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  total_score INT</text>
+      <text x="240" y="364" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  grade ENUM(L,M,H)</text>
+      <text x="240" y="379" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  edd_triggered BOOL</text>
+      <text x="240" y="394" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  evidence JSONB</text>
+      <text x="240" y="409" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  assessed_at TIMESTAMPTZ</text>
+
+      <!-- edd_cases -->
+      <rect x="450" y="260" width="200" height="160" rx="5" fill="#111827" stroke="#ffd600" stroke-width="1.5"/>
+      <rect x="450" y="260" width="200" height="28" rx="5" fill="rgba(255,214,0,0.12)" stroke="#ffd600" stroke-width="1.5"/>
+      <text x="550" y="279" text-anchor="middle" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#ffd600">edd_cases</text>
+      <text x="460" y="304" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">🔑 id UUID PK</text>
+      <text x="460" y="319" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  customer_id FK</text>
+      <text x="460" y="334" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  triggered_by UUID</text>
+      <text x="460" y="349" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  status ENUM(open,closed,esc)</text>
+      <text x="460" y="364" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  assigned_to UUID (CO)</text>
+      <text x="460" y="379" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  sla_deadline TIMESTAMPTZ</text>
+      <text x="460" y="394" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  resolution_notes TEXT</text>
+      <text x="460" y="409" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  auto_closed_at TIMESTAMPTZ</text>
+
+      <!-- pep_registry -->
+      <rect x="670" y="260" width="210" height="160" rx="5" fill="#111827" stroke="#ff9100" stroke-width="1.5"/>
+      <rect x="670" y="260" width="210" height="28" rx="5" fill="rgba(255,145,0,0.12)" stroke="#ff9100" stroke-width="1.5"/>
+      <text x="775" y="279" text-anchor="middle" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#ff9100">pep_registry</text>
+      <text x="680" y="304" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">🔑 id UUID PK</text>
+      <text x="680" y="319" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  full_name TEXT</text>
+      <text x="680" y="334" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  designation TEXT</text>
+      <text x="680" y="349" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  nid_hash TEXT</text>
+      <text x="680" y="364" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  category ENUM(PEP,IP)</text>
+      <text x="680" y="379" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  audit_log TRIGGER</text>
+      <text x="680" y="394" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">  created_by UUID</text>
+      <text x="680" y="409" font-family="JetBrains Mono" font-size="9" fill="#ff9100">  ⚠ needs real data loaded</text>
+
+      <!-- Relation lines -->
+      <line x1="170" y1="100" x2="210" y2="100" stroke="#1e2d47" stroke-width="1.5"/>
+      <line x1="390" y1="100" x2="430" y2="100" stroke="#1e2d47" stroke-width="1.5"/>
+      <line x1="300" y1="220" x2="300" y2="260" stroke="#1e2d47" stroke-width="1.5"/>
+      <line x1="520" y1="195" x2="520" y2="260" stroke="#1e2d47" stroke-width="1.5"/>
+      <line x1="300" y1="220" x2="110" y2="260" stroke="#1e2d47" stroke-width="1.5" stroke-dasharray="4,3"/>
+      <line x1="300" y1="220" x2="550" y2="260" stroke="#ffd600" stroke-width="1" stroke-dasharray="4,3"/>
+
+      <!-- Legend -->
+      <rect x="10" y="460" width="8" height="8" fill="#0088cc"/>
+      <text x="24" y="469" font-family="JetBrains Mono" font-size="9" fill="#64748b">Core Tables (tenant schema)</text>
+      <rect x="170" y="460" width="8" height="8" fill="#00e676"/>
+      <text x="184" y="469" font-family="JetBrains Mono" font-size="9" fill="#64748b">Append-only</text>
+      <rect x="280" y="460" width="8" height="8" fill="#ffd600"/>
+      <text x="294" y="469" font-family="JetBrains Mono" font-size="9" fill="#64748b">EDD Flow</text>
+      <rect x="370" y="460" width="8" height="8" fill="#ff9100"/>
+      <text x="384" y="469" font-family="JetBrains Mono" font-size="9" fill="#64748b">Shared/Public schema</text>
+    </svg>
+  </div>
+
+  <div class="alert alert-yellow">
+    <div class="alert-icon">⚠️</div>
+    <p><strong>DB Blockers:</strong> Alembic migrations not yet replacing create_all() (hard blocker). pgcrypto CREATE EXTENSION missing from baseline migration. Automated 5-year purge cron not implemented. PgBouncer connection pooling absent.</p>
+  </div>
+</div>
+
+<!-- ========= BFIU §3.2 FINGERPRINT ========= -->
+<div class="section" id="s32">
+  <div class="section-header">
+    <span class="section-num">BFIU §3.2</span>
+    <span class="section-title">Fingerprint Onboarding</span>
+    <span class="badge badge-partial" style="margin-left:auto">78% DONE · DEMO BIOMETRIC</span>
+  </div>
+
+  <div class="two-col">
+    <div>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:12px">BFIU §3.2 specifies customer onboarding using fingerprint biometrics as primary identifier. Five-step wizard with session/attempt limits enforced at infrastructure level.</p>
+      <div class="tbl-wrap">
+        <table>
+          <tr><th>Requirement</th><th>Status</th><th>Notes</th></tr>
+          <tr><td class="code">§3.2 — NID capture (front+back)</td><td><span class="badge badge-done">DONE</span></td><td style="font-size:11px">M5 OCR pipeline, English+Bangla</td></tr>
+          <tr><td class="code">§3.2 — EC API NID verification</td><td><span class="badge badge-demo">DEMO</span></td><td style="font-size:11px">Porichoy MOU not signed</td></tr>
+          <tr><td class="code">§3.2 — Fingerprint AFIS match</td><td><span class="badge badge-warn">STUB</span></td><td style="font-size:11px">Real SDK not integrated</td></tr>
+          <tr><td class="code">§3.2 — 10 attempts/session limit</td><td><span class="badge badge-done">DONE</span></td><td style="font-size:11px">Redis INCR atomic, tested</td></tr>
+          <tr><td class="code">§3.2 — 2 sessions/day limit</td><td><span class="badge badge-done">DONE</span></td><td style="font-size:11px">Redis, 1404 suite verified</td></tr>
+          <tr><td class="code">§3.2 — 3-fail → face fallback</td><td><span class="badge badge-done">DONE</span></td><td style="font-size:11px">Orchestrator fallback chain</td></tr>
+          <tr><td class="code">§3.2 — UNSCR screening</td><td><span class="badge badge-done">DONE</span></td><td style="font-size:11px">M59 live PostgreSQL</td></tr>
+          <tr><td class="code">§3.2 — Audit log every attempt</td><td><span class="badge badge-done">DONE</span></td><td style="font-size:11px">Append-only, M11</td></tr>
+          <tr><td class="code">§3.2 — Bangla phonetic match</td><td><span class="badge badge-done">DONE</span></td><td style="font-size:11px">M56 token+edit distance</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="diagram-wrap">
+      <div class="diagram-title">// §3.2 FINGERPRINT ONBOARDING FLOW</div>
+      <svg viewBox="0 0 300 480" xmlns="http://www.w3.org/2000/svg" width="100%">
+        <!-- boxes -->
+        <rect x="75" y="10" width="150" height="36" rx="5" class="flow-box-accent"/>
+        <text x="150" y="33" class="flow-text" text-anchor="middle">Customer Arrives</text>
+
+        <rect x="75" y="70" width="150" height="36" rx="5" class="flow-box"/>
+        <text x="150" y="93" class="flow-text" text-anchor="middle">NID Capture (OCR)</text>
+
+        <rect x="75" y="130" width="150" height="36" rx="5" class="flow-box"/>
+        <text x="150" y="153" class="flow-text" text-anchor="middle">EC API Verify</text>
+
+        <rect x="75" y="190" width="150" height="36" rx="5" class="flow-box"/>
+        <text x="150" y="213" class="flow-text" text-anchor="middle">Fingerprint Scan</text>
+
+        <!-- diamond -->
+        <polygon points="150,260 200,285 150,310 100,285" fill="rgba(255,214,0,0.1)" stroke="#ffd600" stroke-width="1.5"/>
+        <text x="150" y="289" class="flow-text" text-anchor="middle" fill="#ffd600" font-size="9">≤3 fails?</text>
+
+        <rect x="75" y="330" width="150" height="36" rx="5" class="flow-box"/>
+        <text x="150" y="353" class="flow-text" text-anchor="middle">UNSCR Screening</text>
+
+        <rect x="75" y="400" width="150" height="36" rx="5" class="flow-box-green"/>
+        <text x="150" y="423" class="flow-text" text-anchor="middle" fill="#00e676">KYC Approved</text>
+
+        <!-- fail path -->
+        <rect x="10" y="280" width="70" height="28" rx="4" class="flow-box-red"/>
+        <text x="45" y="299" class="flow-text" text-anchor="middle" fill="#ff1744" font-size="9">→ Face</text>
+        <text x="45" y="309" class="flow-text" text-anchor="middle" fill="#ff1744" font-size="9">Fallback</text>
+
+        <!-- arrows -->
+        <line x1="150" y1="46" x2="150" y2="70" class="arrow"/>
+        <line x1="150" y1="106" x2="150" y2="130" class="arrow"/>
+        <line x1="150" y1="166" x2="150" y2="190" class="arrow"/>
+        <line x1="150" y1="226" x2="150" y2="260" class="arrow"/>
+        <line x1="150" y1="310" x2="150" y2="330" class="arrow"/>
+        <line x1="150" y1="366" x2="150" y2="400" class="arrow"/>
+        <line x1="100" y1="285" x2="80" y2="285" class="arrow-red" marker-end="url(#arr-red)"/>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<!-- ========= BFIU §3.3 FACE MATCH ========= -->
+<div class="section" id="s33">
+  <div class="section-header">
+    <span class="section-num">BFIU §3.3</span>
+    <span class="section-title">Face-Matching Onboarding</span>
+    <span class="badge badge-warn" style="margin-left:auto">45% PRODUCTION-READY · CV ONLY</span>
+  </div>
+
+  <div class="two-col">
+    <div>
+      <div class="tbl-wrap">
+        <table>
+          <tr><th>Requirement</th><th>Status</th><th>Depth</th></tr>
+          <tr><td>§3.3a — NID front+back capture</td><td><span class="badge badge-done">DONE</span></td><td style="font-size:11px">OpenCV DNN, quality scoring</td></tr>
+          <tr><td>§3.3b — Liveness detection</td><td><span class="badge badge-partial">PARTIAL</span></td><td style="font-size:11px">MediaPipe 478-landmark, EAR blink, head pose, smile — no 3D depth</td></tr>
+          <tr><td>§3.3c — Face match vs NID photo</td><td><span class="badge badge-warn">DEMO</span></td><td style="font-size:11px">SSIM+ORB+Histogram (CV, not DL)</td></tr>
+          <tr><td>§3.3d — 10 attempts limit</td><td><span class="badge badge-done">DONE</span></td><td style="font-size:11px">Redis, atomic</td></tr>
+          <tr><td>§3.3e — 2 sessions/day</td><td><span class="badge badge-done">DONE</span></td><td style="font-size:11px">Redis TTL</td></tr>
+          <tr><td>§3.3 — Annexure-2 photo guidance</td><td><span class="badge badge-done">DONE</span></td><td style="font-size:11px">Image quality validator</td></tr>
+          <tr><td>§3.3 — OCR Bangla + English</td><td><span class="badge badge-partial">PARTIAL</span></td><td style="font-size:11px">Tesseract generic; BD-trained model missing</td></tr>
+          <tr><td>§3.3 — Self check-in portal</td><td><span class="badge badge-done">DONE</span></td><td style="font-size:11px">React PWA, webcam capture</td></tr>
+          <tr><td>Deep learning face verification</td><td><span class="badge badge-gap">MISSING</span></td><td style="font-size:11px">FaceNet/ArcFace not integrated</td></tr>
+          <tr><td>3D anti-spoofing (Annexure-2g)</td><td><span class="badge badge-gap">MISSING</span></td><td style="font-size:11px">Landmark-based only</td></tr>
+        </table>
+      </div>
+      <div class="alert alert-red">
+        <div class="alert-icon">🔴</div>
+        <p><strong>Critical:</strong> Current face match uses SSIM+ORB (traditional computer vision). Not production-grade for identity verification. Must replace with FaceNet/ArcFace or use EC API biometric service. This is a hard blocker for go-live.</p>
+      </div>
+    </div>
+    <div class="card">
+      <h4>Face Pipeline — Current Implementation</h4>
+      <div class="codeblock" style="margin-top:8px">
+<span class="cmt"># Current face match engine (M5)</span>
+<span class="kw">def</span> <span class="fn">compute_face_confidence</span>(img_live, img_nid):
+    <span class="cmt"># Step 1: DNN face detection</span>
+    face_live = detect_face_dnn(img_live)
+    face_nid  = detect_face_dnn(img_nid)
+
+    <span class="cmt"># Step 2: 4-method composite</span>
+    ssim  = structural_similarity(face_live, face_nid)
+    orb   = orb_keypoint_match(face_live, face_nid)
+    hist  = histogram_correlation(face_live, face_nid)
+    pixel = pixel_difference_score(face_live, face_nid)
+
+    <span class="cmt"># Weighted composite 0-100</span>
+    score = (ssim*<span class="num">0.35</span> + orb*<span class="num">0.25</span> +
+             hist*<span class="num">0.25</span> + pixel*<span class="num">0.15</span>) * <span class="num">100</span>
+    <span class="kw">return</span> score  <span class="cmt"># threshold=40</span>
+
+<span class="cmt"># REQUIRED (not yet integrated)</span>
+<span class="cmt"># from deepface import DeepFace</span>
+<span class="cmt"># result = DeepFace.verify(img_live, img_nid,</span>
+<span class="cmt">#          model_name='ArcFace')</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========= BFIU §4.1 THRESHOLD ========= -->
+<div class="section" id="s41">
+  <div class="section-header">
+    <span class="section-num">BFIU §4.1</span>
+    <span class="section-title">Threshold-Based KYC Routing (Simplified vs Regular)</span>
+    <span class="badge badge-done" style="margin-left:auto">95% DONE</span>
+  </div>
+
+  <div class="two-col">
+    <div>
+      <div class="tbl-wrap">
+        <table>
+          <tr><th>Item</th><th>Simplified §2.3.1</th><th>Regular §2.3.2</th><th>Status</th></tr>
+          <tr><td style="font-size:11px">Product threshold routing</td><td style="font-size:11px">≤ BDT limit</td><td style="font-size:11px">&gt; BDT limit</td><td><span class="badge badge-done">DONE</span></td></tr>
+          <tr><td style="font-size:11px">Admin threshold editor</td><td colspan="2" style="font-size:11px">Configurable per institution</td><td><span class="badge badge-done">DONE</span></td></tr>
+          <tr><td style="font-size:11px">Auto-assignment on onboard</td><td colspan="2" style="font-size:11px">M7 Orchestrator</td><td><span class="badge badge-done">DONE</span></td></tr>
+          <tr><td style="font-size:11px">Simplified→Regular upgrade</td><td colspan="2" style="font-size:11px">M10 lifecycle trigger</td><td><span class="badge badge-done">DONE</span></td></tr>
+          <tr><td style="font-size:11px">E2E upgrade flow tested</td><td colspan="2" style="font-size:11px">test_m10 suite</td><td><span class="badge badge-partial">PARTIAL</span></td></tr>
+          <tr><td style="font-size:11px">KYC §6.1 form output</td><td style="font-size:11px">Generated at end</td><td style="font-size:11px">—</td><td><span class="badge badge-warn">PARTIAL</span></td></tr>
+          <tr><td style="font-size:11px">KYC §6.2 form output</td><td style="font-size:11px">—</td><td style="font-size:11px">Generated at end</td><td><span class="badge badge-warn">PARTIAL</span></td></tr>
+          <tr><td style="font-size:11px">Beneficial ownership wired</td><td style="font-size:11px">N/A</td><td style="font-size:11px">M38 built not wired</td><td><span class="badge badge-gap">MISSING</span></td></tr>
+        </table>
+      </div>
+    </div>
+    <div>
+      <div class="diagram-wrap">
+        <div class="diagram-title">// THRESHOLD ROUTING LOGIC</div>
+        <svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg" width="100%">
+          <rect x="75" y="10" width="150" height="32" rx="5" class="flow-box-accent"/>
+          <text x="150" y="31" class="flow-text" text-anchor="middle">Product Applied For</text>
+          <line x1="150" y1="42" x2="150" y2="65" class="arrow"/>
+          <polygon points="150,65 190,90 150,115 110,90" fill="rgba(0,212,255,0.08)" stroke="#00d4ff" stroke-width="1.5"/>
+          <text x="150" y="91" class="flow-text-accent" text-anchor="middle" font-size="9">Premium</text>
+          <text x="150" y="105" class="flow-text-accent" text-anchor="middle" font-size="9">≤ Threshold?</text>
+          <line x1="110" y1="90" x2="50" y2="90" class="arrow-green"/>
+          <rect x="5" y="74" width="44" height="32" rx="4" class="flow-box-green"/>
+          <text x="27" y="93" class="flow-text" text-anchor="middle" fill="#00e676" font-size="9">SIMP</text>
+          <text x="27" y="103" class="flow-text-sm" text-anchor="middle">§3.2</text>
+          <line x1="190" y1="90" x2="250" y2="90" class="arrow-yellow"/>
+          <rect x="251" y="74" width="44" height="32" rx="4" class="flow-box-yellow"/>
+          <text x="273" y="93" class="flow-text" text-anchor="middle" fill="#ffd600" font-size="9">REG</text>
+          <text x="273" y="103" class="flow-text-sm" text-anchor="middle">§3.3</text>
+          <line x1="27" y1="106" x2="27" y2="140" class="arrow"/>
+          <line x1="273" y1="106" x2="273" y2="140" class="arrow"/>
+          <rect x="5" y="140" width="44" height="26" rx="4" class="flow-box"/>
+          <text x="27" y="157" class="flow-text-sm" text-anchor="middle">§6.1 Form</text>
+          <rect x="251" y="140" width="44" height="26" rx="4" class="flow-box"/>
+          <text x="273" y="157" class="flow-text-sm" text-anchor="middle">§6.2 Form</text>
+          <text x="27" y="185" class="flow-text-sm" text-anchor="middle" fill="#00e676">DONE</text>
+          <text x="273" y="185" class="flow-text-sm" text-anchor="middle" fill="#ffd600">PARTIAL</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========= BFIU §4.2 SCREENING ========= -->
+<div class="section" id="s42">
+  <div class="section-header">
+    <span class="section-num">BFIU §4.2</span>
+    <span class="section-title">Sanctions &amp; PEP/IP Screening</span>
+    <span class="badge badge-partial" style="margin-left:auto">80% — PEP DATA NEEDED</span>
+  </div>
+
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>Screen Type</th><th>Module</th><th>Data Source</th><th>Status</th><th>Tests</th><th>Gap</th></tr>
+      <tr>
+        <td class="code">UNSCR Sanctions</td>
+        <td class="code">M59</td>
+        <td style="font-size:11px">UN XML Feed → PostgreSQL</td>
+        <td><span class="badge badge-done">LIVE</span></td>
+        <td style="font-family:var(--mono);font-size:11px">test_m59 ✅</td>
+        <td style="font-size:11px">XML feed auto-sync cron needed</td>
+      </tr>
+      <tr>
+        <td class="code">PEP Registry</td>
+        <td class="code">M62</td>
+        <td style="font-size:11px">Admin-managed DB, append-only trigger</td>
+        <td><span class="badge badge-partial">PARTIAL</span></td>
+        <td style="font-family:var(--mono);font-size:11px">25 tests ✅</td>
+        <td style="font-size:11px;color:var(--red)">Real PEP data not loaded. DB trigger exists but demo entries only.</td>
+      </tr>
+      <tr>
+        <td class="code">IP (Influential Person)</td>
+        <td class="code">M62</td>
+        <td style="font-size:11px">Same table as PEP, category=IP</td>
+        <td><span class="badge badge-partial">PARTIAL</span></td>
+        <td style="font-family:var(--mono);font-size:11px">included in 25 ✅</td>
+        <td style="font-size:11px;color:var(--red)">Real IP data not loaded</td>
+      </tr>
+      <tr>
+        <td class="code">Adverse Media</td>
+        <td class="code">M53</td>
+        <td style="font-size:11px">Daily Celery re-screen</td>
+        <td><span class="badge badge-partial">STUB</span></td>
+        <td style="font-family:var(--mono);font-size:11px">1404 suite ✅</td>
+        <td style="font-size:11px;color:var(--red)">Real source API not integrated</td>
+      </tr>
+      <tr>
+        <td class="code">Exit List (internal blacklist)</td>
+        <td class="code">—</td>
+        <td style="font-size:11px">Institution-managed</td>
+        <td><span class="badge badge-warn">PARTIAL</span></td>
+        <td style="font-size:11px">—</td>
+        <td style="font-size:11px;color:var(--orange)">Partial implementation</td>
+      </tr>
+      <tr>
+        <td class="code">Auto-block on hit</td>
+        <td class="code">M59/M62</td>
+        <td style="font-size:11px">Workflow decision engine</td>
+        <td><span class="badge badge-done">DONE</span></td>
+        <td style="font-size:11px">✅</td>
+        <td style="font-size:11px">—</td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<!-- ========= BFIU §4.3 EDD ========= -->
+<div class="section" id="s43">
+  <div class="section-header">
+    <span class="section-num">BFIU §4.3</span>
+    <span class="section-title">Enhanced Due Diligence (EDD)</span>
+    <span class="badge badge-done" style="margin-left:auto">COMPLETE — 29 TESTS PASS</span>
+  </div>
+
+  <div class="two-col">
+    <div>
+      <div class="tbl-wrap">
+        <table>
+          <tr><th>Requirement</th><th>Status</th><th>Detail</th></tr>
+          <tr><td>Auto-trigger on high risk grade</td><td><span class="badge badge-done">DONE</span></td><td style="font-size:11px">M8 scorer → M60 EDD</td></tr>
+          <tr><td>COMPLIANCE_OFFICER role only</td><td><span class="badge badge-done">DONE</span></td><td style="font-size:11px">RBAC enforced, CHECKER blocked</td></tr>
+          <tr><td>1-month SLA enforcement</td><td><span class="badge badge-done">DONE</span></td><td style="font-size:11px">Celery beat auto-close, test_T14</td></tr>
+          <tr><td>Immediate closure on irregular activity</td><td><span class="badge badge-done">DONE</span></td><td style="font-size:11px">test_T11</td></tr>
+          <tr><td>CHECKER blocked from EDD approval</td><td><span class="badge badge-done">DONE</span></td><td style="font-size:11px">test_T08 — 403 returned</td></tr>
+          <tr><td>EDD state machine (open/closed/escalated)</td><td><span class="badge badge-done">DONE</span></td><td style="font-size:11px">Full state transitions</td></tr>
+          <tr><td>Audit trail per EDD action</td><td><span class="badge badge-done">DONE</span></td><td style="font-size:11px">Immutable log every state change</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="diagram-wrap">
+      <div class="diagram-title">// EDD STATE MACHINE — M60</div>
+      <svg viewBox="0 0 300 280" xmlns="http://www.w3.org/2000/svg" width="100%">
+        <rect x="95" y="10" width="110" height="32" rx="5" class="flow-box-accent"/>
+        <text x="150" y="31" class="flow-text" text-anchor="middle">High Risk Grade</text>
+        <line x1="150" y1="42" x2="150" y2="62" class="arrow"/>
+        <rect x="95" y="62" width="110" height="32" rx="5" class="flow-box-yellow"/>
+        <text x="150" y="83" class="flow-text" text-anchor="middle" fill="#ffd600">EDD OPENED</text>
+        <text x="150" y="55" class="flow-text-sm" text-anchor="middle">Auto-trigger</text>
+        <line x1="150" y1="94" x2="150" y2="114" class="arrow"/>
+        <rect x="60" y="114" width="180" height="32" rx="5" class="flow-box"/>
+        <text x="150" y="135" class="flow-text" text-anchor="middle">Compliance Officer Review</text>
+        <line x1="90" y1="130" x2="30" y2="175" class="arrow"/>
+        <line x1="210" y1="130" x2="270" y2="175" class="arrow"/>
+        <line x1="150" y1="146" x2="150" y2="175" class="arrow-yellow"/>
+        <rect x="5" y="175" width="70" height="32" rx="4" class="flow-box-green"/>
+        <text x="40" y="196" class="flow-text" text-anchor="middle" fill="#00e676" font-size="9">CLOSED</text>
+        <text x="40" y="206" class="flow-text-sm" text-anchor="middle">Normal</text>
+        <rect x="115" y="175" width="70" height="32" rx="4" class="flow-box-red"/>
+        <text x="150" y="196" class="flow-text" text-anchor="middle" fill="#ff1744" font-size="9">CLOSED</text>
+        <text x="150" y="206" class="flow-text-sm" text-anchor="middle">Irregular</text>
+        <rect x="225" y="175" width="70" height="32" rx="4" class="flow-box-yellow"/>
+        <text x="260" y="196" class="flow-text" text-anchor="middle" fill="#ffd600" font-size="9">AUTO</text>
+        <text x="260" y="206" class="flow-text-sm" text-anchor="middle">1-mo SLA</text>
+        <text x="40" y="230" class="flow-text-sm" text-anchor="middle" fill="#00e676">test_T08 ✓</text>
+        <text x="150" y="230" class="flow-text-sm" text-anchor="middle" fill="#ff1744">test_T11 ✓</text>
+        <text x="260" y="230" class="flow-text-sm" text-anchor="middle" fill="#ffd600">test_T14 ✓</text>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<!-- ========= BFIU §4.5 SECURITY ========= -->
+<div class="section" id="s45">
+  <div class="section-header">
+    <span class="section-num">BFIU §4.5</span>
+    <span class="section-title">Data Security Requirements</span>
+    <span class="badge badge-warn" style="margin-left:auto">60% — INFRA DEPLOYMENT MISSING</span>
+  </div>
+
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>BFIU §4.5 Requirement</th><th>Implementation</th><th>Status</th><th>Blocker?</th></tr>
+      <tr><td>HTTPS only, no HTTP</td><td style="font-size:11px">Nginx HSTS + HTTP 301 redirect</td><td><span class="badge badge-gap">NOT DEPLOYED</span></td><td style="font-size:11px;color:var(--red)">YES — Nginx missing</td></tr>
+      <tr><td>JWT bearer auth on all endpoints</td><td style="font-size:11px">RS256 JWT, 15min TTL, jti denylist</td><td><span class="badge badge-done">DONE</span></td><td style="font-size:11px">—</td></tr>
+      <tr><td>No PII outside Bangladesh</td><td style="font-size:11px">Data residency middleware</td><td><span class="badge badge-partial">PARTIAL</span></td><td style="font-size:11px;color:var(--orange)">End-to-end enforcement incomplete</td></tr>
+      <tr><td>Locally hosted / private cloud</td><td style="font-size:11px">On-prem target</td><td><span class="badge badge-gap">NO IaC</span></td><td style="font-size:11px;color:var(--red)">YES — Docker Compose missing</td></tr>
+      <tr><td>AES-256 at rest for biometric data</td><td style="font-size:11px">pgcrypto field encryption</td><td><span class="badge badge-gap">MISSING</span></td><td style="font-size:11px;color:var(--red)">pgcrypto extension not in migration</td></tr>
+      <tr><td>TLS 1.3 in transit</td><td style="font-size:11px">Nginx SSL config</td><td><span class="badge badge-gap">NOT DEPLOYED</span></td><td style="font-size:11px;color:var(--red)">YES</td></tr>
+      <tr><td>NID never stored plaintext</td><td style="font-size:11px">HMAC-SHA256(nid + inst_secret)</td><td><span class="badge badge-done">DONE</span></td><td style="font-size:11px">—</td></tr>
+      <tr><td>SQL injection protection</td><td style="font-size:11px">SQLAlchemy ORM parameterized</td><td><span class="badge badge-done">DONE</span></td><td style="font-size:11px">—</td></tr>
+      <tr><td>XSS/CSRF headers</td><td style="font-size:11px">SecurityHeadersMiddleware</td><td><span class="badge badge-done">DONE</span></td><td style="font-size:11px">—</td></tr>
+      <tr><td>Rate limiting auth endpoints</td><td style="font-size:11px">slowapi (10 req/min/IP)</td><td><span class="badge badge-done">DONE</span></td><td style="font-size:11px">—</td></tr>
+      <tr><td>SECRET_KEY from env only</td><td style="font-size:11px">Warns but allows default</td><td><span class="badge badge-warn">PARTIAL</span></td><td style="font-size:11px;color:var(--red)">Must crash on default key</td></tr>
+      <tr><td>CORS locked to production</td><td style="font-size:11px">Localhost still whitelisted</td><td><span class="badge badge-warn">PARTIAL</span></td><td style="font-size:11px;color:var(--orange)">Fix before go-live</td></tr>
+      <tr><td>OWASP Top-10 pentest</td><td style="font-size:11px">—</td><td><span class="badge badge-gap">NOT DONE</span></td><td style="font-size:11px;color:var(--red)">YES — external firm needed</td></tr>
+      <tr><td>Admin IP whitelist</td><td style="font-size:11px">—</td><td><span class="badge badge-gap">MISSING</span></td><td style="font-size:11px;color:var(--orange)">Needed</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ========= BFIU §5.1 AUDIT ========= -->
+<div class="section" id="s51">
+  <div class="section-header">
+    <span class="section-num">BFIU §5.1</span>
+    <span class="section-title">Audit Trail &amp; Data Retention</span>
+    <span class="badge badge-partial" style="margin-left:auto">85% — DB TRIGGER MISSING</span>
+  </div>
+
+  <div class="three-col">
+    <div class="card">
+      <h4>Immutable Audit Log</h4>
+      <p>M11 — append-only at application layer. Every state transition recorded before response sent. PDF export via M31. <span style="color:var(--yellow)">⚠ DB-level UPDATE/DELETE prevention trigger not yet added.</span></p>
+    </div>
+    <div class="card">
+      <h4>5-Year Retention</h4>
+      <p>Policy coded in M11. Automated purge cron job not implemented. PostgreSQL partition plan not in place. <span style="color:var(--red)">Must add Celery beat purge task.</span></p>
+    </div>
+    <div class="card">
+      <h4>Maker-Checker Workflow</h4>
+      <p>RBAC enforced: Maker initiates, Checker reviews/approves. AUDITOR read-only on all logs (test_T01). Compliance Officer has EDD approval authority exclusively.</p>
+    </div>
+  </div>
+
+  <div style="margin-top:20px">
+    <div class="codeblock">
+<span class="cmt">-- MISSING: DB-level immutability trigger (hard blocker)</span>
+<span class="kw">CREATE OR REPLACE FUNCTION</span> <span class="fn">prevent_audit_modification</span>()
+<span class="kw">RETURNS TRIGGER AS</span> $$
+<span class="kw">BEGIN</span>
+  <span class="kw">IF</span> TG_OP = <span class="str">'UPDATE'</span> <span class="kw">OR</span> TG_OP = <span class="str">'DELETE'</span> <span class="kw">THEN</span>
+    <span class="kw">RAISE EXCEPTION</span> <span class="str">'audit_logs is append-only. Modification forbidden.'</span>;
+  <span class="kw">END IF</span>;
+  <span class="kw">RETURN NEW</span>;
+<span class="kw">END</span>;
+$$ <span class="kw">LANGUAGE</span> plpgsql;
+
+<span class="kw">CREATE TRIGGER</span> audit_immutability
+<span class="kw">BEFORE UPDATE OR DELETE ON</span> audit_logs
+<span class="kw">FOR EACH ROW EXECUTE FUNCTION</span> <span class="fn">prevent_audit_modification</span>();
+<span class="cmt">-- Status: NOT YET IN MIGRATION</span>
+    </div>
+  </div>
+</div>
+
+<!-- ========= BFIU §5.7 LIFECYCLE ========= -->
+<div class="section" id="s57">
+  <div class="section-header">
+    <span class="section-num">BFIU §5.7</span>
+    <span class="section-title">KYC Lifecycle Management</span>
+    <span class="badge badge-done" style="margin-left:auto">COMPLETE — 40 TESTS PASS</span>
+  </div>
+
+  <div class="two-col">
+    <div>
+      <div class="tbl-wrap">
+        <table>
+          <tr><th>Lifecycle Event</th><th>Trigger</th><th>Status</th></tr>
+          <tr><td>Annual review (low risk)</td><td style="font-size:11px">Celery beat</td><td><span class="badge badge-done">DONE</span></td></tr>
+          <tr><td>2-year review (medium risk)</td><td style="font-size:11px">Celery beat</td><td><span class="badge badge-done">DONE</span></td></tr>
+          <tr><td>5-year review (high risk)</td><td style="font-size:11px">Celery beat</td><td><span class="badge badge-done">DONE</span></td></tr>
+          <tr><td>Self-declaration flow</td><td style="font-size:11px">Customer portal</td><td><span class="badge badge-done">DONE</span></td></tr>
+          <tr><td>Address change re-verification</td><td style="font-size:11px">On address update</td><td><span class="badge badge-done">DONE</span></td></tr>
+          <tr><td>Simplified→Regular upgrade</td><td style="font-size:11px">Threshold exceeded</td><td><span class="badge badge-done">DONE</span></td></tr>
+          <tr><td>Minor→Adult conversion</td><td style="font-size:11px">DOB-based scheduler</td><td><span class="badge badge-done">DONE</span></td></tr>
+          <tr><td>Nominee validation</td><td style="font-size:11px">On profile completion</td><td><span class="badge badge-warn">PARTIAL</span></td></tr>
+          <tr><td>Source of funds verification</td><td style="font-size:11px">Regular KYC only</td><td><span class="badge badge-warn">CAPTURED</span></td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="diagram-wrap">
+      <div class="diagram-title">// KYC REVIEW SCHEDULE BY RISK GRADE</div>
+      <svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg" width="100%">
+        <rect x="10" y="20" width="280" height="40" rx="5" class="flow-box-accent"/>
+        <text x="150" y="45" class="flow-text" text-anchor="middle">KYC Approved Customer</text>
+        <line x1="70" y1="60" x2="50" y2="90" class="arrow-green"/>
+        <line x1="150" y1="60" x2="150" y2="90" class="arrow-yellow"/>
+        <line x1="230" y1="60" x2="250" y2="90" class="arrow-red"/>
+
+        <rect x="10" y="90" width="80" height="44" rx="5" class="flow-box-green"/>
+        <text x="50" y="109" class="flow-text" text-anchor="middle" fill="#00e676" font-size="9">LOW RISK</text>
+        <text x="50" y="123" class="flow-text-sm" text-anchor="middle">Annual</text>
+        <text x="50" y="133" class="flow-text-sm" text-anchor="middle">Review</text>
+
+        <rect x="110" y="90" width="80" height="44" rx="5" class="flow-box-yellow"/>
+        <text x="150" y="109" class="flow-text" text-anchor="middle" fill="#ffd600" font-size="9">MEDIUM RISK</text>
+        <text x="150" y="123" class="flow-text-sm" text-anchor="middle">2-Year</text>
+        <text x="150" y="133" class="flow-text-sm" text-anchor="middle">Review</text>
+
+        <rect x="210" y="90" width="80" height="44" rx="5" class="flow-box-red"/>
+        <text x="250" y="109" class="flow-text" text-anchor="middle" fill="#ff1744" font-size="9">HIGH RISK</text>
+        <text x="250" y="123" class="flow-text-sm" text-anchor="middle">5-Year +</text>
+        <text x="250" y="133" class="flow-text-sm" text-anchor="middle">EDD Trigger</text>
+
+        <text x="50" y="155" class="flow-text-sm" text-anchor="middle" fill="#00e676">test_m10 ✓</text>
+        <text x="150" y="155" class="flow-text-sm" text-anchor="middle" fill="#ffd600">test_m10 ✓</text>
+        <text x="250" y="155" class="flow-text-sm" text-anchor="middle" fill="#ff1744">test_m10 ✓</text>
+
+        <rect x="50" y="168" width="200" height="32" rx="5" class="flow-box"/>
+        <text x="150" y="189" class="flow-text" text-anchor="middle">Self-Declaration Portal (M10)</text>
+        <line x1="50" y1="160" x2="100" y2="168" class="arrow" stroke-dasharray="3,2"/>
+        <line x1="150" y1="160" x2="150" y2="168" class="arrow" stroke-dasharray="3,2"/>
+        <line x1="250" y1="160" x2="200" y2="168" class="arrow" stroke-dasharray="3,2"/>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<!-- ========= BFIU §6.1/6.2 KYC PROFILE ========= -->
+<div class="section" id="s61">
+  <div class="section-header">
+    <span class="section-num">BFIU §6.1/6.2</span>
+    <span class="section-title">KYC Profile Output Forms</span>
+    <span class="badge badge-warn" style="margin-left:auto">PARTIAL — FORM GENERATION INCOMPLETE</span>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <h4>§6.1 — Simplified KYC Profile</h4>
+      <ul style="font-size:11px;color:var(--text2);line-height:1.9;margin-top:8px;list-style:none">
+        <li>✅ Full name (English + Bangla)</li>
+        <li>✅ NID number (hashed)</li>
+        <li>✅ DOB</li>
+        <li>✅ Present address</li>
+        <li>✅ Phone number</li>
+        <li>✅ Nominee details (captured)</li>
+        <li>⚠️ Digital signature (captured, not fully validated)</li>
+        <li>❌ Auto-generated BFIU-format PDF at workflow end</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>§6.2 — Regular KYC Profile</h4>
+      <ul style="font-size:11px;color:var(--text2);line-height:1.9;margin-top:8px;list-style:none">
+        <li>✅ All §6.1 fields</li>
+        <li>✅ Occupation / employer</li>
+        <li>✅ Source of funds (captured)</li>
+        <li>⚠️ Source of funds (not verified)</li>
+        <li>⚠️ Beneficial ownership (M38 built, not wired)</li>
+        <li>⚠️ Joint account holder data</li>
+        <li>❌ §6.2 PDF form generated at workflow end</li>
+        <li>❌ Wet signature enforcement for high-risk</li>
+      </ul>
+    </div>
+  </div>
+  <div class="alert alert-red" style="margin-top:16px">
+    <div class="alert-icon">🔴</div>
+    <p><strong>Hard Blocker:</strong> BFIU-format KYC profile PDF (§6.1 and §6.2) must be auto-generated and stored at the end of every completed onboarding workflow. Currently partial — data captured but BFIU-layout form not generated. 2-file change to wire M38 (beneficial ownership) into Regular workflow step.</p>
+  </div>
+</div>
+
+<!-- ========= BFIU §6.3 RISK GRADING ========= -->
+<div class="section" id="s63">
+  <div class="section-header">
+    <span class="section-num">BFIU §6.3</span>
+    <span class="section-title">Risk Grading Engine</span>
+    <span class="badge badge-done" style="margin-left:auto">COMPLETE — 37 TESTS PASS</span>
+  </div>
+
+  <div class="two-col">
+    <div>
+      <div class="tbl-wrap">
+        <table>
+          <tr><th>Dimension</th><th>§6.3.1 Insurance</th><th>§6.3.2 CMI</th><th>Status</th></tr>
+          <tr><td style="font-size:11px">D1 — Customer type</td><td>✅</td><td>✅</td><td><span class="badge badge-done">DONE</span></td></tr>
+          <tr><td style="font-size:11px">D2 — Geographic risk</td><td>✅</td><td>✅</td><td><span class="badge badge-done">DONE</span></td></tr>
+          <tr><td style="font-size:11px">D3 — Product/service risk</td><td>✅</td><td>✅</td><td><span class="badge badge-done">DONE</span></td></tr>
+          <tr><td style="font-size:11px">D4 — Transaction behavior</td><td>✅</td><td>✅</td><td><span class="badge badge-done">DONE</span></td></tr>
+          <tr><td style="font-size:11px">D5 — PEP/IP association</td><td>✅</td><td>✅</td><td><span class="badge badge-done">DONE</span></td></tr>
+          <tr><td style="font-size:11px">D6 — Source of funds risk</td><td>✅</td><td>✅</td><td><span class="badge badge-done">DONE</span></td></tr>
+          <tr><td style="font-size:11px">D7 — Channel risk</td><td>✅</td><td>✅</td><td><span class="badge badge-done">DONE</span></td></tr>
+          <tr><td style="font-size:11px">Annexure-1 lookup tables</td><td>✅</td><td>✅</td><td><span class="badge badge-done">DONE</span></td></tr>
+          <tr><td style="font-size:11px">Auto-EDD on high score</td><td>✅</td><td>✅</td><td><span class="badge badge-done">DONE</span></td></tr>
+          <tr><td style="font-size:11px">Transaction monitoring (D4 live)</td><td>⚠️ Static</td><td>⚠️ Static</td><td><span class="badge badge-warn">STATIC</span></td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="diagram-wrap">
+      <div class="diagram-title">// 7-DIMENSION RISK SCORING — M8</div>
+      <svg viewBox="0 0 300 280" xmlns="http://www.w3.org/2000/svg" width="100%">
+        <text x="150" y="20" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#64748b">BFIU §6.3 RISK DIMENSIONS</text>
+        <!-- radar-style bars -->
+        <rect x="10" y="30" width="180" height="16" rx="3" fill="rgba(0,230,118,0.1)" stroke="#00e676" stroke-width="1"/>
+        <rect x="10" y="30" width="162" height="16" rx="3" fill="rgba(0,230,118,0.3)"/>
+        <text x="200" y="43" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">D1 Customer</text>
+
+        <rect x="10" y="54" width="180" height="16" rx="3" fill="rgba(0,230,118,0.1)" stroke="#00e676" stroke-width="1"/>
+        <rect x="10" y="54" width="144" height="16" rx="3" fill="rgba(0,230,118,0.3)"/>
+        <text x="200" y="67" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">D2 Geo Risk</text>
+
+        <rect x="10" y="78" width="180" height="16" rx="3" fill="rgba(255,214,0,0.1)" stroke="#ffd600" stroke-width="1"/>
+        <rect x="10" y="78" width="126" height="16" rx="3" fill="rgba(255,214,0,0.4)"/>
+        <text x="200" y="91" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">D3 Product</text>
+
+        <rect x="10" y="102" width="180" height="16" rx="3" fill="rgba(255,145,0,0.1)" stroke="#ff9100" stroke-width="1"/>
+        <rect x="10" y="102" width="90" height="16" rx="3" fill="rgba(255,145,0,0.4)"/>
+        <text x="200" y="115" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">D4 Trans (Static)</text>
+
+        <rect x="10" y="126" width="180" height="16" rx="3" fill="rgba(255,214,0,0.1)" stroke="#ffd600" stroke-width="1"/>
+        <rect x="10" y="126" width="154" height="16" rx="3" fill="rgba(255,214,0,0.4)"/>
+        <text x="200" y="139" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">D5 PEP/IP</text>
+
+        <rect x="10" y="150" width="180" height="16" rx="3" fill="rgba(255,214,0,0.1)" stroke="#ffd600" stroke-width="1"/>
+        <rect x="10" y="150" width="108" height="16" rx="3" fill="rgba(255,214,0,0.4)"/>
+        <text x="200" y="163" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">D6 Src Funds</text>
+
+        <rect x="10" y="174" width="180" height="16" rx="3" fill="rgba(0,230,118,0.1)" stroke="#00e676" stroke-width="1"/>
+        <rect x="10" y="174" width="170" height="16" rx="3" fill="rgba(0,230,118,0.3)"/>
+        <text x="200" y="187" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">D7 Channel</text>
+
+        <rect x="10" y="210" width="280" height="32" rx="5" fill="rgba(255,23,68,0.1)" stroke="#ff1744" stroke-width="1.5"/>
+        <text x="150" y="228" font-family="JetBrains Mono" font-size="10" text-anchor="middle" fill="#ff1744">TOTAL SCORE → Grade L/M/H</text>
+        <text x="150" y="240" font-family="JetBrains Mono" font-size="9" text-anchor="middle" fill="#64748b">High → EDD Auto-Trigger (M60)</text>
+
+        <text x="10" y="268" font-family="JetBrains Mono" font-size="9" fill="#00e676">37/37 tests ✓ passing</text>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<!-- ========= INFRASTRUCTURE ========= -->
+<div class="section" id="infra">
+  <div class="section-header">
+    <span class="section-num">INF</span>
+    <span class="section-title">Infrastructure &amp; Deployment</span>
+    <span class="badge badge-gap" style="margin-left:auto">30% — CRITICAL BLOCKERS</span>
+  </div>
+
+  <div class="alert alert-red">
+    <div class="alert-icon">🔴</div>
+    <p><strong>This is the #1 go-live blocker layer.</strong> The application code works correctly but cannot be deployed to production without Docker Compose, Nginx, SSL, and environment configuration. 7 hard blockers in this layer alone.</p>
+  </div>
+
+  <div class="tbl-wrap" style="margin-top:16px">
+    <table>
+      <tr><th>#</th><th>Item</th><th>Status</th><th>BFIU Req?</th><th>Priority</th></tr>
+      <tr><td class="code">27</td><td>Docker Compose (app+db+redis+celery+nginx)</td><td><span class="badge badge-gap">MISSING</span></td><td style="font-size:11px">§4.5</td><td style="color:var(--red);font-size:11px">CRITICAL</td></tr>
+      <tr><td class="code">28</td><td>Nginx reverse proxy config</td><td><span class="badge badge-gap">MISSING</span></td><td style="font-size:11px">§4.5</td><td style="color:var(--red);font-size:11px">CRITICAL</td></tr>
+      <tr><td class="code">29</td><td>HTTPS/SSL — Let's Encrypt or cert</td><td><span class="badge badge-gap">MISSING</span></td><td style="font-size:11px">§4.5 HARD</td><td style="color:var(--red);font-size:11px">CRITICAL</td></tr>
+      <tr><td class="code">30</td><td>HTTP → HTTPS redirect + HSTS</td><td><span class="badge badge-gap">MISSING</span></td><td style="font-size:11px">§4.5 HARD</td><td style="color:var(--red);font-size:11px">CRITICAL</td></tr>
+      <tr><td class="code">31</td><td>.env.production template</td><td><span class="badge badge-gap">MISSING</span></td><td style="font-size:11px">—</td><td style="color:var(--red);font-size:11px">CRITICAL</td></tr>
+      <tr><td class="code">33</td><td>Celery supervisor (systemd)</td><td><span class="badge badge-gap">MISSING</span></td><td style="font-size:11px">—</td><td style="color:var(--orange);font-size:11px">HIGH</td></tr>
+      <tr><td class="code">34</td><td>Celery beat persistent schedule</td><td><span class="badge badge-warn">IN-MEMORY</span></td><td style="font-size:11px">—</td><td style="color:var(--orange);font-size:11px">HIGH</td></tr>
+      <tr><td class="code">35</td><td>Redis AOF persistence</td><td><span class="badge badge-gap">DEFAULT VOLATILE</span></td><td style="font-size:11px">—</td><td style="color:var(--orange);font-size:11px">HIGH</td></tr>
+      <tr><td class="code">36</td><td>Data residency enforcement</td><td><span class="badge badge-partial">PARTIAL</span></td><td style="font-size:11px">§4.5 HARD</td><td style="color:var(--red);font-size:11px">CRITICAL</td></tr>
+      <tr><td class="code">37</td><td>On-premise deployment IaC</td><td><span class="badge badge-gap">NO IaC</span></td><td style="font-size:11px">§4.5</td><td style="color:var(--orange);font-size:11px">HIGH</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ========= BIOMETRIC LAYER ========= -->
+<div class="section" id="biometric">
+  <div class="section-header">
+    <span class="section-num">BIO</span>
+    <span class="section-title">Biometric Accuracy Assessment</span>
+    <span class="badge badge-warn" style="margin-left:auto">45% PRODUCTION-GRADE</span>
+  </div>
+
+  <div class="three-col">
+    <div class="card">
+      <h4>Face Match (Current)</h4>
+      <p style="font-size:11px;margin-top:6px">SSIM + ORB + Histogram + Pixel weighted composite. Confidence 0–100. Threshold=40. Works for demo. <strong style="color:var(--red)">Not production-grade biometric accuracy.</strong> No embeddings, no deep learning.</p>
+    </div>
+    <div class="card">
+      <h4>Face Match (Required)</h4>
+      <p style="font-size:11px;margin-top:6px">FaceNet or ArcFace embedding model. Or delegate to EC API biometric service when available. Composite identity score combining face + NID + DOB. <strong style="color:var(--orange)">Must integrate before go-live.</strong></p>
+    </div>
+    <div class="card">
+      <h4>Fingerprint (Status)</h4>
+      <p style="font-size:11px;margin-top:6px">M36 module built with stub AFIS. Real hardware SDK not integrated. Real fingerprint reader required. BFIU §3.2 hard requirement. <strong style="color:var(--red)">Stub only — cannot go live.</strong></p>
+    </div>
+    <div class="card">
+      <h4>Liveness Detection</h4>
+      <p style="font-size:11px;margin-top:6px">MediaPipe 478-landmark: EAR blink detection, head pose estimation, smile challenge. <strong style="color:var(--yellow)">Missing: 3D depth anti-spoofing</strong> (Annexure-2g requirement). 2D landmark only.</p>
+    </div>
+    <div class="card">
+      <h4>NID OCR</h4>
+      <p style="font-size:11px;margin-top:6px">Tesseract with generic model. BD-specific NID card trained model missing. Bangla OCR package (ben) may not be installed. <strong style="color:var(--orange)">Accuracy on real BD NID cards unverified.</strong></p>
+    </div>
+    <div class="card">
+      <h4>EC/Porichoy API</h4>
+      <p style="font-size:11px;margin-top:6px">Currently demo mode. MOU with Election Commission or Porichoy.gov.bd not signed. Application process must begin immediately — government lead time is unpredictable. <strong style="color:var(--red)">Hard blocker.</strong></p>
+    </div>
+  </div>
+</div>
+
+<!-- ========= SECURITY LAYER ========= -->
+<div class="section" id="security">
+  <div class="section-header">
+    <span class="section-num">SEC</span>
+    <span class="section-title">Security Posture</span>
+    <span class="badge badge-warn" style="margin-left:auto">60% — PENTEST &amp; DEPLOYMENT GAPS</span>
+  </div>
+
+  <div class="two-col">
+    <div>
+      <div class="progress-list">
+        <div class="progress-item">
+          <div class="progress-label"><span>SQL Injection Protection</span><span class="pct" style="color:var(--green)">100%</span></div>
+          <div class="progress-track"><div class="progress-fill" style="width:100%;background:var(--green)"></div></div>
+        </div>
+        <div class="progress-item">
+          <div class="progress-label"><span>JWT Auth + RBAC</span><span class="pct" style="color:var(--green)">95%</span></div>
+          <div class="progress-track"><div class="progress-fill" style="width:95%;background:var(--green)"></div></div>
+        </div>
+        <div class="progress-item">
+          <div class="progress-label"><span>XSS/CSRF Headers</span><span class="pct" style="color:var(--green)">100%</span></div>
+          <div class="progress-track"><div class="progress-fill" style="width:100%;background:var(--green)"></div></div>
+        </div>
+        <div class="progress-item">
+          <div class="progress-label"><span>Rate Limiting</span><span class="pct" style="color:var(--green)">90%</span></div>
+          <div class="progress-track"><div class="progress-fill" style="width:90%;background:var(--green)"></div></div>
+        </div>
+        <div class="progress-item">
+          <div class="progress-label"><span>TLS/HTTPS Deployment</span><span class="pct" style="color:var(--red)">0%</span></div>
+          <div class="progress-track"><div class="progress-fill" style="width:0%;background:var(--red)"></div></div>
+        </div>
+        <div class="progress-item">
+          <div class="progress-label"><span>AES-256 at Rest (pgcrypto)</span><span class="pct" style="color:var(--red)">0%</span></div>
+          <div class="progress-track"><div class="progress-fill" style="width:0%;background:var(--red)"></div></div>
+        </div>
+        <div class="progress-item">
+          <div class="progress-label"><span>OWASP Top-10 Pentest</span><span class="pct" style="color:var(--red)">0%</span></div>
+          <div class="progress-track"><div class="progress-fill" style="width:0%;background:var(--red)"></div></div>
+        </div>
+        <div class="progress-item">
+          <div class="progress-label"><span>Audit Log DB Immutability</span><span class="pct" style="color:var(--yellow)">50%</span></div>
+          <div class="progress-track"><div class="progress-fill" style="width:50%;background:var(--yellow)"></div></div>
+        </div>
+        <div class="progress-item">
+          <div class="progress-label"><span>PII Log Masking</span><span class="pct" style="color:var(--yellow)">30%</span></div>
+          <div class="progress-track"><div class="progress-fill" style="width:30%;background:var(--yellow)"></div></div>
+        </div>
+        <div class="progress-item">
+          <div class="progress-label"><span>Admin IP Whitelist</span><span class="pct" style="color:var(--red)">0%</span></div>
+          <div class="progress-track"><div class="progress-fill" style="width:0%;background:var(--red)"></div></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <h4>What's Secure (Done)</h4>
+        <ul style="font-size:11px;color:var(--text2);line-height:1.9;list-style:none">
+          <li>✅ RS256 JWT, 15-min TTL, jti denylist</li>
+          <li>✅ NID stored as HMAC-SHA256 only</li>
+          <li>✅ SQLAlchemy ORM (parameterized queries)</li>
+          <li>✅ SecurityHeadersMiddleware (XSS, clickjack)</li>
+          <li>✅ slowapi rate limiting (10/min on auth)</li>
+          <li>✅ No stack traces in production errors (M30)</li>
+          <li>✅ Session token invalidation on logout</li>
+          <li>✅ Role isolation — AUDITOR read-only (test_T01)</li>
+          <li>✅ Idempotency keys (24hr Redis TTL)</li>
+        </ul>
+      </div>
+      <br>
+      <div class="card" style="border-color:var(--red)">
+        <h4 style="color:var(--red)">Critical Gaps</h4>
+        <ul style="font-size:11px;color:var(--text2);line-height:1.9;list-style:none">
+          <li>❌ No HTTPS in production (§4.5 hard blocker)</li>
+          <li>❌ pgcrypto AES-256 not in migration</li>
+          <li>❌ OWASP pentest not conducted</li>
+          <li>❌ Dependency vulnerability scan missing</li>
+          <li>❌ Admin IP whitelist missing</li>
+          <li>⚠️ SECRET_KEY can use default (must crash)</li>
+          <li>⚠️ CORS allows localhost in production</li>
+          <li>⚠️ PII masking only partial (NID last 4)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========= TESTING ========= -->
+<div class="section" id="testing">
+  <div class="section-header">
+    <span class="section-num">TST</span>
+    <span class="section-title">Testing &amp; QA</span>
+    <span class="badge badge-partial" style="margin-left:auto">65% — E2E &amp; LOAD TESTS MISSING</span>
+  </div>
+
+  <div class="two-col">
+    <div class="tbl-wrap">
+      <table>
+        <tr><th>Test Type</th><th>Count</th><th>Status</th><th>Gap</th></tr>
+        <tr><td>Unit/Integration (pytest)</td><td style="font-family:var(--mono);font-size:12px;color:var(--green)">1,404 ✅</td><td><span class="badge badge-done">PASS</span></td><td style="font-size:11px">—</td></tr>
+        <tr><td>EDD state machine (M60)</td><td style="font-family:var(--mono);font-size:12px">29</td><td><span class="badge badge-done">PASS</span></td><td style="font-size:11px">—</td></tr>
+        <tr><td>RBAC isolation (M61)</td><td style="font-family:var(--mono);font-size:12px">26</td><td><span class="badge badge-done">PASS</span></td><td style="font-size:11px">—</td></tr>
+        <tr><td>PEP DB tests (M62)</td><td style="font-family:var(--mono);font-size:12px">25</td><td><span class="badge badge-done">PASS</span></td><td style="font-size:11px">—</td></tr>
+        <tr><td>KYC Lifecycle (M10)</td><td style="font-family:var(--mono);font-size:12px">40</td><td><span class="badge badge-done">PASS</span></td><td style="font-size:11px">—</td></tr>
+        <tr><td>Risk Grading (M8)</td><td style="font-family:var(--mono);font-size:12px">37</td><td><span class="badge badge-done">PASS</span></td><td style="font-size:11px">—</td></tr>
+        <tr><td>Load Test — 500 concurrent (Locust)</td><td style="font-family:var(--mono);font-size:12px">0</td><td><span class="badge badge-gap">NOT RUN</span></td><td style="font-size:11px;color:var(--red)">HARD BLOCKER</td></tr>
+        <tr><td>E2E tests (Playwright/Cypress)</td><td style="font-family:var(--mono);font-size:12px">0</td><td><span class="badge badge-gap">MISSING</span></td><td style="font-size:11px;color:var(--red)">HARD BLOCKER</td></tr>
+        <tr><td>Real NID card test images</td><td style="font-family:var(--mono);font-size:12px">0</td><td><span class="badge badge-gap">MISSING</span></td><td style="font-size:11px;color:var(--red)">CRITICAL</td></tr>
+        <tr><td>UAT — real institution agents</td><td style="font-family:var(--mono);font-size:12px">0</td><td><span class="badge badge-gap">NOT DONE</span></td><td style="font-size:11px;color:var(--red)">HARD BLOCKER</td></tr>
+        <tr><td>Disaster recovery restore test</td><td style="font-family:var(--mono);font-size:12px">0</td><td><span class="badge badge-gap">NOT DONE</span></td><td style="font-size:11px;color:var(--orange)">HIGH</td></tr>
+        <tr><td>Simplified→Regular E2E</td><td style="font-family:var(--mono);font-size:12px">—</td><td><span class="badge badge-partial">PARTIAL</span></td><td style="font-size:11px">Code exists, not E2E tested</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h4>Test Distribution Breakdown</h4>
+      <svg viewBox="0 0 260 200" xmlns="http://www.w3.org/2000/svg" width="100%" style="margin-top:8px">
+        <text x="130" y="20" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#64748b">1,404 PASSING TESTS BY MODULE</text>
+        <rect x="10" y="35" width="120" height="14" rx="2" fill="rgba(0,230,118,0.3)" stroke="#00e676" stroke-width="1"/>
+        <text x="136" y="46" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">M4/M5 Biometric (est 280)</text>
+        <rect x="10" y="57" width="80" height="14" rx="2" fill="rgba(0,212,255,0.3)" stroke="#00d4ff" stroke-width="1"/>
+        <text x="96" y="68" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">M8 Risk (37)</text>
+        <rect x="10" y="79" width="100" height="14" rx="2" fill="rgba(255,214,0,0.3)" stroke="#ffd600" stroke-width="1"/>
+        <text x="116" y="90" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">M10 Lifecycle (40)</text>
+        <rect x="10" y="101" width="70" height="14" rx="2" fill="rgba(255,145,0,0.3)" stroke="#ff9100" stroke-width="1"/>
+        <text x="86" y="112" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">M60 EDD (29)</text>
+        <rect x="10" y="123" width="65" height="14" rx="2" fill="rgba(0,212,255,0.2)" stroke="#00d4ff" stroke-width="1"/>
+        <text x="81" y="134" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">M61 RBAC (26)</text>
+        <rect x="10" y="145" width="60" height="14" rx="2" fill="rgba(255,214,0,0.2)" stroke="#ffd600" stroke-width="1"/>
+        <text x="76" y="156" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">M62 PEP (25)</text>
+        <rect x="10" y="167" width="140" height="14" rx="2" fill="rgba(148,163,184,0.15)" stroke="#475569" stroke-width="1"/>
+        <text x="156" y="178" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">Other modules (~967)</text>
+        <text x="10" y="198" font-family="JetBrains Mono" font-size="10" fill="#00e676">TOTAL: 1,404 ✓ ALL PASSING</text>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<!-- ========= LEGAL ========= -->
+<div class="section" id="legal">
+  <div class="section-header">
+    <span class="section-num">LEG</span>
+    <span class="section-title">Legal &amp; Process Compliance</span>
+    <span class="badge badge-gap" style="margin-left:auto">0% — CANNOT BE CODED</span>
+  </div>
+
+  <div class="alert alert-red">
+    <div class="alert-icon">⚖️</div>
+    <p><strong>All 10 legal items are zero percent complete.</strong> These cannot be resolved by engineering — they require legal team, management sign-off, and government coordination. Must begin in parallel with technical work immediately.</p>
+  </div>
+
+  <div class="tbl-wrap" style="margin-top:16px">
+    <table>
+      <tr><th>#</th><th>Document / Agreement</th><th>Owner</th><th>Status</th><th>Blocker?</th></tr>
+      <tr><td class="code">G47</td><td>EC/Porichoy API MOU signed</td><td>Legal + Management</td><td><span class="badge badge-gap">NOT STARTED</span></td><td style="color:var(--red);font-size:11px">HARD</td></tr>
+      <tr><td class="code">G48</td><td>BFIU compliance checklist review with legal counsel</td><td>Legal</td><td><span class="badge badge-gap">NOT DONE</span></td><td style="color:var(--red);font-size:11px">HARD</td></tr>
+      <tr><td class="code">G49</td><td>Data processing agreement with institutions</td><td>Legal</td><td><span class="badge badge-gap">MISSING</span></td><td style="color:var(--red);font-size:11px">HARD</td></tr>
+      <tr><td class="code">G50</td><td>Privacy policy / terms of service</td><td>Legal</td><td><span class="badge badge-gap">MISSING</span></td><td style="color:var(--orange);font-size:11px">HIGH</td></tr>
+      <tr><td class="code">G51</td><td>Incident response plan</td><td>Security team</td><td><span class="badge badge-gap">MISSING</span></td><td style="color:var(--orange);font-size:11px">HIGH</td></tr>
+      <tr><td class="code">G52</td><td>AML/CFT internal policy documented</td><td>Compliance team</td><td><span class="badge badge-gap">MISSING</span></td><td style="color:var(--orange);font-size:11px">HIGH</td></tr>
+      <tr><td class="code">G53</td><td>Institution KYC policy template</td><td>Compliance team</td><td><span class="badge badge-gap">MISSING</span></td><td style="color:var(--orange);font-size:11px">HIGH</td></tr>
+      <tr><td class="code">G54</td><td>Agent training materials</td><td>Operations</td><td><span class="badge badge-gap">MISSING</span></td><td style="color:var(--text3);font-size:11px">SOFT</td></tr>
+      <tr><td class="code">G55</td><td>Disaster recovery test (backup restore)</td><td>DevOps</td><td><span class="badge badge-gap">NOT DONE</span></td><td style="color:var(--orange);font-size:11px">HIGH</td></tr>
+      <tr><td class="code">G56</td><td>UAT with real institution agents</td><td>QA + Institutions</td><td><span class="badge badge-gap">NOT DONE</span></td><td style="color:var(--red);font-size:11px">HARD</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ========= PENDING ITEMS ========= -->
+<div class="section" id="pending">
+  <div class="section-header">
+    <span class="section-num">PND</span>
+    <span class="section-title">Complete Pending Items — Prioritized</span>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('hard')">🔴 Hard Blockers (21)</div>
+    <div class="tab" onclick="showTab('significant')">🟡 Significant (20)</div>
+    <div class="tab" onclick="showTab('soft')">⚪ Post-Launch (17)</div>
+  </div>
+
+  <div id="tab-hard" class="tab-pane active">
+    <div class="tbl-wrap">
+      <table>
+        <tr><th>Priority</th><th>Item</th><th>Layer</th><th>Effort</th></tr>
+        <tr><td style="color:var(--red);font-family:var(--mono);font-size:11px">P1</td><td style="font-size:12px">Docker Compose + Nginx + SSL</td><td><span class="badge badge-demo">INFRA</span></td><td style="font-size:11px">2 days</td></tr>
+        <tr><td style="color:var(--red);font-family:var(--mono);font-size:11px">P2</td><td style="font-size:12px">Wire BO (M38) into Regular workflow</td><td><span class="badge badge-demo">BFIU</span></td><td style="font-size:11px">1 file change</td></tr>
+        <tr><td style="color:var(--red);font-family:var(--mono);font-size:11px">P3</td><td style="font-size:12px">§6.1/§6.2 form PDF generator at workflow end</td><td><span class="badge badge-demo">BFIU</span></td><td style="font-size:11px">1 day</td></tr>
+        <tr><td style="color:var(--red);font-family:var(--mono);font-size:11px">P4</td><td style="font-size:12px">SECRET_KEY crash if default value detected</td><td><span class="badge badge-demo">SEC</span></td><td style="font-size:11px">1 line</td></tr>
+        <tr><td style="color:var(--red);font-family:var(--mono);font-size:11px">P5</td><td style="font-size:12px">DB-level audit_log immutability trigger</td><td><span class="badge badge-demo">DB</span></td><td style="font-size:11px">1 migration file</td></tr>
+        <tr><td style="color:var(--red);font-family:var(--mono);font-size:11px">P6</td><td style="font-size:12px">Redis AOF persistence in Docker Compose</td><td><span class="badge badge-demo">INFRA</span></td><td style="font-size:11px">1 config line</td></tr>
+        <tr><td style="color:var(--red);font-family:var(--mono);font-size:11px">P7</td><td style="font-size:12px">pgcrypto CREATE EXTENSION in baseline migration</td><td><span class="badge badge-demo">DB</span></td><td style="font-size:11px">1 migration</td></tr>
+        <tr><td style="color:var(--red);font-family:var(--mono);font-size:11px">P8</td><td style="font-size:12px">.env.production template</td><td><span class="badge badge-demo">INFRA</span></td><td style="font-size:11px">1 hour</td></tr>
+        <tr><td style="color:var(--red);font-family:var(--mono);font-size:11px">P9</td><td style="font-size:12px">Load real PEP/IP data from BFIU list</td><td><span class="badge badge-demo">DATA</span></td><td style="font-size:11px">Data task</td></tr>
+        <tr><td style="color:var(--red);font-family:var(--mono);font-size:11px">P10</td><td style="font-size:12px">EC/Porichoy MOU + API onboarding</td><td><span class="badge badge-legal">LEGAL</span></td><td style="font-size:11px">Weeks (govt)</td></tr>
+        <tr><td style="color:var(--red);font-family:var(--mono);font-size:11px">P11</td><td style="font-size:12px">Deep learning face model (ArcFace/FaceNet)</td><td><span class="badge badge-demo">BIO</span></td><td style="font-size:11px">1–2 weeks</td></tr>
+        <tr><td style="color:var(--red);font-family:var(--mono);font-size:11px">P12</td><td style="font-size:12px">Alembic migrations replace create_all()</td><td><span class="badge badge-demo">DB</span></td><td style="font-size:11px">2 days</td></tr>
+        <tr><td style="color:var(--red);font-family:var(--mono);font-size:11px">P13</td><td style="font-size:12px">BD-specific NID OCR model</td><td><span class="badge badge-demo">BIO</span></td><td style="font-size:11px">1 week</td></tr>
+        <tr><td style="color:var(--red);font-family:var(--mono);font-size:11px">P14</td><td style="font-size:12px">Real fingerprint AFIS SDK integration</td><td><span class="badge badge-demo">BIO</span></td><td style="font-size:11px">2–3 weeks</td></tr>
+        <tr><td style="color:var(--red);font-family:var(--mono);font-size:11px">P15</td><td style="font-size:12px">DB automated backup (daily)</td><td><span class="badge badge-demo">INFRA</span></td><td style="font-size:11px">1 day</td></tr>
+        <tr><td style="color:var(--red);font-family:var(--mono);font-size:11px">P16</td><td style="font-size:12px">OWASP Top-10 penetration test</td><td><span class="badge badge-demo">SEC</span></td><td style="font-size:11px">External firm</td></tr>
+        <tr><td style="color:var(--red);font-family:var(--mono);font-size:11px">P17</td><td style="font-size:12px">Load test 500 concurrent (Locust)</td><td><span class="badge badge-demo">TEST</span></td><td style="font-size:11px">1 day</td></tr>
+        <tr><td style="color:var(--red);font-family:var(--mono);font-size:11px">P18</td><td style="font-size:12px">UAT with real institution agents</td><td><span class="badge badge-legal">LEGAL</span></td><td style="font-size:11px">1–2 weeks</td></tr>
+        <tr><td style="color:var(--red);font-family:var(--mono);font-size:11px">P19</td><td style="font-size:12px">BFIU legal review + data agreements</td><td><span class="badge badge-legal">LEGAL</span></td><td style="font-size:11px">Weeks</td></tr>
+        <tr><td style="color:var(--red);font-family:var(--mono);font-size:11px">P20</td><td style="font-size:12px">Bangla UI full internationalization</td><td><span class="badge badge-demo">FE</span></td><td style="font-size:11px">1–2 weeks</td></tr>
+        <tr><td style="color:var(--red);font-family:var(--mono);font-size:11px">P21</td><td style="font-size:12px">Data residency enforcement end-to-end</td><td><span class="badge badge-demo">SEC</span></td><td style="font-size:11px">2 days</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div id="tab-significant" class="tab-pane">
+    <div style="font-size:12px;color:var(--text2);padding:8px 0;margin-bottom:8px">Items needed within 30 days of go-live:</div>
+    <div class="module-grid">
+      <div class="module-item"><div class="mi-badge"><span class="badge badge-warn">NEEDED</span></div><div><div class="mi-name">Adverse media API source</div><div class="mi-desc">Real source integration</div></div></div>
+      <div class="module-item"><div class="mi-badge"><span class="badge badge-warn">NEEDED</span></div><div><div class="mi-name">Structured JSON logging</div><div class="mi-desc">ELK / Loki stack</div></div></div>
+      <div class="module-item"><div class="mi-badge"><span class="badge badge-warn">NEEDED</span></div><div><div class="mi-name">Sentry error tracking</div><div class="mi-desc">Exception capture</div></div></div>
+      <div class="module-item"><div class="mi-badge"><span class="badge badge-warn">NEEDED</span></div><div><div class="mi-name">Prometheus alertmanager</div><div class="mi-desc">Alert rules defined</div></div></div>
+      <div class="module-item"><div class="mi-badge"><span class="badge badge-warn">NEEDED</span></div><div><div class="mi-name">Celery Flower monitoring</div><div class="mi-desc">Task visibility</div></div></div>
+      <div class="module-item"><div class="mi-badge"><span class="badge badge-warn">NEEDED</span></div><div><div class="mi-name">Exit list module</div><div class="mi-desc">Institution blacklist</div></div></div>
+      <div class="module-item"><div class="mi-badge"><span class="badge badge-warn">NEEDED</span></div><div><div class="mi-name">Wet signature enforcement</div><div class="mi-desc">High-risk customers</div></div></div>
+      <div class="module-item"><div class="mi-badge"><span class="badge badge-warn">NEEDED</span></div><div><div class="mi-name">Admin IP whitelist</div><div class="mi-desc">Admin endpoint protection</div></div></div>
+      <div class="module-item"><div class="mi-badge"><span class="badge badge-warn">NEEDED</span></div><div><div class="mi-name">PII log masking full</div><div class="mi-desc">All PII fields masked</div></div></div>
+      <div class="module-item"><div class="mi-badge"><span class="badge badge-warn">NEEDED</span></div><div><div class="mi-name">CORS lock to production</div><div class="mi-desc">Remove localhost</div></div></div>
+      <div class="module-item"><div class="mi-badge"><span class="badge badge-warn">NEEDED</span></div><div><div class="mi-name">Dep vulnerability scan</div><div class="mi-desc">pip-audit CI step</div></div></div>
+      <div class="module-item"><div class="mi-badge"><span class="badge badge-warn">NEEDED</span></div><div><div class="mi-name">E2E test suite</div><div class="mi-desc">Playwright/Cypress</div></div></div>
+      <div class="module-item"><div class="mi-badge"><span class="badge badge-warn">NEEDED</span></div><div><div class="mi-name">Real NID test images</div><div class="mi-desc">Anonymized set for QA</div></div></div>
+      <div class="module-item"><div class="mi-badge"><span class="badge badge-warn">NEEDED</span></div><div><div class="mi-name">Liveness 3D depth</div><div class="mi-desc">Annexure-2g anti-spoof</div></div></div>
+      <div class="module-item"><div class="mi-badge"><span class="badge badge-warn">NEEDED</span></div><div><div class="mi-name">Nominee validation wired</div><div class="mi-desc">Full flow validation</div></div></div>
+      <div class="module-item"><div class="mi-badge"><span class="badge badge-warn">NEEDED</span></div><div><div class="mi-name">Incident response plan</div><div class="mi-desc">Security team owned</div></div></div>
+      <div class="module-item"><div class="mi-badge"><span class="badge badge-warn">NEEDED</span></div><div><div class="mi-name">Disaster recovery test</div><div class="mi-desc">Backup restore verified</div></div></div>
+      <div class="module-item"><div class="mi-badge"><span class="badge badge-warn">NEEDED</span></div><div><div class="mi-name">Mobile PWA agents</div><div class="mi-desc">Field agent app</div></div></div>
+      <div class="module-item"><div class="mi-badge"><span class="badge badge-warn">NEEDED</span></div><div><div class="mi-name">Camera device testing</div><div class="mi-desc">Real device verified</div></div></div>
+      <div class="module-item"><div class="mi-badge"><span class="badge badge-warn">NEEDED</span></div><div><div class="mi-name">AML/CFT policy doc</div><div class="mi-desc">Compliance team</div></div></div>
+    </div>
+  </div>
+
+  <div id="tab-soft" class="tab-pane">
+    <div style="font-size:12px;color:var(--text2);padding:8px 0;margin-bottom:8px">Post-launch enhancements (soft):</div>
+    <div class="module-grid">
+      <div class="module-item"><div><div class="mi-name">Transaction monitoring live</div><div class="mi-desc">D4 risk dim real-time</div></div></div>
+      <div class="module-item"><div><div class="mi-name">PostgreSQL read replica</div><div class="mi-desc">Reporting queries</div></div></div>
+      <div class="module-item"><div><div class="mi-name">PgBouncer connection pooling</div><div class="mi-desc">Connection management</div></div></div>
+      <div class="module-item"><div><div class="mi-name">Composite identity score</div><div class="mi-desc">Face+NID+DOB unified</div></div></div>
+      <div class="module-item"><div><div class="mi-name">Uptime monitoring</div><div class="mi-desc">UptimeRobot/Pingdom</div></div></div>
+      <div class="module-item"><div><div class="mi-name">Agent training mode</div><div class="mi-desc">Demo walkthrough</div></div></div>
+      <div class="module-item"><div><div class="mi-name">Accessibility audit</div><div class="mi-desc">Screen reader, contrast</div></div></div>
+      <div class="module-item"><div><div class="mi-name">CMI E2E flow test</div><div class="mi-desc">Full CMI journey</div></div></div>
+      <div class="module-item"><div><div class="mi-name">JWT RSA key rotation</div><div class="mi-desc">Rotation procedure</div></div></div>
+      <div class="module-item"><div><div class="mi-name">Log retention automation</div><div class="mi-desc">Archival policy</div></div></div>
+      <div class="module-item"><div><div class="mi-name">Source of funds verification</div><div class="mi-desc">Not just capture</div></div></div>
+      <div class="module-item"><div><div class="mi-name">Helpdesk integration</div><div class="mi-desc">Failed eKYC tickets</div></div></div>
+      <div class="module-item"><div><div class="mi-name">Bangla i18n — full UI</div><div class="mi-desc">All screens in Bangla</div></div></div>
+      <div class="module-item"><div><div class="mi-name">Offline fallback UI</div><div class="mi-desc">Network drop handling</div></div></div>
+      <div class="module-item"><div><div class="mi-name">Tenant schema auto-provision</div><div class="mi-desc">On institution onboard</div></div></div>
+      <div class="module-item"><div><div class="mi-name">Institution KYC policy template</div><div class="mi-desc">Standard template</div></div></div>
+      <div class="module-item"><div><div class="mi-name">Agent training materials</div><div class="mi-desc">Ops-owned</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========= ROADMAP ========= -->
+<div class="section" id="roadmap">
+  <div class="section-header">
+    <span class="section-num">RMD</span>
+    <span class="section-title">Roadmap to 100% Compliance — Dec 31, 2026</span>
+  </div>
+
+  <div class="diagram-wrap" style="margin-bottom:20px">
+    <div class="diagram-title">// MILESTONE TIMELINE — 248 DAYS REMAINING</div>
+    <svg viewBox="0 0 860 160" xmlns="http://www.w3.org/2000/svg" width="100%">
+      <!-- timeline bar -->
+      <rect x="10" y="78" width="840" height="4" rx="2" fill="#1e2d47"/>
+
+      <!-- markers -->
+      <!-- TODAY -->
+      <line x1="10" y1="60" x2="10" y2="100" stroke="#00d4ff" stroke-width="2"/>
+      <rect x="0" y="42" width="62" height="18" rx="3" fill="rgba(0,212,255,0.15)" stroke="#00d4ff" stroke-width="1"/>
+      <text x="31" y="55" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#00d4ff">TODAY</text>
+      <text x="31" y="112" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#00d4ff">Apr 27</text>
+
+      <!-- M1: May 31 -->
+      <circle cx="163" cy="80" r="8" fill="rgba(255,23,68,0.3)" stroke="#ff1744" stroke-width="2"/>
+      <text x="163" y="84" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#ff1744">M1</text>
+      <text x="163" y="112" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#94a3b8">May 31</text>
+      <text x="163" y="126" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#ff1744">Infra+Docker</text>
+      <text x="163" y="58" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#64748b">P1-P8 done</text>
+
+      <!-- M2: Jun 30 -->
+      <circle cx="310" cy="80" r="8" fill="rgba(255,145,0,0.3)" stroke="#ff9100" stroke-width="2"/>
+      <text x="310" y="84" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#ff9100">M2</text>
+      <text x="310" y="112" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#94a3b8">Jun 30</text>
+      <text x="310" y="126" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#ff9100">Biometrics</text>
+      <text x="310" y="58" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#64748b">DL face, AFIS</text>
+
+      <!-- M3: Jul 31 -->
+      <circle cx="457" cy="80" r="8" fill="rgba(255,214,0,0.3)" stroke="#ffd600" stroke-width="2"/>
+      <text x="457" y="84" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#ffd600">M3</text>
+      <text x="457" y="112" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#94a3b8">Jul 31</text>
+      <text x="457" y="126" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#ffd600">Legal/UAT</text>
+      <text x="457" y="58" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#64748b">MOU, DPA, UAT</text>
+
+      <!-- M4: Sep 30 -->
+      <circle cx="603" cy="80" r="8" fill="rgba(0,230,118,0.3)" stroke="#00e676" stroke-width="2"/>
+      <text x="603" y="84" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#00e676">M4</text>
+      <text x="603" y="112" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#94a3b8">Sep 30</text>
+      <text x="603" y="126" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#00e676">Pentest/Load</text>
+      <text x="603" y="58" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#64748b">OWASP, Locust</text>
+
+      <!-- M5: Dec 31 -->
+      <circle cx="850" cy="80" r="8" fill="rgba(0,136,204,0.5)" stroke="#0088cc" stroke-width="2"/>
+      <text x="850" y="84" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#0088cc">GO</text>
+      <text x="850" y="112" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#94a3b8">Dec 31</text>
+      <text x="850" y="126" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#0088cc">BFIU DEADLINE</text>
+
+      <!-- Progress fill -->
+      <rect x="10" y="78" width="153" height="4" rx="2" fill="#00d4ff"/>
+    </svg>
+  </div>
+
+  <div class="timeline">
+    <div class="tl-item done">
+      <div class="tl-date">COMPLETED — Apr 27, 2026</div>
+      <div class="tl-title">Phase 1–4: Core Platform Built (1,404 tests passing)</div>
+      <div class="tl-body">Biometric engine, screening, risk grading, EDD, RBAC, audit trail, KYC lifecycle, compliance dashboard all functionally complete. 62 modules built.</div>
+    </div>
+    <div class="tl-item gap">
+      <div class="tl-date">TARGET — May 31, 2026</div>
+      <div class="tl-title">Sprint 1: Infrastructure + Critical Code Fixes</div>
+      <div class="tl-body">Docker Compose + Nginx + SSL (M64). Wire M38 BO into Regular workflow (1 file). §6.1/§6.2 PDF generator. SECRET_KEY enforcement. DB triggers. pgcrypto. Redis AOF. .env.prod template. Real PEP data load.</div>
+    </div>
+    <div class="tl-item gap">
+      <div class="tl-date">TARGET — Jun 30, 2026</div>
+      <div class="tl-title">Sprint 2: Biometric Production-Grade Upgrade</div>
+      <div class="tl-body">Integrate FaceNet/ArcFace. BD-specific NID OCR model. Real fingerprint AFIS SDK. Liveness 3D depth check. Bangla OCR package (ben Tesseract). Alembic migrations. DB daily backup. Composite identity score.</div>
+    </div>
+    <div class="tl-item gap">
+      <div class="tl-date">TARGET — Jul 31, 2026</div>
+      <div class="tl-title">Sprint 3: Legal + UAT + Observability</div>
+      <div class="tl-body">EC/Porichoy MOU signed. Data processing agreements. Structured logging (ELK). Sentry. Prometheus alertmanager. Celery Flower. Bangla i18n full. Admin IP whitelist. CORS lock. UAT with 2 pilot institutions.</div>
+    </div>
+    <div class="tl-item warn">
+      <div class="tl-date">TARGET — Sep 30, 2026</div>
+      <div class="tl-title">Sprint 4: Security Hardening + Penetration Testing</div>
+      <div class="tl-body">OWASP Top-10 external pentest. Load test 500 concurrent (Locust). Disaster recovery test. pip-audit CI. E2E tests (Playwright). Real NID image anonymized test set. Privacy policy. Incident response plan.</div>
+    </div>
+    <div class="tl-item warn">
+      <div class="tl-date">TARGET — Nov 30, 2026</div>
+      <div class="tl-title">Sprint 5: Production Launch + Go-Live Validation</div>
+      <div class="tl-body">Production deployment on-premise. Agent training. Helpdesk integration. Read replica. PgBouncer. Full institution onboarding (3+ institutions). Final BFIU compliance checklist review with legal counsel.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date">DEADLINE — Dec 31, 2026</div>
+      <div class="tl-title">BFIU Compliance Mandatory Deadline</div>
+      <div class="tl-body">All Bangladesh Insurance Companies and CMIs must have eKYC operational per Circular No. 29.</div>
+    </div>
+  </div>
+
+  <div class="alert alert-blue" style="margin-top:24px">
+    <div class="alert-icon">📋</div>
+    <p><strong>Bottom Line:</strong> 8 months remain. The engineering work is ~55% complete. The critical path is: (1) infrastructure deployment stack, (2) EC/Porichoy MOU — start the government application immediately as it has unpredictable lead time, (3) deep learning face model, (4) OWASP pentest. Legal team must begin all agreements in parallel with engineering work starting today.</p>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div style="background:var(--bg2);border-top:1px solid var(--border);padding:24px 48px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+  <div>
+    <div style="font-family:var(--display);font-size:14px;font-weight:700;color:var(--accent)">XPERT FINTECH LTD.</div>
+    <div style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:2px">eKYC PLATFORM — BFIU CIRCULAR NO. 29 COMPLIANCE REPORT v2.0</div>
+  </div>
+  <div style="font-family:var(--mono);font-size:9px;color:var(--text3);text-align:right">
+    Generated: April 27, 2026<br>
+    Classification: CONFIDENTIAL<br>
+    Tests Passing: 1,404/1,404 | Branch: main
+  </div>
+</div>
+
+</div><!-- /#main -->
+
+<script>
+// Tab system
+function showTab(name) {
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    t.classList.toggle('active', t.textContent.toLowerCase().includes(name) || (name==='hard'&&i===0)||(name==='significant'&&i===1)||(name==='soft'&&i===2));
+  });
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+// Active nav highlight on scroll
+const sections = document.querySelectorAll('.section[id]');
+const navLinks = document.querySelectorAll('#sidenav nav a');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if(e.isIntersecting) {
+      navLinks.forEach(l => {
+        l.classList.toggle('active', l.getAttribute('href') === '#'+e.target.id);
+      });
+    }
+  });
+}, { threshold: 0.3 });
+sections.forEach(s => observer.observe(s));
+
+// Animate ring on load
+window.addEventListener('load', () => {
+  const ring = document.getElementById('scoreRing');
+  if(ring) {
+    // 55% of 220 circumference = 99 offset (already set in CSS)
+    // animate from 220 to 99
+    ring.style.strokeDashoffset = '220';
+    setTimeout(() => { ring.style.transition='stroke-dashoffset 2s ease'; ring.style.strokeDashoffset='99'; }, 200);
+  }
+});
+</script>
+</body>
+</html>

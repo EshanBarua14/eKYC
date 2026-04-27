@@ -35,13 +35,13 @@ async def analyze(req: AnalyzeRequest):
     a = analyze_from_b64(req.image_b64)
     return {
         "session_id": req.session_id,
-        "face_detected": a["face_detected"], "landmark_count": a["landmark_count"],
-        "landmarks_xy": a["landmarks_xy"],
-        "blink":      {"detected": a["blink_detected"], "left_ear": a["left_ear"], "right_ear": a["right_ear"]},
-        "head_pose":  {"yaw_deg": a["yaw_deg"], "pitch_deg": a["pitch_deg"], "direction": a["head_direction"]},
-        "expression": {"smile_score": a["smile_score"], "is_smiling": a["is_smiling"]},
-        "attributes": {"age_estimate": a["age_estimate"], "gender_estimate": a["gender_estimate"], "skin_tone": a["skin_tone"]},
-        "passive_liveness": {"lbp_variance": a["lbp_variance"], "texture_real": a["texture_real"]},
+        "face_detected": a.get("face_detected", False), "landmark_count": a.get("landmark_count", 0),
+        "landmarks_xy": a.get("landmarks_xy", []),
+        "blink":      {"detected": a.get("blink_detected", False), "left_ear": a.get("left_ear", 0.0), "right_ear": a.get("right_ear", 0.0)},
+        "head_pose":  {"yaw_deg": a.get("yaw_deg", 0.0), "pitch_deg": a.get("pitch_deg", 0.0), "direction": a.get("head_direction", "center")},
+        "expression": {"smile_score": a.get("smile_score", 0), "is_smiling": a.get("is_smiling", False)},
+        "attributes": {"age_estimate": a.get("age_estimate", 0), "gender_estimate": a.get("gender_estimate", ""), "skin_tone": a.get("skin_tone", "")},
+        "passive_liveness": {"lbp_variance": a.get("lbp_variance", 0.0), "texture_real": a.get("texture_real", False)},
     }
 
 

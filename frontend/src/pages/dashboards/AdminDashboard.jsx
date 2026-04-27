@@ -11,7 +11,7 @@ export default function AdminDashboard() {
   const [health, setHealth] = useState(null)
 
   useEffect(() => {
-    api.get("/api/v1/admin/stats").then(r => setStats(r.data)).catch(()=>{})
+    api.get("/api/v1/admin/stats").then(r => setStats({ users: r.data.total_users??0, institutions: r.data.total_institutions??0, pep: r.data.total_pep??0, sessions: r.data.total_sessions??0 })).catch(()=>{})
     api.get("/health").then(r => setHealth(r.data)).catch(()=>{})
   }, [])
 
