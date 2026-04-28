@@ -21,9 +21,17 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     bind = op.get_bind()
     if bind.dialect.name != "postgresql":
-        return  # SQLite dev — encryption at ORM layer
+        return  # SQLite dev - encryption at ORM layer
 
     op.execute("CREATE EXTENSION IF NOT EXISTS pgcrypto")
+
+    # Skip if columns already bytea (already migrated)
+    result = bind.execute(sa.text(
+        "SELECT data_type FROM information_schema.columns "
+        "WHERE table_name='consent_records' AND column_name='nid_hash'"
+    )).fetchone()
+    if result and result[0].lower() == 'bytea':
+        return  # already migrated
 
     op.execute("""
         ALTER TABLE consent_records
