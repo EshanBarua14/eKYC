@@ -4,7 +4,7 @@ from unittest.mock import patch, MagicMock
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
-os.environ.setdefault("DATABASE_URL", "sqlite:///./ekyc.db")
+# DATABASE_URL loaded from .env (PostgreSQL in production/dev)
 
 from app.scripts.fetch_opensanctions_pep import (
     _map_to_pep, _update_meta, fetch_and_load, LIST_NAME,

@@ -107,8 +107,12 @@ class TestSecretsCheck:
         assert len(short_key_warnings) >= 1
 
     def test_check_secrets_warns_on_weak_db_password(self):
-        from app.core.config import check_secrets
-        warnings = check_secrets()
+        """check_secrets() must warn when POSTGRES_PASSWORD is weak."""
+        from app.core.config import check_secrets, settings
+        import unittest.mock as mock
+        # Patch settings to simulate weak password
+        with mock.patch.object(settings, "POSTGRES_PASSWORD", "ekyc_pass"):
+            warnings = check_secrets()
         assert any("POSTGRES_PASSWORD" in w for w in warnings)
 
     def test_check_secrets_clean_with_strong_values(self):

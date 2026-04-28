@@ -53,16 +53,21 @@ def test_T07_cors_origins_parsed():
     assert "https://app.example.com" in s.ALLOWED_ORIGINS_LIST
 
 def test_T08_cors_localhost_warning_in_prod(caplog):
+    """G29: prod startup must BLOCK if all origins are localhost — BFIU s4.5."""
     import logging
+    from pydantic import ValidationError
     from app.core.config import Settings
     import secrets
     strong_key = secrets.token_hex(32)
     with patch.dict(os.environ, {"DEBUG": "false", "SECRET_KEY": strong_key}):
         with caplog.at_level(logging.WARNING):
-            s = Settings(ALLOWED_ORIGINS="http://localhost:3000", SECRET_KEY=strong_key)
-            _ = s.ALLOWED_ORIGINS_LIST
-    # Warning may or may not fire depending on env — just verify origins parsed
-    assert "http://localhost:3000" in s.ALLOWED_ORIGINS_LIST
+            try:
+                s = Settings(ALLOWED_ORIGINS="http://localhost:3000", SECRET_KEY=strong_key)
+                raised = False
+            except (ValueError, ValidationError):
+                raised = True
+    # G29: must crash OR strip localhost — either way localhost must not reach prod
+    assert raised or "http://localhost:3000" not in s.ALLOWED_ORIGINS_LIST
 
 def test_T09_cors_localhost_ok_in_dev():
     from app.core.config import Settings

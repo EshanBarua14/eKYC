@@ -63,8 +63,16 @@ def test_T04_strong_secret_key_passes():
 def test_T05_bo_pep_flag_triggers_edd():
     from app.services.kyc_workflow_engine import (
         create_kyc_session, submit_data_capture, submit_nid_verification,
-        submit_biometric, submit_screening, submit_risk_assessment, make_decision
+        submit_biometric, submit_screening, submit_risk_assessment, make_decision,
+        clear_sessions,
     )
+    from app.services.session_limiter import hash_nid, reset_nid_sessions, reset_session
+    try:
+        reset_nid_sessions(hash_nid("1234567890123"))
+        reset_session("1234567890123")
+    except Exception:
+        pass
+    clear_sessions()
     session = create_kyc_session("REGULAR")
     sid = session["session_id"]
     submit_data_capture(sid, {
@@ -80,6 +88,15 @@ def test_T05_bo_pep_flag_triggers_edd():
     submit_nid_verification(sid, "1234567890123")
     submit_biometric(sid, {"passed": True, "confidence": 95.0, "method": "FACE_MATCH", "liveness_passed": True})
     submit_screening(sid, "TEST PERSON")
+    from app.services.kyc_workflow_engine import submit_beneficial_owner
+    submit_beneficial_owner(sid, {
+        "has_beneficial_owner": True,
+        "bo_name": "BO ONE",
+        "bo_nid": "1234567890123",
+        "bo_ownership_pct": 30.0,
+        "bo_is_pep": True,
+        "bo_cdd_done": True,
+    })
     result = submit_risk_assessment(sid, {
         "onboarding_channel": "AGENCY",
         "residency": "RESIDENT",

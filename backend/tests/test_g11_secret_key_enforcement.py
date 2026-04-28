@@ -9,7 +9,7 @@ import os
 import sys
 
 
-def make_settings(secret_key: str, debug: bool):
+def make_settings(secret_key: str, debug: bool, extra: dict = None):
     """Instantiate Settings directly, bypassing .env file."""
     # Must patch env BEFORE importing — use monkeypatch via direct env manipulation
     env_patch = {
@@ -17,7 +17,10 @@ def make_settings(secret_key: str, debug: bool):
         "DEBUG": "false" if not debug else "true",
         "DATABASE_URL": "sqlite:///./test_g11.db",
         "POSTGRES_PASSWORD": "strongpassword123",
+        "ALLOWED_ORIGINS": "https://ekyc.xpertfintech.com",
     }
+    if extra:
+        env_patch.update(extra)
     old_env = {k: os.environ.get(k) for k in env_patch}
     os.environ.update(env_patch)
 
@@ -59,7 +62,10 @@ def test_strong_secret_key_passes_in_production():
     """Valid 64-char hex key must NOT crash."""
     import secrets
     strong = secrets.token_hex(32)
-    s, err = make_settings(strong, debug=False)
+    s, err = make_settings(strong, debug=False, extra={
+        "ALLOWED_ORIGINS": "https://ekyc.xpertfintech.com",
+        "POSTGRES_PASSWORD": "strongpass123",
+    })
     assert err is None, f"Strong key should not raise: {err}"
     assert s is not None
 
