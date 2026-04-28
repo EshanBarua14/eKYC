@@ -68,6 +68,10 @@ class Settings(BaseSettings):
                     "[M66] CORS allows localhost in production: %s â set ALLOWED_ORIGINS to production domain.",
                     unsafe
                 )
+            # G29: BFIU s4.5 - strip localhost in prod; never expose dev origins
+            origins = [o for o in origins if 'localhost' not in o and '127.0.0.1' not in o]
+            # G29: strip localhost in prod
+            origins = [o for o in origins if 'localhost' not in o and '127.0.0.1' not in o]
         return origins
 
     # ââ Multi-tenant ââââââââââââââââââââââââââââââââââââââââââââââââââââââ
@@ -133,6 +137,15 @@ class Settings(BaseSettings):
                 issues.append("SECRET_KEY is default")
             if self.POSTGRES_PASSWORD in ("ekyc_pass", "postgres", "password"):
                 issues.append("POSTGRES_PASSWORD is weak")
+            # G29: CORS localhost check at startup
+            origins = [o.strip() for o in self.ALLOWED_ORIGINS.split(",")]
+            safe = [o for o in origins if "localhost" not in o and "127.0.0.1" not in o]
+            if not safe:
+                issues.append(
+                    "ALLOWED_ORIGINS has only localhost entries - "
+                    "set to production domain e.g. https://ekyc.xpertfintech.com "
+                    "[G29] BFIU Circular No. 29 s4.5"
+                )
             if issues:
                 msg = (
                     "[G11] PRODUCTION STARTUP BLOCKED: " + ", ".join(issues) +
