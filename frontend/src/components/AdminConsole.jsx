@@ -481,9 +481,12 @@ function HealthTab() {
           </div>
         </div>
         <StatGrid items={[
-          ["Version",  data.version  || "1.0.0",    "var(--accent)"],
-          ["DB",       data.db_name  || data.db || "unknown",  "var(--blue)"],
-          ["BFIU Ref", "Circular 29",               "var(--text2)"],
+          ["Version",     data.version || "1.0.0",                          "var(--accent)"],
+          ["Database",    data.db_name || data.db || "unknown",             data.db === "ok" ? "var(--green)" : "var(--red)"],
+          ["Redis",       data.redis || "unknown",                          data.redis === "ok" ? "var(--green)" : "var(--red)"],
+          ["Celery",      data.celery || "unknown",                         data.celery === "ok" ? "var(--green)" : "var(--yellow)"],
+          ["Environment", data.environment || "development",                "var(--blue)"],
+          ["BFIU Ref",    "Circular 29 \u2013 Deadline 31 Dec 2026",          "var(--text2)"],
         ]}/>
       </Card>
 

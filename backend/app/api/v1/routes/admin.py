@@ -24,6 +24,7 @@ from app.services.admin_service import (
 )
 from app.services.gateway_service import RATE_LIMITS, WHITELISTED_DOMAINS
 from app.services.audit_service import list_entries, export_csv, export_json
+from app.db.database import engine, DATABASE_URL
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
@@ -288,19 +289,47 @@ async def admin_health(cu: dict = Depends(require_admin_or_auditor)):
     except Exception:
         pass
     from app.core.config import settings
+    from app.db.database import DATABASE_URL
+
+    db_type = "PostgreSQL" if "postgresql" in str(DATABASE_URL) else "SQLite (dev)"
+    db_display = db_type + " - ok" if db_ok else db_type + " - unavailable"
+
+    redis_ok = False
+    try:
+        import redis as _r
+        _r.from_url(str(getattr(settings,"REDIS_URL","redis://localhost:6379"))).ping()
+        redis_ok = True
+    except Exception:
+        pass
+
+    celery_ok = False
+    try:
+        from app.worker.celery_app import celery_app
+        celery_ok = bool(celery_app.control.inspect(timeout=1).ping())
+    except Exception:
+        pass
+
     return {
-        "status":    "healthy" if db_ok else "degraded",
-        "db":        "ok" if db_ok else "error",
-        "db_name":   "ekyc_db (PostgreSQL)" if db_ok else "unavailable",
-        "version":   settings.APP_VERSION,
-        "timestamp": _now().isoformat(),
+        "status":      "healthy" if db_ok else "degraded",
+        "db":          "ok" if db_ok else "error",
+        "db_name":     db_display,
+        "db_type":     db_type,
+        "redis":       "ok" if redis_ok else "unavailable",
+        "celery":      "ok" if celery_ok else "unavailable",
+        "version":     settings.APP_VERSION,
+        "environment": getattr(settings, "ENVIRONMENT", "development"),
+        "timestamp":   _now().isoformat(),
         "modules": {
             "auth":"ok","nid":"ok","face_verify":"ok","kyc":"ok",
             "audit":"ok","liveness":"ok","screening":"ok",
+            "redis": "ok" if redis_ok else "unavailable",
+            "celery": "ok" if celery_ok else "unavailable",
+            "database": "ok" if db_ok else "error",
         },
         "rate_limits": RATE_LIMITS,
         "whitelisted_domains": list(WHITELISTED_DOMAINS),
         "bfiu_ref": "BFIU Circular No. 29",
+        "compliance_deadline": "2026-12-31",
     }
 
 # ══════════════════════════════════════════════════════════════════════════
