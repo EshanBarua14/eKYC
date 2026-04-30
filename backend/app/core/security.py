@@ -22,12 +22,14 @@ class Role(str, Enum):
     MAKER   = "MAKER"
     AGENT   = "AGENT"
     AUDITOR = "AUDITOR"
+    COMPLIANCE_OFFICER = "COMPLIANCE_OFFICER"
 
 ROLE_PERMISSIONS = {
     Role.ADMIN:   ["*"],
     Role.MAKER:   ["onboarding:create", "nid:scan", "face:verify", "fingerprint:submit"],
     Role.CHECKER: ["onboarding:review", "onboarding:approve", "onboarding:reject", "audit:read"],
     Role.AGENT:   ["face:verify", "ai:analyze"],
+    Role.COMPLIANCE_OFFICER: ["edd:approve", "edd:escalate", "onboarding:review", "audit:read", "compliance:read"],
     Role.AUDITOR: ["audit:read", "report:export"],
 }
 

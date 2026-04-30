@@ -74,8 +74,7 @@ except ImportError:
 @app.on_event("startup")
 def startup():
     # M_SENTRY: initialise error tracking (BFIU §4.5 production observability)
-    from app.core.config import get_settings
-    _s = get_settings()
+    from app.core.config import settings as _s
     init_sentry(
         dsn=_s.SENTRY_DSN,
         environment=_s.ENVIRONMENT,
@@ -134,6 +133,7 @@ def _seed_demo_users():
             {"id":"user-0008","email":"maker-bypass@demo.ekyc",   "phone":"01700000008","full_name":"Bypass Maker",   "role":"MAKER",  "password":"DemoMaker@2026",   "totp":False},
             {"id":"user-0009","email":"agent-bypass@demo.ekyc",   "phone":"01700000009","full_name":"Bypass Agent",   "role":"AGENT",  "password":"DemoAgent@2026",   "totp":False},
             {"id":"user-0010","email":"auditor-bypass@demo.ekyc", "phone":"01700000010","full_name":"Bypass Auditor", "role":"AUDITOR","password":"DemoAudit@2026",   "totp":False},
+            {"id":"user-0011","email":"co-bypass@demo.ekyc",      "phone":"01700000011","full_name":"Bypass CO",      "role":"COMPLIANCE_OFFICER","password":"DemoCO@2026",       "totp":False},
         ]
 
         existing_emails = {u.email for u in _demo_users}
