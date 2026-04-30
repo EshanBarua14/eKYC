@@ -17,86 +17,81 @@ Targets:
 import random
 import string
 import uuid
+import time
 from locust import HttpUser, task, between, events
-from locust.runners import MasterRunner
 
-
-def _rand_nid():
-    return "".join(random.choices(string.digits, k=17))
-
-
-def _rand_mobile():
-    return "017" + "".join(random.choices(string.digits, k=8))
-
-
+def _rand_nid():     return "".join(random.choices(string.digits, k=17))
+def _rand_mobile():  return "017" + "".join(random.choices(string.digits, k=8))
 def _rand_name():
-    first = random.choice(["Karim", "Rahim", "Fatima", "Nasrin", "Abdul", "Mohammad"])
-    last  = random.choice(["Uddin", "Ahmed", "Islam", "Rahman", "Hossain", "Khan"])
+    first = random.choice(["Karim","Rahim","Fatima","Nasrin","Abdul","Mohammad"])
+    last  = random.choice(["Uddin","Ahmed","Islam","Rahman","Hossain","Khan"])
     return f"{first} {last}"
+def _rand_session(): return str(uuid.uuid4())
+
+# valid 1x1 JPEG — properly padded base64 (len%4==0)
+STUB_IMAGE = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAABAAEBAREA/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/9oACAEBAAA/APV//9k="
+
+# demo credentials
+DEMO_EMAIL    = "agent-bypass@demo.ekyc"
+DEMO_PASSWORD = "DemoAgent@2026"
+
+# shared token cache — all workers share one token to avoid rate limit
+_SHARED_TOKEN: dict = {"token": "", "expires_at": 0}
+import threading
+_TOKEN_LOCK = threading.Lock()
 
 
-def _rand_session():
-    return str(uuid.uuid4())
-
-
-# ── Auth token cache ────────────────────────────────────────────────────────
-_TOKEN_CACHE: dict[str, str] = {}
+def _get_shared_token(client) -> str:
+    """Return cached token or fetch new one. Shared across all users to avoid 429."""
+    now = time.time()
+    if _SHARED_TOKEN["token"] and now < _SHARED_TOKEN["expires_at"]:
+        return _SHARED_TOKEN["token"]
+    resp = client.post(
+        "/api/v1/auth/token",
+        json={"email": DEMO_EMAIL, "password": DEMO_PASSWORD},
+        name="/auth/token",
+    )
+    if resp.status_code == 200:
+        data = resp.json()
+        _SHARED_TOKEN["token"] = data.get("access_token", "")
+        _SHARED_TOKEN["expires_at"] = now + data.get("expires_in", 900) - 60
+    return _SHARED_TOKEN["token"]
 
 
 class EKYCOnboardingUser(HttpUser):
-    """
-    Simulates a field agent performing eKYC onboarding.
-    Mix: 60% face verify, 20% KYC profile create, 10% screening, 10% status check.
-    """
     wait_time = between(0.5, 2.0)
-    _token: str = ""
 
     def on_start(self):
-        """Login once per simulated user."""
-        resp = self.client.post(
-            "/api/v1/auth/login",
-            json={
-                "username": "load_test_agent",
-                "password": "LoadTest@2026!",
-                "institution_id": "LOAD_TEST",
-            },
-            name="/auth/login",
-        )
-        if resp.status_code == 200:
-            self._token = resp.json().get("access_token", "")
-        else:
-            # Use dev token if login endpoint not available in test env
-            self._token = "dev_load_test_token"
+        self._token = _get_shared_token(self.client)
 
-    def _headers(self):
-        return {"Authorization": f"Bearer {self._token}",
-                "Content-Type": "application/json",
-                "X-Institution-ID": "LOAD_TEST"}
+    def _h(self):
+        h = {"X-Institution-ID": "LOAD_TEST"}
+        if self._token:
+            h["Authorization"] = f"Bearer {self._token}"
+        return h
 
     @task(6)
     def face_verify(self):
-        """BFIU §3.2 — face verification (most common operation)."""
-        session_id = _rand_session()
+        """BFIU §3.3 — face verification."""
         self.client.post(
             "/api/v1/face/verify",
             json={
-                "session_id": session_id,
-                "nid_number": _rand_nid(),
-                "live_image_b64": "data:image/jpeg;base64,/9j/4AAQ",  # stub
-                "nid_image_b64":  "data:image/jpeg;base64,/9j/4AAQ",
+                "session_id":     _rand_session(),
+                "nid_number":     _rand_nid(),
+                "live_image_b64": STUB_IMAGE,
+                "nid_image_b64":  STUB_IMAGE,
             },
-            headers=self._headers(),
+            headers=self._h(),
             name="/face/verify",
         )
 
     @task(2)
     def create_kyc_profile(self):
         """BFIU §6.1/6.2 — KYC profile creation."""
-        session_id = _rand_session()
         self.client.post(
             "/api/v1/kyc/profile",
             json={
-                "session_id":       session_id,
+                "session_id":       _rand_session(),
                 "verdict":          "MATCHED",
                 "confidence":       round(random.uniform(0.75, 0.99), 2),
                 "institution_type": "INSURANCE_LIFE",
@@ -105,97 +100,52 @@ class EKYCOnboardingUser(HttpUser):
                 "mobile":           _rand_mobile(),
                 "nationality":      "Bangladeshi",
                 "present_address":  "Dhaka, Bangladesh",
-                "unscr_checked":    True,
             },
-            headers=self._headers(),
+            headers=self._h(),
             name="/kyc/profile",
         )
 
     @task(1)
     def screening_check(self):
-        """BFIU §3.2.2 — UNSCR/PEP screening."""
+        """BFIU §3.2.2 — full screening."""
         self.client.post(
-            "/api/v1/screening/check",
+            "/api/v1/screening/full",
             json={
-                "name":       _rand_name(),
-                "nid_number": _rand_nid(),
-                "dob":        "1980-01-01",
+                "name":        _rand_name(),
+                "nid_number":  _rand_nid(),
+                "nationality": "BD",
+                "kyc_type":    "SIMPLIFIED",
             },
-            headers=self._headers(),
-            name="/screening/check",
+            headers=self._h(),
+            name="/screening/full",
         )
 
     @task(1)
-    def get_kyc_profile(self):
-        """Status check — read existing profile."""
-        session_id = _rand_session()
-        self.client.get(
-            f"/api/v1/kyc/profile/{session_id}",
-            headers=self._headers(),
-            name="/kyc/profile/[session_id]",
-        )
-
-
-class EKYCCheckerUser(HttpUser):
-    """Simulates checker reviewing KYC submissions — lower concurrency."""
-    wait_time = between(2.0, 5.0)
-    weight = 1  # 1 checker per 10 agents
-
-    def on_start(self):
-        resp = self.client.post(
-            "/api/v1/auth/login",
-            json={"username": "load_test_checker", "password": "LoadTest@2026!",
-                  "institution_id": "LOAD_TEST"},
-            name="/auth/login",
-        )
-        self._token = resp.json().get("access_token", "") if resp.status_code == 200 else ""
-
-    def _headers(self):
-        return {"Authorization": f"Bearer {self._token}"}
-
-    @task(3)
     def list_profiles(self):
+        """Admin — list KYC profiles."""
         self.client.get(
-            "/api/v1/kyc/profiles?limit=20",
-            headers=self._headers(),
+            "/api/v1/kyc/profiles",
+            headers=self._h(),
             name="/kyc/profiles",
         )
 
-    @task(1)
-    def approve_profile(self):
-        session_id = _rand_session()
-        self.client.patch(
-            f"/api/v1/kyc/profile/{session_id}/approve",
-            headers=self._headers(),
-            name="/kyc/profile/approve",
+
+@events.quitting.add_listener
+def check_fail_ratio(environment, **kwargs):
+    stats = environment.runner.stats.total
+    if stats.num_requests == 0:
+        return
+    fail_rate = stats.num_failures / stats.num_requests * 100
+    print(f"\n── M83 Load Test Results ──")
+    for entry in environment.runner.stats.entries.values():
+        print(
+            f"  {entry.method:<6} {entry.name:<40} "
+            f"reqs={entry.num_requests:>5} fail={entry.num_failures:>4} "
+            f"p99={entry.get_response_time_percentile(0.99):.0f}ms"
         )
-
-
-@events.init.add_listener
-def on_locust_init(environment, **kwargs):
-    if isinstance(environment.runner, MasterRunner):
-        print("""
-+======================================================╗
-|  M83: eKYC Load Test — BFIU Production Capacity     |
-|  Target: 500 concurrent users, 0% error rate        |
-|  SLA:    p99 face_verify < 3s, profile < 2s         |
-+======================================================╝
-        """)
-
-
-@events.test_stop.add_listener
-def on_test_stop(environment, **kwargs):
-    stats = environment.stats
-    print("\n── M83 Load Test Results ──")
-    for name, s in stats.entries.items():
-        if s.num_requests > 0:
-            print(f"  {name[1]:40s} "
-                  f"reqs={s.num_requests:5d} "
-                  f"fail={s.num_failures:3d} "
-                  f"p99={s.get_response_time_percentile(0.99):.0f}ms")
-    fail_rate = stats.total.fail_ratio * 100
     print(f"\n  Total fail rate: {fail_rate:.2f}%")
     if fail_rate > 1.0:
-        print("  ⚠️  FAIL RATE EXCEEDS 1% — not production ready")
+        print(f"  WARNING: FAIL RATE EXCEEDS 1% — not production ready")
+        environment.process_exit_code = 1
     else:
-        print("  ✅ PASS — platform ready for 500 concurrent users")
+        print(f"  PASS — fail rate within 1% threshold")

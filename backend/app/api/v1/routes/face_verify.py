@@ -38,8 +38,8 @@ async def verify_face(req: VerifyRequest):
     nid_face,  nid_coords  = detect_face(nid_img)
     live_face, live_coords = detect_face(live_img)
 
-    nid_found  = nid_face is not None
-    live_found = live_face is not None
+    nid_found  = nid_face is not None and nid_face.size > 0
+    live_found = live_face is not None and live_face.size > 0
 
     # Liveness checks
     liveness = run_liveness_checks(live_img, live_coords)
