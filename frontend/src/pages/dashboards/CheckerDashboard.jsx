@@ -5,15 +5,37 @@ import Card from "../../components/ui/Card"
 import Button from "../../components/ui/Button"
 import Badge from "../../components/ui/Badge"
 import { api } from "../../hooks/useApi"
+import { toast } from "react-hot-toast"
 
 export default function CheckerDashboard() {
   const [queue, setQueue] = useState([])
+  const [acting, setActing] = useState(null)
 
-  useEffect(() => {
+  const load = () => {
     api.get("/api/v1/kyc/profiles?limit=10").then(r => setQueue(r.data?.profiles||[])).catch(()=>{})
-  }, [])
+  }
+
+  useEffect(() => { load() }, [])
 
   const pending = queue.filter(p => p.status === "PENDING" || p.verdict === "REVIEW")
+
+  // BFIU §4.3 Maker-Checker: Checker must explicitly approve/reject with confirmation
+  const handleDecide = async (profile, action) => {
+    const verb = action === "approve" ? "APPROVE" : "REJECT"
+    const confirmed = window.confirm(
+      \`BFIU §4.3 Maker-Checker Confirmation\n\nAre you sure you want to \${verb} this KYC profile?\n\nCustomer: \${profile.full_name || profile.session_id}\nKYC Type: \${profile.kyc_type}\nRisk Grade: \${profile.risk_grade}\n\nThis action is logged in the immutable audit trail.\`
+    )
+    if (!confirmed) return
+    setActing(profile.session_id)
+    try {
+      const endpoint = \`/api/v1/kyc/profile/\${profile.session_id}/\${action}\`
+      await api.patch(endpoint, { checker_note: \`\${verb} by Checker — BFIU §4.3\` })
+      toast.success(\`\${verb}D — audit log updated (BFIU §4.3)\`)
+      load()
+    } catch(e) {
+      toast.error(e?.response?.data?.detail || \`\${verb} failed\`)
+    } finally { setActing(null) }
+  }
 
   return (
     <div className="space-y-6 animate-fade-up">
@@ -51,7 +73,18 @@ export default function CheckerDashboard() {
             </div>
             <div className="flex items-center gap-2">
               <Badge color={p.edd_required?"yellow":"blue"}>{p.status}</Badge>
-              <Button size="xs" onClick={() => {}}>Review</Button>
+              <div style={{display:"flex",gap:4}}>
+                <Button size="xs" variant="success"
+                  disabled={acting===p.session_id}
+                  onClick={() => handleDecide(p, "approve")}>
+                  Approve
+                </Button>
+                <Button size="xs" variant="danger"
+                  disabled={acting===p.session_id}
+                  onClick={() => handleDecide(p, "reject")}>
+                  Reject
+                </Button>
+              </div>
             </div>
           </div>
         ))}

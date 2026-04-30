@@ -176,7 +176,7 @@ function UsersTab() {
   }
 
   const toggle = async (uid, active) => {
-    try { await apiFetch(`/api/v1/admin/users/${uid}/activate?active=${!active}`, { method:"PUT" }); await load() }
+    try { await apiFetch(`/api/v1/admin/users/${uid}/${active ? "deactivate" : "activate"}`, { method: active ? "PATCH" : "PUT" }); await load() }
     catch(e) { setErr(e.message) }
   }
 

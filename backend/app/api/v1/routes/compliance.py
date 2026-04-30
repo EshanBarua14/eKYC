@@ -8,7 +8,19 @@ GET  /compliance/failed-onboarding - Failed onboarding summary
 GET  /compliance/export           - BFIU export JSON or CSV
 GET  /compliance/metrics          - Time-series metrics last 30 days
 """
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Depends, HTTPException
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from app.core.security import decode_token
+
+_security = HTTPBearer(auto_error=False)
+
+def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(_security)) -> dict:
+    if not credentials:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    try:
+        return decode_token(credentials.credentials)
+    except Exception as e:
+        raise HTTPException(status_code=401, detail=f"Invalid token: {e}")
 from typing import Optional
 from datetime import datetime, timezone, timedelta
 import random
@@ -210,3 +222,36 @@ async def edd_case_action(case_id: str, body: dict):
     case["last_action"] = {"action":action, "note":note, "actor":actor, "at":_iso(_now())}
 
     return {"success": True, "case_id": case_id, "new_status": new_status, "bfiu_ref": "BFIU Circular No. 29 - Section 6.3"}
+
+
+@router.post("/edd-cases/{case_id}/escalate-bfiu", status_code=200)
+def escalate_to_bfiu(case_id: str, current_user: dict = Depends(get_current_user)):
+    """
+    BFIU Circular No. 29 §4.3 — Escalate EDD case as Suspicious Transaction Report (STR).
+    Only COMPLIANCE_OFFICER or ADMIN may escalate.
+    """
+    import logging, datetime as dt
+    role = current_user.get("role", "").upper()
+    if role not in ("COMPLIANCE_OFFICER", "ADMIN"):
+        raise HTTPException(status_code=403, detail={
+            "error": "FORBIDDEN",
+            "message": "Only COMPLIANCE_OFFICER or ADMIN may escalate to BFIU. Circular No. 29 §4.3.",
+            "your_role": role,
+        })
+    logging.getLogger(__name__).warning(
+        "[BFIU-STR] EDD case %s escalated by %s", case_id, current_user.get("sub")
+    )
+    return {
+        "case_id": case_id,
+        "escalated": True,
+        "escalated_by": current_user.get("sub"),
+        "escalated_at": dt.datetime.utcnow().isoformat() + "Z",
+        "str_reference": f"STR-{case_id[:8].upper()}",
+        "bfiu_ref": "BFIU Circular No. 29 §4.3",
+        "message": "Case escalated as STR. Submit physical form to BFIU within 30 days.",
+        "next_steps": [
+            "Submit physical STR form to BFIU within 30 days",
+            "Do not tip off the customer (tipping-off offence)",
+            "Preserve all records for 5 years (BFIU §5.1)"
+        ]
+    }

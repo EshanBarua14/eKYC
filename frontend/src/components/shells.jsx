@@ -24,7 +24,6 @@ export function AdminShell({ theme, toggleTheme, onExit }) {
     users:        "users",
     thresholds:   "thresholds",
     webhooks:     "webhooks",
-    pep:          "pep",
     auditlogs:    "auditlogs",
     settings:     "settings",
   }

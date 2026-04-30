@@ -1,6 +1,6 @@
 /**
  * Notification Center — BFIU §3.2 Step 5
- * Endpoints: /api/v1/notification/*
+ * Endpoints: /api/v1/notify/*
  */
 import { useState, useEffect } from "react"
 import { toast } from "react-hot-toast"
