@@ -20,6 +20,7 @@ import SettingsPanel       from "./components/SettingsPanel"
 import GlassShell from "./components/GlassShell"
 import { AdminShell, AgentShell, ComplianceShell, MakerShell } from "./components/shells"
 import "./App.css"
+import { useNotifications } from "./hooks/useNotifications"
 
 const STEPS = { ENTRY:1, NID:2, LIVENESS:3, FINGERPRINT:4, REPORT:5, PROFILE:6, SIGNATURE:7, COMPLETE:8 }
 const STEP_META = [
@@ -95,7 +96,7 @@ function StepBar({ current }) {
 }
 
 // ── Enhanced Header ──────────────────────────────────────────────────────────
-function AppHeader({ theme, toggleTheme, onStaffLogin, userRole, onLogout, userName }) {
+function AppHeader({ theme, toggleTheme, onStaffLogin, userRole, onLogout, userName, notifications, unread, onBellOpen }) {
   const [notifOpen, setNotifOpen] = useState(false)
 
   return (
@@ -124,8 +125,8 @@ function AppHeader({ theme, toggleTheme, onStaffLogin, userRole, onLogout, userN
           {userRole && (
             <div style={{ position:"relative" }}>
               <button onClick={() => setNotifOpen(!notifOpen)} style={{ width:32, height:32, borderRadius:8, background:"var(--bg3)", border:"1px solid var(--border)", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", position:"relative" }}>
-                <Bell size={14} color="var(--text2)"/>
-                <span style={{ position:"absolute", top:6, right:6, width:6, height:6, borderRadius:"50%", background:"var(--red)", border:"1.5px solid var(--bg)" }}/>
+                <Bell size={14} color={unread > 0 ? "var(--accent)" : "var(--text2)"}/>
+                <span style={{ position:"absolute", top:6, right:6, width:6, height:6, borderRadius:"50%", background:"var(--red)", border:"1.5px solid var(--bg)" }}/>{unread > 0 && <span style={{position:"absolute",top:-5,right:-5,minWidth:15,height:15,borderRadius:8,background:"#ef4444",border:"2px solid var(--bg)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:800,color:"#fff",padding:"0 2px"}}>{unread>9?"9+":unread}</span>}
               </button>
               <AnimatePresence>
                 {notifOpen && (
@@ -136,19 +137,17 @@ function AppHeader({ theme, toggleTheme, onStaffLogin, userRole, onLogout, userN
                     style={{ position:"absolute", right:0, top:40, width:280, background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:12, boxShadow:"var(--shadow)", zIndex:200, overflow:"hidden" }}
                   >
                     <div style={{ padding:"12px 14px", borderBottom:"1px solid var(--border)", fontSize:12, fontWeight:700, color:"var(--text)" }}>Notifications</div>
-                    {[
-                      { msg:"UNSCR feed updated — 0 new hits", time:"2 min ago", type:"green" },
-                      { msg:"EDD case #EDD-001 awaiting review", time:"15 min ago", type:"yellow" },
-                      { msg:"Monthly BFIU report generated", time:"1 hour ago", type:"blue" },
-                    ].map((n,i) => (
-                      <div key={i} style={{ padding:"10px 14px", borderBottom:"1px solid var(--border)", display:"flex", gap:10, alignItems:"flex-start" }}>
-                        <span style={{ width:6, height:6, borderRadius:"50%", background:`var(--${n.type})`, marginTop:5, flexShrink:0 }}/>
+                    {notifications && notifications.length > 0
+                    ? notifications.slice(0,8).map((n,i) => (
+                      <div key={i} style={{padding:"10px 14px",borderBottom:"1px solid var(--border)",display:"flex",gap:10,alignItems:"flex-start"}}>
+                        <span style={{width:6,height:6,borderRadius:"50%",background:"var(--"+n.color+")",marginTop:5,flexShrink:0}}/>
                         <div>
-                          <div style={{ fontSize:11, color:"var(--text)", fontWeight:500 }}>{n.msg}</div>
-                          <div style={{ fontSize:10, color:"var(--text3)", marginTop:2 }}>{n.time}</div>
+                          <div style={{fontSize:11,color:"var(--text)",fontWeight:500}}>{n.msg}</div>
+                          <div style={{fontSize:10,color:"var(--text3)",marginTop:2}}>{n.time}</div>
                         </div>
                       </div>
-                    ))}
+                    ))
+                    : <div style={{padding:"20px",textAlign:"center",fontSize:11,color:"var(--text3)"}}>No notifications yet</div>}
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -406,6 +405,7 @@ export default function App() {
   const [showLogin,      setShowLogin]      = useState(false)
   const [theme,          setTheme]          = useState(() => localStorage.getItem("ekyc-theme") || "light")
   const [step,           setStep]           = useState(STEPS.ENTRY)
+  const { notifications, unread, markRead } = useNotifications(userRole)
   const [nidEntry,       setNidEntry]       = useState(null)
   const [nidB64,         setNidB64]         = useState(null)
   const [nidScan,        setNidScan]        = useState(null)
@@ -500,6 +500,9 @@ export default function App() {
         theme={theme}
         toggleTheme={toggleTheme}
         onStaffLogin={() => setShowLogin(true)}
+        notifications={notifications}
+        unread={unread}
+        onBellOpen={markRead}
         userRole={userRole}
         onLogout={handleLogout}
       />
