@@ -89,7 +89,7 @@ VALID_ROLES = {"ADMIN","CHECKER","MAKER","AGENT","AUDITOR"}
 # 1. Platform Stats
 # ══════════════════════════════════════════════════════════════════════════
 @router.get("/stats", operation_id="admin_stats")
-async def admin_platform_stats(cu: dict = Depends(require_admin)):
+async def admin_platform_stats(cu: dict = Depends(require_admin_or_auditor)):
     return get_platform_stats()
 
 # ══════════════════════════════════════════════════════════════════════════

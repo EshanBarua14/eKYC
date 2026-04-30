@@ -23,10 +23,10 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Total Users"      value={stats.users||"—"}        icon={<Users size={18}/>}     color="blue"/>
-        <StatCard title="Institutions"     value={stats.institutions||"—"} icon={<Building2 size={18}/>} color="green"/>
-        <StatCard title="PEP Entries"      value={stats.pep||"—"}          icon={<Shield size={18}/>}    color="amber"/>
-        <StatCard title="KYC Sessions"     value={stats.sessions||"—"}     icon={<Activity size={18}/>}  color="purple"/>
+        <StatCard title="Total Users"      value={stats.users ?? 0}        icon={<Users size={18}/>}     color="blue"/>
+        <StatCard title="Institutions"     value={stats.institutions ?? 0} icon={<Building2 size={18}/>} color="green"/>
+        <StatCard title="PEP Entries"      value={stats.pep ?? 0}          icon={<Shield size={18}/>}    color="amber"/>
+        <StatCard title="KYC Sessions"     value={stats.sessions ?? 0}     icon={<Activity size={18}/>}  color="purple"/>
       </div>
 
       <div className="grid lg:grid-cols-2 gap-4">
@@ -36,17 +36,20 @@ export default function AdminDashboard() {
           </h3>
           {health ? (
             <div className="space-y-2">
-              {Object.entries(health).map(([k,v]) => (
+              {[
+                ["Status",   health.status,  health.status==="healthy"?"green":"red"],
+                ["Database", health.db,       health.db==="ok"?"green":"red"],
+                ["Version",  health.version,  "blue"],
+                ["Service",  health.service?.slice?.(0,30), "gray"],
+              ].filter(([,v])=>v).map(([k,v,color]) => (
                 <div key={k} className="flex items-center justify-between py-1.5 border-b border-gray-50 dark:border-gray-800 last:border-0">
-                  <span className="text-sm text-gray-600 dark:text-gray-400 capitalize">{k.replace(/_/g," ")}</span>
-                  <Badge color={v==="ok"||v===true?"green":v==="warn"?"yellow":"red"}>
-                    {String(v)}
-                  </Badge>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">{k}</span>
+                  <Badge color={color}>{String(v)}</Badge>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-sm text-gray-400">Checking system health…</p>
+            <p className="text-sm text-gray-400">Checking system health...</p>
           )}
         </Card>
 
