@@ -26,6 +26,8 @@ class Settings(BaseSettings):
     APP_NAME: str    = "Xpert Fintech Ltd. - Electronic KYC (eKYC) Compliance API"
     TIMEZONE: str    = "Asia/Dhaka"   # Bangladesh Standard Time UTC+6
     APP_VERSION: str = "1.0.0"
+    ENVIRONMENT: str = "development"
+    SENTRY_DSN: str  = ""  # set in .env.production — BFIU §4.5 error tracking
     API_V1_PREFIX: str = "/api/v1"
     DEBUG: bool      = True
     SECRET_KEY: str  = "dev-secret-change-in-production"

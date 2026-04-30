@@ -24,6 +24,7 @@ from app.middleware.admin_ip_whitelist import AdminIPWhitelistMiddleware
 from app.api.v1.router import v1_router
 from app.db.database import engine, init_db
 from app.db import models
+from app.core.sentry import init_sentry
 
 
 # M65: Configure structured JSON logging (BST timestamps, PII masking)
@@ -72,6 +73,14 @@ except ImportError:
 
 @app.on_event("startup")
 def startup():
+    # M_SENTRY: initialise error tracking (BFIU §4.5 production observability)
+    from app.core.config import get_settings
+    _s = get_settings()
+    init_sentry(
+        dsn=_s.SENTRY_DSN,
+        environment=_s.ENVIRONMENT,
+        release=_s.APP_VERSION,
+    )
     init_db()
     _seed_demo_users()
     _seed_pep_data()
