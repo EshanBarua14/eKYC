@@ -9,6 +9,7 @@ const ROLE_CONFIG = {
   MAKER:   { label:"Maker",       color:"#3b82f6", bg:"#eff6ff", desc:"Create & submit KYC onboardings for checker review",        totp:false },
   AGENT:   { label:"Field Agent", color:"#10b981", bg:"#f0fdf4", desc:"Conduct face verification & liveness checks in the field",  totp:false },
   AUDITOR: { label:"Auditor",     color:"#8b5cf6", bg:"#f5f3ff", desc:"Read-only access to audit logs and compliance reports",     totp:false },
+  COMPLIANCE_OFFICER: { label:"Compliance Officer", color:"#0ea5e9", bg:"#f0f9ff", desc:"EDD approval authority, STR escalation to BFIU (Circular 29 s4.3)", totp:false },
 }
 
 const DEMO_CREDS = {
@@ -17,6 +18,7 @@ const DEMO_CREDS = {
   MAKER:   { email:"maker-bypass@demo.ekyc",   password:"DemoMaker@2026"   },
   AGENT:   { email:"agent-bypass@demo.ekyc",   password:"DemoAgent@2026"   },
   AUDITOR: { email:"auditor-bypass@demo.ekyc", password:"DemoAudit@2026"   },
+  COMPLIANCE_OFFICER: { email:"co-bypass@demo.ekyc", password:"DemoCO@2026" },
 }
 
 async function generateTOTP(secret) {
