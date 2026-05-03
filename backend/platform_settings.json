@@ -1,0 +1,22 @@
+{
+  "_comment": "Xpert Fintech eKYC Platform Settings — M34 NID API Configuration",
+  "_note": "Set nid_api_mode to FAKE_EC for local dev, LIVE for production",
+
+  "nid_api_mode": "FAKE_EC",
+  "nid_api_base_url": "http://localhost:8001/api/v1",
+  "nid_api_client_id": "inst_xpert_001",
+  "nid_api_key": "sk_test_xpert_ekyc_secret_2026",
+  "nid_api_secret": "",
+
+  "match_threshold": 40,
+  "review_threshold": 30,
+
+  "bfiu_max_sessions_per_day": 2,
+  "bfiu_max_attempts_per_session": 10,
+
+  "session_ttl_hours": 24,
+  "audit_retention_years": 5,
+
+  "face_verify_min_confidence": 40,
+  "face_verify_review_confidence": 60
+}
