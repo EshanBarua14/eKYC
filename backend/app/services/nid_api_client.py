@@ -20,12 +20,20 @@ def _get_nid_settings():
     try:
         with open(sf, "r", encoding="utf-8") as f:
             s = json.load(f)
-        return s.get("nid_api_mode", "DEMO"), s.get("nid_api_base_url", "https://nid.ec.gov.bd/api/v1"), s.get("nid_api_key", ""), s.get("nid_api_secret", "")
+        mode       = s.get("nid_api_mode", "DEMO")
+        base_url   = s.get("nid_api_base_url", "https://nid.ec.gov.bd/api/v1")
+        api_key    = s.get("nid_api_key", "")
+        api_secret = s.get("nid_api_secret", "")
+        client_id  = s.get("nid_api_client_id", "")
+        return mode, base_url, api_key, api_secret, client_id
     except Exception:
-        return "DEMO", "https://nid.ec.gov.bd/api/v1", "", ""
+        return "DEMO", "https://nid.ec.gov.bd/api/v1", "", "", ""
 
 NID_API_MODE     = "DEMO"   # fallback default — overridden at runtime
 NID_API_BASE_URL = "https://nid.ec.gov.bd/api/v1"
+
+# ── FAKE_EC bearer token cache ────────────────────────────────────────────
+_fake_ec_token: dict = {"token": None, "exp": 0}
 
 # ── Retry config ──────────────────────────────────────────────────────────
 MAX_SYNC_RETRIES  = 3       # retries within a single request
@@ -123,11 +131,13 @@ def lookup_nid(nid_number: str, mode: str = None) -> dict:
     status: verified | not_found | pending_verification | ec_error
     """
     nid_number = nid_number.strip()
-    runtime_mode, runtime_url, runtime_key, runtime_secret = _get_nid_settings()
+    runtime_mode, runtime_url, runtime_key, runtime_secret, runtime_client_id = _get_nid_settings()
     effective_mode = mode or runtime_mode
 
     if effective_mode == "LIVE":
         return _live_lookup(nid_number, runtime_url, runtime_key, runtime_secret)
+    elif effective_mode == "FAKE_EC":
+        return _fake_ec_lookup(nid_number, runtime_url, runtime_client_id, runtime_key)
     elif effective_mode == "DEMO":
         return _demo_lookup(nid_number)
     else:
@@ -238,6 +248,137 @@ def _stub_lookup(nid_number: str) -> dict:
         },
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
+
+
+def _fake_ec_get_token(base_url: str, client_id: str, client_secret: str) -> str | None:
+    """
+    Authenticate against the fake EC API and return Bearer token.
+    Caches token until expiry.
+    """
+    import requests, time as _time
+    now = _time.time()
+    cached = _fake_ec_token
+    if cached["token"] and cached["exp"] > now + 60:
+        return cached["token"]
+    try:
+        resp = requests.post(
+            f"{base_url}/auth",
+            json={"client_id": client_id, "client_secret": client_secret},
+            timeout=REQUEST_TIMEOUT,
+        )
+        if resp.status_code == 200:
+            data = resp.json()
+            cached["token"] = data["access_token"]
+            cached["exp"]   = now + data.get("expires_in", 3600)
+            log.info("[M34-FAKE-EC] Token obtained for client_id=%s", client_id)
+            return cached["token"]
+        log.error("[M34-FAKE-EC] Auth failed: %s %s", resp.status_code, resp.text[:200])
+        return None
+    except Exception as exc:
+        log.error("[M34-FAKE-EC] Auth error: %s", exc)
+        return None
+
+
+def _fake_ec_lookup(
+    nid_number: str,
+    base_url: str = "http://localhost:8001/api/v1",
+    client_id: str = "inst_xpert_001",
+    client_secret: str = "sk_test_xpert_ekyc_secret_2026",
+) -> dict:
+    """
+    Call the local fake EC API service.
+    Acts exactly like _live_lookup but points to localhost:8001.
+    Falls back to DEMO mode if fake EC service is unreachable.
+    """
+    import requests
+    try:
+        token = _fake_ec_get_token(base_url, client_id, client_secret)
+        if not token:
+            log.warning("[M34-FAKE-EC] No token — falling back to DEMO")
+            return _demo_lookup(nid_number)
+
+        resp = requests.post(
+            f"{base_url}/verify",
+            json={"nid_number": nid_number},
+            headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
+            timeout=REQUEST_TIMEOUT,
+        )
+
+        if resp.status_code == 200:
+            data = resp.json()
+            return {
+                "found":      True,
+                "status":     "verified",
+                "source":     "FAKE_EC",
+                "nid_number": nid_number,
+                "data":       data.get("data", {}),
+                "timestamp":  datetime.now(timezone.utc).isoformat(),
+            }
+        elif resp.status_code == 404:
+            return {
+                "found":      False,
+                "status":     "not_found",
+                "source":     "FAKE_EC",
+                "error_code": EC_NOT_FOUND,
+                "reason":     "NID not found in EC database",
+                "timestamp":  datetime.now(timezone.utc).isoformat(),
+            }
+        elif resp.status_code == 403:
+            err = resp.json().get("detail", {})
+            return {
+                "found":      False,
+                "status":     "ec_error",
+                "source":     "FAKE_EC",
+                "error_code": err.get("error_code", "NID_BLOCKED"),
+                "reason":     err.get("message", "NID blocked"),
+                "timestamp":  datetime.now(timezone.utc).isoformat(),
+            }
+        elif resp.status_code == 422:
+            err = resp.json().get("detail", {})
+            return {
+                "found":      False,
+                "status":     "ec_error",
+                "source":     "FAKE_EC",
+                "error_code": "INVALID_NID_FORMAT",
+                "reason":     err.get("message", "Invalid NID format"),
+                "timestamp":  datetime.now(timezone.utc).isoformat(),
+            }
+        elif resp.status_code == 429:
+            return {
+                "found":      False,
+                "status":     EC_UNAVAILABLE,
+                "source":     "FAKE_EC",
+                "error_code": EC_RATE_LIMITED,
+                "reason":     "EC API rate limited",
+                "timestamp":  datetime.now(timezone.utc).isoformat(),
+            }
+        elif resp.status_code == 401:
+            # Token expired — clear cache and signal retry
+            _fake_ec_token["token"] = None
+            return {
+                "found":      False,
+                "status":     "ec_error",
+                "source":     "FAKE_EC",
+                "error_code": EC_AUTH_ERROR,
+                "reason":     "EC API authentication failed",
+                "timestamp":  datetime.now(timezone.utc).isoformat(),
+            }
+        else:
+            return {
+                "found":      False,
+                "status":     EC_UNAVAILABLE,
+                "source":     "FAKE_EC",
+                "error_code": EC_SERVER_ERROR,
+                "reason":     f"EC API returned {resp.status_code}",
+                "timestamp":  datetime.now(timezone.utc).isoformat(),
+            }
+
+    except Exception as exc:
+        log.warning("[M34-FAKE-EC] Connection failed: %s — falling back to DEMO", exc)
+        # Graceful fallback to DEMO if fake EC service is down
+        result = _demo_lookup(nid_number)
+        result["source"] = "DEMO_FALLBACK"
+        return result
 
 
 def _live_lookup(nid_number: str, base_url: str = None, api_key: str = None, api_secret: str = None) -> dict:
