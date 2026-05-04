@@ -277,6 +277,48 @@ async def webhook_logs(cu: dict = Depends(require_admin_or_auditor)):
 # ══════════════════════════════════════════════════════════════════════════
 # 6. System Health
 # ══════════════════════════════════════════════════════════════════════════
+
+def _get_system_metrics() -> dict:
+    try:
+        import psutil
+        cpu = psutil.cpu_percent(interval=0.1)
+        mem = psutil.virtual_memory()
+        disk = psutil.disk_usage("C:/")
+        return {
+            "cpu_percent":    round(cpu, 1),
+            "ram_percent":    round(mem.percent, 1),
+            "ram_used_mb":    round(mem.used / 1024 / 1024),
+            "ram_total_mb":   round(mem.total / 1024 / 1024),
+            "disk_percent":   round(disk.percent, 1),
+            "disk_free_gb":   round(disk.free / 1024 / 1024 / 1024, 1),
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+
+def _get_migration_status() -> dict:
+    try:
+        from alembic.runtime.migration import MigrationContext
+        from alembic.script import ScriptDirectory
+        from alembic.config import Config
+        import os
+        cfg_path = os.path.join(os.path.dirname(__file__), "../../../../alembic.ini")
+        alembic_cfg = Config(cfg_path)
+        script = ScriptDirectory.from_config(alembic_cfg)
+        head = script.get_current_head()
+        from app.db.database import engine
+        with engine.connect() as conn:
+            ctx = MigrationContext.configure(conn)
+            current = ctx.get_current_revision()
+        return {
+            "current": current or "none",
+            "head":    head or "none",
+            "up_to_date": current == head,
+        }
+    except Exception as e:
+        return {"error": str(e), "up_to_date": False}
+
+
 @router.get("/health", operation_id="admin_health")
 async def admin_health(cu: dict = Depends(require_admin_or_auditor)):
     from app.services.tenant_provisioning import provision_tenant_schema, add_schema_to_allowlist
@@ -330,6 +372,8 @@ async def admin_health(cu: dict = Depends(require_admin_or_auditor)):
         "whitelisted_domains": list(WHITELISTED_DOMAINS),
         "bfiu_ref": "BFIU Circular No. 29",
         "compliance_deadline": "2026-12-31",
+        "system": _get_system_metrics(),
+        "migrations": _get_migration_status(),
     }
 
 # ══════════════════════════════════════════════════════════════════════════

@@ -1,3 +1,4 @@
+# -*- coding: latin-1 -*-
 
 # ── Bangladesh Standard Time (UTC+6) ─────────────────────────────────────
 import os as _os

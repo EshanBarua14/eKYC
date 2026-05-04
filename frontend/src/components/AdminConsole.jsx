@@ -501,6 +501,42 @@ function HealthTab() {
 
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
         <Card>
+          <SectionTitle sub="Server resource usage">System Metrics</SectionTitle>
+          {data.system && !data.system.error ? (
+            <div style={{display:"grid",gap:6}}>
+              {[
+                ["CPU Usage",    data.system.cpu_percent + "%",   data.system.cpu_percent > 80 ? "red" : data.system.cpu_percent > 60 ? "yellow" : "green"],
+                ["RAM Usage",    data.system.ram_percent + "% (" + data.system.ram_used_mb + " MB)", data.system.ram_percent > 90 ? "red" : data.system.ram_percent > 70 ? "yellow" : "green"],
+                ["Disk Usage",   data.system.disk_percent + "% (" + data.system.disk_free_gb + " GB free)", data.system.disk_percent > 90 ? "red" : data.system.disk_percent > 70 ? "yellow" : "green"],
+              ].map(([k,v,color]) => (
+                <div key={k} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"7px 10px",borderRadius:"var(--radius-sm)",background:"var(--bg3)",border:"1px solid var(--border)"}}>
+                  <span style={{fontSize:12,color:"var(--text2)"}}>{k}</span>
+                  <CheckItem label="" pass={color==="green"} value={v} style={{margin:0}}/>
+                </div>
+              ))}
+            </div>
+          ) : <div style={{fontSize:12,color:"var(--text3)"}}>Metrics unavailable</div>}
+        </Card>
+        <Card>
+          <SectionTitle sub="Alembic database migrations">Migration Status</SectionTitle>
+          {data.migrations && (
+            <div style={{display:"grid",gap:6}}>
+              {[
+                ["Status",   data.migrations.up_to_date ? "Up to date" : "Pending migrations", data.migrations.up_to_date ? "green" : "red"],
+                ["Current",  (data.migrations.current||"none").slice(0,12), "blue"],
+                ["Head",     (data.migrations.head||"none").slice(0,12),    "accent"],
+              ].map(([k,v,color]) => (
+                <div key={k} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"7px 10px",borderRadius:"var(--radius-sm)",background:"var(--bg3)",border:"1px solid var(--border)"}}>
+                  <span style={{fontSize:12,color:"var(--text2)"}}>{k}</span>
+                  <Badge color={color}>{v}</Badge>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
+        <Card>
           <SectionTitle sub="BFIU session limits">Rate Limits</SectionTitle>
           {Object.entries(data.rate_limits||{}).map(([k,v])=>(
             <div key={k} style={{display:"flex",justifyContent:"space-between",alignItems:"center",

@@ -24,48 +24,22 @@ _is_postgres = DATABASE_URL.startswith("postgresql")
 
 
 def _make_engine():
-    """Try PostgreSQL first; fall back to SQLite if unreachable."""
-    if _is_postgres:
-        try:
-            _pool_kwargs = {
-                "pool_size":     5,
-                "max_overflow":  10,
-                "pool_timeout":  5,
-                "pool_recycle":  3600,
-                "pool_pre_ping": True,
-            }
-            eng = create_engine(
-                DATABASE_URL,
-                echo=os.getenv("SQL_ECHO", "false").lower() == "true",
-                **_pool_kwargs,
-            )
-            # Test connection
-            with eng.connect() as conn:
-                conn.execute(text("SELECT 1"))
-            log.info("[DB] Connected to PostgreSQL: %s", DATABASE_URL[:40])
-            return eng, False
-        except Exception as e:
-            log.warning(
-                "[DB] PostgreSQL unavailable (%s) — falling back to SQLite: %s",
-                type(e).__name__, SQLITE_URL
-            )
-
-    # SQLite fallback
+    """PostgreSQL only -- no SQLite fallback. BFIU data residency."""
+    if not _is_postgres:
+        raise RuntimeError(f"DATABASE_URL must be PostgreSQL. Got: {DATABASE_URL[:40]}")
     eng = create_engine(
-        SQLITE_URL,
-        connect_args={"check_same_thread": False},
+        DATABASE_URL,
         echo=os.getenv("SQL_ECHO", "false").lower() == "true",
+        pool_size=5,
+        max_overflow=10,
+        pool_timeout=30,
+        pool_recycle=3600,
+        pool_pre_ping=True,
     )
-
-    @event.listens_for(eng, "connect")
-    def _set_sqlite_pragma(dbapi_conn, _record):
-        cur = dbapi_conn.cursor()
-        cur.execute("PRAGMA journal_mode=WAL")
-        cur.execute("PRAGMA foreign_keys=ON")
-        cur.close()
-
-    log.info("[DB] Using SQLite fallback: %s", SQLITE_URL)
-    return eng, True
+    with eng.connect() as conn:
+        conn.execute(text("SELECT 1"))
+    log.info("[DB] Connected to PostgreSQL: %s", DATABASE_URL[:40])
+    return eng, False
 
 
 engine, _fell_back_to_sqlite = _make_engine()
