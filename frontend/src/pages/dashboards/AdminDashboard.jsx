@@ -12,6 +12,10 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     api.get("/api/v1/admin/stats").then(r => setStats({ users: r.data.total_users??0, institutions: r.data.total_institutions??0, pep: r.data.total_pep??0, sessions: r.data.total_sessions??0 })).catch(()=>{})
+    api.get("/api/v1/pep/entries?limit=1").then(r => {
+      const count = r.data?.total ?? r.data?.count ?? null
+      if (count !== null) setStats(s => ({...s, pep: count}))
+    }).catch(()=>{})
     api.get("/health").then(r => setHealth(r.data)).catch(()=>{})
   }, [])
 

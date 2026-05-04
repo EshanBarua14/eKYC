@@ -89,9 +89,24 @@ function InstitutionsTab() {
   }
 
   const del = async (id) => {
-    if (!confirm("Delete institution?")) return
+    if (!confirm("Delete institution? This cannot be undone.")) return
     try { await apiFetch(`/api/v1/admin/institutions/${id}`, { method:"DELETE" }); await load() }
     catch(e) { setErr(e.message) }
+  }
+
+  const toggleActive = async (inst) => {
+    const isActive = inst.status === "ACTIVE" || inst.active === true
+    try {
+      try {
+        await apiFetch(`/api/v1/admin/institutions/${inst.id}`, {
+          method: "PATCH",
+          body: JSON.stringify({ status: isActive ? "INACTIVE" : "ACTIVE" })
+        })
+      } catch {
+        await apiFetch(`/api/v1/admin/institutions/${inst.id}/${isActive?"deactivate":"activate"}`, { method:"PATCH" })
+      }
+      await load()
+    } catch(e) { setErr("Toggle failed: " + e.message) }
   }
 
   return (
@@ -132,11 +147,16 @@ function InstitutionsTab() {
                   </div>}
               </div>
               <div style={{display:"flex",gap:8,alignItems:"center"}}>
-                <Badge color={inst.active?"green":"red"}>{inst.active?"Active":"Inactive"}</Badge>
+                {(() => { const isActive = inst.status==="ACTIVE"||inst.active===true; return (<>
+                  <Badge color={isActive?"green":"red"}>{isActive?"Active":"Inactive"}</Badge>
+                  <Btn size="sm" variant={isActive?"warning":"success"} onClick={()=>toggleActive(inst)}>
+                    {isActive?"Deactivate":"Activate"}
+                  </Btn>
+                </>)})()}
                 <Btn size="sm" variant="danger" onClick={()=>del(inst.id)}><Trash2 size={11}/></Btn>
               </div>
             </div>
-          ))}
+          )})}
       </Card>
     </div>
   )

@@ -126,7 +126,7 @@ def get_platform_stats() -> dict:
         total_users = db.query(User).count()
         active_users = db.query(User).filter_by(is_active=True).count()
         try:
-            from app.db.models import PEPEntry
+            from app.db.models_pep import PEPEntry  # fix: was wrong module
             total_pep = db.query(PEPEntry).count()
         except Exception:
             total_pep = 0
