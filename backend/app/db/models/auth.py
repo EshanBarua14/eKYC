@@ -53,7 +53,7 @@ class User(Base):
     email             = Column(String(320), nullable=False, unique=True, index=True)
     phone             = Column(String(20),  nullable=False)
     full_name         = Column(String(255), nullable=False)
-    role              = Column(String(16),  nullable=False, index=True)
+    role              = Column(String(32),  nullable=False, index=True)
     password_hash     = Column(String(256), nullable=False)
     totp_secret       = Column(String(64),  nullable=True)
     totp_enabled      = Column(Boolean,     default=False, nullable=False)
