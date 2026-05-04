@@ -19,6 +19,11 @@ _IS_PG = os.getenv("DATABASE_URL", "").startswith("postgresql")
 def _get_key():
     key = os.getenv(_KEY_ENV, _FALLBACK_KEY)
     if key == _FALLBACK_KEY:
+        if os.getenv("ENV", "development") in ("production", "prod"):
+            raise RuntimeError(
+                f"[M102] FATAL: {_KEY_ENV} not set. "
+                "Generate: python -c \"import secrets; print(secrets.token_hex(32))\""
+            )
         log.warning("[M102] Using default key -- set %s in production!", _KEY_ENV)
     return key
 

@@ -10,6 +10,7 @@ import uuid
 from datetime import datetime, timezone
 
 from app.middleware.rbac import require_admin, require_admin_or_auditor
+from app.db.database import db_session  # fix: NameError on delete/activate
 from app.services.admin_service import (
     create_institution as _db_create_inst,
     list_institutions as _db_list_insts,
@@ -83,7 +84,7 @@ class WebhookCreateReq(BaseModel):
 class UserRoleReq(BaseModel):
     role: str
 
-VALID_ROLES = {"ADMIN","CHECKER","MAKER","AGENT","AUDITOR"}
+VALID_ROLES = {"ADMIN","CHECKER","MAKER","AGENT","AUDITOR","COMPLIANCE_OFFICER"}
 
 # ══════════════════════════════════════════════════════════════════════════
 # 1. Platform Stats
@@ -130,7 +131,6 @@ async def update_institution(iid: str, req: InstitutionUpdateReq, cu: dict = Dep
 
 @router.delete("/institutions/{iid}", operation_id="admin_delete_institution")
 async def delete_institution(iid: str, cu: dict = Depends(require_admin)):
-    from app.services.tenant_provisioning import provision_tenant_schema, add_schema_to_allowlist
     from app.db.models.auth import Institution
     with db_session() as db:
         r = db.query(Institution).filter_by(id=iid).first()
@@ -194,7 +194,6 @@ async def get_user(uid: str, cu: dict = Depends(require_admin_or_auditor)):
 
 @router.put("/users/{uid}/activate", operation_id="admin_activate_user")
 async def activate_user(uid: str, active: bool = True, cu: dict = Depends(require_admin)):
-    from app.services.tenant_provisioning import provision_tenant_schema, add_schema_to_allowlist
     from app.db.models.auth import User
     with db_session() as db:
         r = db.query(User).filter_by(id=uid).first()
@@ -207,7 +206,6 @@ async def activate_user(uid: str, active: bool = True, cu: dict = Depends(requir
 
 @router.delete("/users/{uid}", operation_id="admin_delete_user")
 async def delete_user(uid: str, cu: dict = Depends(require_admin)):
-    from app.services.tenant_provisioning import provision_tenant_schema, add_schema_to_allowlist
     from app.db.models.auth import User
     with db_session() as db:
         r = db.query(User).filter_by(id=uid).first()
@@ -283,7 +281,7 @@ def _get_system_metrics() -> dict:
         import psutil
         cpu = psutil.cpu_percent(interval=0.1)
         mem = psutil.virtual_memory()
-        disk = psutil.disk_usage("C:/")
+        disk = psutil.disk_usage("/")
         return {
             "cpu_percent":    round(cpu, 1),
             "ram_percent":    round(mem.percent, 1),
@@ -306,7 +304,6 @@ def _get_migration_status() -> dict:
         alembic_cfg = Config(cfg_path)
         script = ScriptDirectory.from_config(alembic_cfg)
         head = script.get_current_head()
-        from app.db.database import engine
         with engine.connect() as conn:
             ctx = MigrationContext.configure(conn)
             current = ctx.get_current_revision()
@@ -321,7 +318,6 @@ def _get_migration_status() -> dict:
 
 @router.get("/health", operation_id="admin_health")
 async def admin_health(cu: dict = Depends(require_admin_or_auditor)):
-    from app.services.tenant_provisioning import provision_tenant_schema, add_schema_to_allowlist
     from sqlalchemy import text
     db_ok = False
     try:
