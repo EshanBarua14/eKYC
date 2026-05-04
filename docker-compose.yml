@@ -283,3 +283,11 @@ networks:
     internal: true
   ekyc_external:
     driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  app_uploads:
+  app_reports:
+  app_logs:
+  celerybeat_data:

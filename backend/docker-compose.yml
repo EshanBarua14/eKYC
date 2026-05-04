@@ -155,4 +155,3 @@ volumes:
   app_reports:
   app_logs:
   celerybeat_data:
-EOF
