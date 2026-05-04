@@ -1,0 +1,285 @@
+version: "3.9"
+
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "50m"
+    max-file: "5"
+
+services:
+
+  # ── PostgreSQL 16 ─────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: ekyc_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       ${POSTGRES_DB:-ekyc_db}
+      POSTGRES_USER:     ${POSTGRES_USER:-ekyc_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./infra/postgres/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ekyc_user} -d ${POSTGRES_DB:-ekyc_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ekyc_internal
+    logging: *default-logging
+
+  # ── Redis 7 (AOF persistence) ─────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: ekyc_redis
+    restart: unless-stopped
+    command: >
+      redis-server
+      --appendonly yes
+      --appendfsync everysec
+      --requirepass ${REDIS_PASSWORD}
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ekyc_internal
+    logging: *default-logging
+
+  # ── Backend API ───────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        BUILD_ENV: production
+    container_name: ekyc_backend
+    restart: unless-stopped
+    env_file: ./backend/.env.production
+    environment:
+      DATABASE_URL:          postgresql://${POSTGRES_USER:-ekyc_user}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-ekyc_db}
+      REDIS_URL:             redis://:${REDIS_PASSWORD}@redis:6379/0
+      CELERY_BROKER_URL:     redis://:${REDIS_PASSWORD}@redis:6379/0
+      CELERY_RESULT_BACKEND: redis://:${REDIS_PASSWORD}@redis:6379/1
+      DEBUG:                 "false"
+      NID_API_MODE:          ${NID_API_MODE:-DEMO}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend/keys:/app/keys:ro
+      - uploads_data:/app/uploads
+    expose:
+      - "8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - ekyc_internal
+    logging: *default-logging
+
+  # ── Celery Worker ─────────────────────────────────────────────────────
+  celery_worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ekyc_celery_worker
+    restart: unless-stopped
+    command: celery -A app.worker.celery_app worker --loglevel=info --concurrency=4 -Q default,screening,edd,reports
+    env_file: ./backend/.env.production
+    environment:
+      DATABASE_URL:          postgresql://${POSTGRES_USER:-ekyc_user}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-ekyc_db}
+      REDIS_URL:             redis://:${REDIS_PASSWORD}@redis:6379/0
+      CELERY_BROKER_URL:     redis://:${REDIS_PASSWORD}@redis:6379/0
+      CELERY_RESULT_BACKEND: redis://:${REDIS_PASSWORD}@redis:6379/1
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - uploads_data:/app/uploads
+    networks:
+      - ekyc_internal
+    logging: *default-logging
+
+  # ── Celery Beat Scheduler ─────────────────────────────────────────────
+  celery_beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ekyc_celery_beat
+    restart: unless-stopped
+    command: celery -A app.worker.celery_app beat --loglevel=info --scheduler celery.beat.PersistentScheduler --schedule=/app/celerybeat-schedule
+    env_file: ./backend/.env.production
+    environment:
+      DATABASE_URL:          postgresql://${POSTGRES_USER:-ekyc_user}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-ekyc_db}
+      REDIS_URL:             redis://:${REDIS_PASSWORD}@redis:6379/0
+      CELERY_BROKER_URL:     redis://:${REDIS_PASSWORD}@redis:6379/0
+      CELERY_RESULT_BACKEND: redis://:${REDIS_PASSWORD}@redis:6379/1
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - celerybeat_data:/app/celerybeat-schedule
+    networks:
+      - ekyc_internal
+    logging: *default-logging
+
+  # ── Frontend ──────────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ekyc_frontend
+    restart: unless-stopped
+    expose:
+      - "80"
+    networks:
+      - ekyc_internal
+    logging: *default-logging
+
+  # ── Nginx Reverse Proxy ───────────────────────────────────────────────
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: ekyc_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - certbot_data:/var/www/certbot:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - ekyc_internal
+      - ekyc_external
+    logging: *default-logging
+
+  # ── Prometheus ────────────────────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    container_name: ekyc_prometheus
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+    volumes:
+      - ./backend/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    expose:
+      - "9090"
+    networks:
+      - ekyc_internal
+    logging: *default-logging
+
+  # ── Grafana ───────────────────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:10.4.0
+    container_name: ekyc_grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}
+      GF_USERS_ALLOW_SIGN_UP:     "false"
+      GF_SERVER_ROOT_URL:         "https://${DOMAIN}/grafana/"
+      GF_SERVER_SERVE_FROM_SUB_PATH: "true"
+    volumes:
+      - ./backend/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana_data:/var/lib/grafana
+    expose:
+      - "3000"
+    depends_on:
+      - prometheus
+    networks:
+      - ekyc_internal
+    logging: *default-logging
+
+  # ── Celery Flower (task monitoring) ──────────────────────────────────────
+  flower:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ekyc_flower
+    restart: unless-stopped
+    command: celery -A app.worker.celery_app flower --port=5555 --basic_auth=${FLOWER_USER:-admin}:${FLOWER_PASSWORD:-changeme}
+    env_file: ./backend/.env.production
+    environment:
+      CELERY_BROKER_URL: redis://:@redis:6379/0
+    depends_on:
+      - redis
+      - celery_worker
+    expose:
+      - "5555"
+    networks:
+      - ekyc_internal
+    profiles: ["monitoring"]
+
+  # ── Certbot (Let's Encrypt SSL) ──────────────────────────────────────────
+  certbot:
+    image: certbot/certbot:latest
+    container_name: ekyc_certbot
+    volumes:
+      - certbot_data:/var/www/certbot
+      - ./nginx/ssl:/etc/nginx/ssl
+    entrypoint: ["/bin/sh", "-c", "trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet; sleep 12h & wait; done"]
+    depends_on:
+      - nginx
+    restart: unless-stopped
+    profiles: ["production"]
+
+  # ── DB Backup (daily pg_dump) ─────────────────────────────────────────
+  db_backup:
+    image: postgres:16-alpine
+    container_name: ekyc_db_backup
+    restart: unless-stopped
+    environment:
+      POSTGRES_HOST:     postgres
+      POSTGRES_DB:       ${POSTGRES_DB:-ekyc_db}
+      POSTGRES_USER:     ${POSTGRES_USER:-ekyc_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      BACKUP_RETENTION_DAYS: "30"
+    volumes:
+      - ./backend/scripts/backup_db.sh:/app/scripts/backup_db.sh:ro
+      - backup_data:/backups
+    depends_on:
+      postgres:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "-c", "crond -f -d 8 & echo '0 2 * * * /app/scripts/backup_db.sh >> /var/log/backup.log 2>&1' | crontab - && crond -f"]
+    networks:
+      - ekyc_internal
+
+volumes:
+  postgres_data:
+  redis_data:
+  backup_data:
+  uploads_data:
+  celerybeat_data:
+  certbot_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  ekyc_internal:
+    driver: bridge
+    internal: true
+  ekyc_external:
+    driver: bridge
