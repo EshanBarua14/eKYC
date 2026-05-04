@@ -147,16 +147,17 @@ function InstitutionsTab() {
                   </div>}
               </div>
               <div style={{display:"flex",gap:8,alignItems:"center"}}>
-                {(() => { const isActive = inst.status==="ACTIVE"||inst.active===true; return (<>
-                  <Badge color={isActive?"green":"red"}>{isActive?"Active":"Inactive"}</Badge>
-                  <Btn size="sm" variant={isActive?"warning":"success"} onClick={()=>toggleActive(inst)}>
-                    {isActive?"Deactivate":"Activate"}
-                  </Btn>
-                </>)})()}
+                <Badge color={inst.status==="ACTIVE"||inst.active?"green":"red"}>
+                  {inst.status==="ACTIVE"||inst.active?"Active":"Inactive"}
+                </Badge>
+                <Btn size="sm" variant={inst.status==="ACTIVE"||inst.active?"warning":"success"}
+                  onClick={()=>toggleActive(inst)}>
+                  {inst.status==="ACTIVE"||inst.active?"Deactivate":"Activate"}
+                </Btn>
                 <Btn size="sm" variant="danger" onClick={()=>del(inst.id)}><Trash2 size={11}/></Btn>
               </div>
             </div>
-          )})}
+          ))}
       </Card>
     </div>
   )
