@@ -92,3 +92,4 @@ wcwidth==0.6.0
 websockets==16.0
 wrapt==2.1.2
 sentry-sdk[fastapi]==2.58.0
+psutil==5.9.8
