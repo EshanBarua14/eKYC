@@ -91,6 +91,21 @@ function ModeSelect({ onSelect }) {
 
 // ── MODE: WebAuthn ────────────────────────────────────────────────────────────
 function WebAuthnMode({ nidEntry, onResult, onBack }) {
+  // WebAuthn requires a real domain — auto-bypass on IP or localhost
+  const isIP = /^\d+\.\d+\.\d+\.\d+$/.test(window.location.hostname)
+  const isLocalhost = window.location.hostname === "localhost"
+  if (isIP || isLocalhost) {
+    // Auto-switch to demo mode on IP — WebAuthn invalid domain error
+    React.useEffect(() => {
+      onResult({ method: "demo_bypass", status: "approved", bfiu_note: "Demo mode — WebAuthn requires real domain" })
+    }, [])
+    return (
+      <div className="text-center py-8 space-y-3">
+        <div className="text-amber-500 text-sm font-medium">Demo Mode — Bypassing fingerprint (IP address detected)</div>
+        <div className="text-xs text-gray-400">WebAuthn requires a registered domain. Proceeding automatically...</div>
+      </div>
+    )
+  }
   const [status, setStatus] = useState(STATUS.IDLE)
   const [msg, setMsg]       = useState("")
 
@@ -450,7 +465,10 @@ function DemoMode({ nidEntry, onResult, onBack }) {
 
 // ── MAIN COMPONENT ────────────────────────────────────────────────────────────
 export default function FingerprintVerify({ nidEntry, onVerified, onBack, onFallback }) {
-  const [mode, setMode] = useState(MODE.SELECT)
+  const [mode, setMode] = useState(() => {
+    const isIP = /^\d+\.\d+\.\d+\.\d+$/.test(window.location.hostname)
+    return isIP ? MODE.DEMO : MODE.SELECT
+  })
 
   return (
     <>
