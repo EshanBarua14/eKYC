@@ -11,7 +11,7 @@ const base64url = (buf) => {
   return btoa(str).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "")
 }
 
-const MODE = { SELECT: "select", WEBAUTHN: "webauthn", USB: "usb", DEMO: "demo" }
+const MODE = { SELECT: "select", WEBAUTHN: "webauthn", USB: "usb", MOBILE: "mobile", DEMO: "demo" }
 const STATUS = { IDLE: "idle", SCANNING: "scanning", SUCCESS: "success", FAILED: "failed" }
 
 // ── pulse ring animation (CSS-in-JS) ─────────────────────────────────────────
@@ -60,12 +60,14 @@ function PulseIcon({ status, size = 72 }) {
 // ── MODE: Select ──────────────────────────────────────────────────────────────
 function ModeSelect({ onSelect }) {
   const options = [
-    { id: MODE.WEBAUTHN, icon: <Shield size={20}/>,    label: "Windows Hello / Biometric",
-      sub: "Use laptop's built-in fingerprint scanner via browser WebAuthn API" },
-    { id: MODE.USB,      icon: <Usb size={20}/>,       label: "USB Fingerprint Scanner",
-      sub: "External USB scanner — place finger on device when prompted" },
     { id: MODE.DEMO,     icon: <Fingerprint size={20}/>, label: "Demo / Simulation",
-      sub: "Simulate fingerprint for testing — not for production use" },
+      sub: "Simulate fingerprint scan — recommended for testing & demo" },
+    { id: MODE.WEBAUTHN, icon: <Shield size={20}/>,    label: "Windows Hello PIN / Scan",
+      sub: "Use Windows Hello PIN, face or fingerprint via browser WebAuthn API" },
+    { id: MODE.USB,      icon: <Usb size={20}/>,       label: "USB Fingerprint Scanner",
+      sub: "Any USB-connected fingerprint reader — place finger when prompted" },
+    { id: MODE.MOBILE,   icon: <Fingerprint size={20}/>, label: "Mobile Scanner",
+      sub: "Scan fingerprint using your smartphone camera via QR code pairing" },
   ]
   return (
     <div style={{ display:"grid", gap:10 }}>
@@ -464,6 +466,48 @@ function DemoMode({ nidEntry, onResult, onBack }) {
 }
 
 // ── MAIN COMPONENT ────────────────────────────────────────────────────────────
+
+// ── MODE: Mobile Scanner ──────────────────────────────────────────────────────
+function MobileMode({ onResult, onBack }) {
+  const [status, setStatus] = useState(STATUS.IDLE)
+  const [msg, setMsg] = useState("")
+  const qrCode = `EKYC-FP-${Date.now().toString(36).toUpperCase()}`
+
+  const simulateMobileScan = () => {
+    setStatus(STATUS.SCANNING)
+    setMsg("Waiting for mobile device to connect...")
+    setTimeout(() => {
+      setMsg("Mobile device connected — scanning fingerprint...")
+      setTimeout(() => {
+        setStatus(STATUS.SUCCESS)
+        setMsg("Fingerprint captured successfully via mobile scanner")
+        setTimeout(() => onResult({ method: "mobile", status: "MATCHED", confidence: 88 }), 800)
+      }, 2000)
+    }, 1500)
+  }
+
+  return (
+    <div style={{ display:"grid", gap:16, textAlign:"center" }}>
+      <style>{pulse}</style>
+      <PulseIcon status={status}/>
+      <div style={{ padding:"16px", background:"var(--bg3)", borderRadius:"var(--radius-sm)", border:"1px solid var(--border)" }}>
+        <div style={{ fontSize:11, color:"var(--text3)", marginBottom:8 }}>Pairing Code</div>
+        <div style={{ fontSize:24, fontWeight:800, fontFamily:"var(--font-mono)", color:"var(--accent)", letterSpacing:"0.1em" }}>{qrCode}</div>
+        <div style={{ fontSize:11, color:"var(--text3)", marginTop:6 }}>Enter this code in the Xpert eKYC mobile app to pair your device</div>
+      </div>
+      <div style={{ fontSize:12, color:"var(--text2)", lineHeight:1.6 }}>
+        {msg || "Open the Xpert eKYC mobile app, tap 'Scan Fingerprint', and enter the pairing code above"}
+      </div>
+      <div style={{ display:"flex", gap:10, justifyContent:"center" }}>
+        {status === STATUS.IDLE && (
+          <Btn onClick={simulateMobileScan} variant="primary">Simulate Mobile Scan (Demo)</Btn>
+        )}
+        <Btn onClick={onBack} variant="ghost" size="sm">← Back</Btn>
+      </div>
+    </div>
+  )
+}
+
 export default function FingerprintVerify({ nidEntry, onVerified, onBack, onFallback }) {
   const [mode, setMode] = useState(() => {
     const isIP = /^\d+\.\d+\.\d+\.\d+$/.test(window.location.hostname)
@@ -509,6 +553,9 @@ export default function FingerprintVerify({ nidEntry, onVerified, onBack, onFall
         )}
         {mode === MODE.USB && (
           <USBMode nidEntry={nidEntry} onResult={onVerified} onBack={() => setMode(MODE.SELECT)}/>
+        )}
+        {mode === MODE.MOBILE && (
+          <MobileMode onResult={onVerified} onBack={() => setMode(MODE.SELECT)}/>
         )}
         {mode === MODE.DEMO && (
           <DemoMode nidEntry={nidEntry} onResult={onVerified} onBack={() => setMode(MODE.SELECT)}/>
