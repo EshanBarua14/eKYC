@@ -60,12 +60,12 @@ function PulseIcon({ status, size = 72 }) {
 // ── MODE: Select ──────────────────────────────────────────────────────────────
 function ModeSelect({ onSelect }) {
   const options = [
-    { id: MODE.WEBAUTHN, icon: <Shield size={20}/>,    label: "Windows Hello / Biometric",
-      sub: "Use laptop's built-in fingerprint scanner via browser WebAuthn API" },
-    { id: MODE.USB,      icon: <Usb size={20}/>,       label: "USB Fingerprint Scanner",
-      sub: "External USB scanner — place finger on device when prompted" },
     { id: MODE.DEMO,     icon: <Fingerprint size={20}/>, label: "Demo / Simulation",
-      sub: "Simulate fingerprint for testing — not for production use" },
+      sub: "Simulate fingerprint scan — recommended for testing & demo" },
+    { id: MODE.WEBAUTHN, icon: <Shield size={20}/>,    label: "Windows Hello PIN / Scan",
+      sub: "Use Windows Hello PIN, face or fingerprint via browser WebAuthn API" },
+    { id: MODE.USB,      icon: <Usb size={20}/>,       label: "USB Fingerprint Scanner",
+      sub: "Any USB-connected fingerprint reader — place finger when prompted" },
   ]
   return (
     <div style={{ display:"grid", gap:10 }}>
@@ -91,6 +91,7 @@ function ModeSelect({ onSelect }) {
 
 // ── MODE: WebAuthn ────────────────────────────────────────────────────────────
 function WebAuthnMode({ nidEntry, onResult, onBack }) {
+
   const [status, setStatus] = useState(STATUS.IDLE)
   const [msg, setMsg]       = useState("")
 
@@ -449,6 +450,7 @@ function DemoMode({ nidEntry, onResult, onBack }) {
 }
 
 // ── MAIN COMPONENT ────────────────────────────────────────────────────────────
+
 export default function FingerprintVerify({ nidEntry, onVerified, onBack, onFallback }) {
   const [mode, setMode] = useState(MODE.SELECT)
 
