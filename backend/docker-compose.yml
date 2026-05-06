@@ -5,6 +5,8 @@ services:
   postgres:
     image: postgres:15-alpine
     container_name: ekyc_postgres
+    ports:
+      - "127.0.0.1:5433:5432"
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-ekyc_db}
@@ -126,6 +128,7 @@ services:
       - celerybeat_data:/tmp
     networks:
       - ekyc_internal
+      - ekyc_external
     depends_on:
       - redis
 
