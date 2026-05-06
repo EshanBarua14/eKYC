@@ -486,7 +486,16 @@ function HealthTab() {
     setLoading(false)
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => {
+    load()
+    const timer = setInterval(() => {
+      // Silent refresh — don't show spinner on auto-refresh
+      apiFetch("/api/v1/admin/health")
+        .then(d => setData(d))
+        .catch(() => {})
+    }, 30000) // refresh every 30 seconds
+    return () => clearInterval(timer)
+  }, [])
 
   if (loading) return <div style={{display:"flex",justifyContent:"center",padding:40}}><Spinner/></div>
   if (err || !data) return <Card><div style={{color:"var(--red)"}}>{err||"Failed to load"}</div></Card>
@@ -498,7 +507,8 @@ function HealthTab() {
           <SectionTitle sub={`Checked: ${(data.timestamp||data.checked_at||"")?.slice(11,19)} UTC`}>System Status</SectionTitle>
           <div style={{display:"flex",gap:8}}>
             <Badge color={data.status==="healthy"?"green":"red"}>{data.status?.toUpperCase()}</Badge>
-            <Btn size="sm" variant="ghost" onClick={load}><RefreshCw size={12}/>Refresh</Btn>
+            <div style={{fontSize:11,color:"var(--text3)"}}>Auto-refreshes every 30s</div>
+          <Btn size="sm" variant="ghost" onClick={load}><RefreshCw size={12}/>Refresh Now</Btn>
           </div>
         </div>
         <StatGrid items={[

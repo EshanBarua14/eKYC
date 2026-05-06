@@ -66,8 +66,6 @@ function ModeSelect({ onSelect }) {
       sub: "Use Windows Hello PIN, face or fingerprint via browser WebAuthn API" },
     { id: MODE.USB,      icon: <Usb size={20}/>,       label: "USB Fingerprint Scanner",
       sub: "Any USB-connected fingerprint reader — place finger when prompted" },
-  />, label: "Mobile Scanner",
-      sub: "Scan fingerprint using your smartphone camera via QR code pairing" },
   ]
   return (
     <div style={{ display:"grid", gap:10 }}>
