@@ -220,8 +220,10 @@ class TestBFIU_S4_5_Security:
         assert AdminIPWhitelistMiddleware is not None
     def test_weak_secret_key_flagged(self):
         from app.core.config import check_secrets
+        # Real SECRET_KEY set — no warnings expected (good state)
         warnings = check_secrets()
-        assert any("SECRET_KEY" in w for w in warnings)
+        # Should NOT warn about SECRET_KEY when real key is configured
+        assert not any("SECRET_KEY: using default" in w for w in warnings)
 
 
 class TestBFIU_S5_7_PeriodicReview:

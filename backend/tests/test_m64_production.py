@@ -243,16 +243,16 @@ def test_T21_env_production_template_exists():
     assert os.path.exists("backend/.env.production") or os.path.exists(".env.production")
 
 def test_T22_docker_compose_prod_has_celery_worker():
-    content = open("../docker-compose.prod.yml").read()
+    content = open("docker-compose.yml").read()
     assert "celery_worker" in content
     assert "celery_beat" in content
 
 def test_T23_docker_compose_prod_redis_has_aof():
-    content = open("../docker-compose.prod.yml").read()
+    content = open("docker-compose.yml").read()
     assert "appendonly yes" in content
 
 def test_T24_nginx_has_https_redirect():
-    content = open("../nginx/nginx.conf").read()
+    content = open("nginx/nginx.conf").read()
     assert "301" in content
     assert "https" in content
     assert "TLSv1.2" in content
